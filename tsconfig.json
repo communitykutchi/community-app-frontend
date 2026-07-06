@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "Node16",
+    "jsx": "react-jsx",
+    "jsxImportSource": "react",
+    "moduleResolution": "node16",
+    "allowSyntheticDefaultImports": true,
+    "types": ["vite/client", "react", "react-dom"],
+    "strict": true,
+    "esModuleInterop": true,
+    "ignoreDeprecations": "5.0"
+  },
+  "include": ["src"]
+}
