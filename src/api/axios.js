@@ -11,8 +11,11 @@
 // }
 // export default api;
 import axios from "axios";
+const baseURL = import.meta.env.DEV
+    ? import.meta.env.VITE_API_URL || "/api"
+    : import.meta.env.VITE_API_URL || "https://community-app-backend-wrb0.onrender.com";
 const API = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000",
+    baseURL,
 });
 API.interceptors.request.use((config) => {
     const token = localStorage.getItem("token");

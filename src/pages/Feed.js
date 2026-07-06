@@ -7,7 +7,7 @@ export default function Feed() {
             return "";
         if (url.startsWith("http"))
             return url;
-        return `${import.meta.env.VITE_API_URL || "http://localhost:5000"}${url}`;
+        return `${import.meta.env.VITE_API_URL || "https://community-app-backend-wrb0.onrender.com"}${url}`;
     };
     const [text, setText] = useState("");
     const [posts, setPosts] = useState([]);
