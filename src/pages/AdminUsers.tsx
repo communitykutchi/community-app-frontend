@@ -164,11 +164,11 @@ export default function AdminUsersPage() {
 
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6">
-      <div className="rounded-2xl bg-white p-6 shadow-lg">
+      <div className="page-card p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold text-gray-800">{isJamaatAdmin ? 'Jamaat Member Management' : 'Admin & Member Management'}</h1>
-            <p className="mt-1 text-sm text-gray-500">
+            <h1 className="page-title text-2xl">{isJamaatAdmin ? 'Jamaat Member Management' : 'Admin & Member Management'}</h1>
+            <p className="page-subtitle mt-1 text-sm">
               {isJamaatAdmin
                 ? 'You can view members from your own jamaat only.'
                 : 'Any admin can promote or remove another user, and the hub keeps at least one admin active.'}
@@ -181,11 +181,11 @@ export default function AdminUsersPage() {
       </div>
 
       {!isJamaatAdmin ? (
-        <div className="rounded-2xl bg-white p-6 shadow-lg">
+        <div className="page-card p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h2 className="text-xl font-semibold text-gray-800">Manage Jamaats</h2>
-              <p className="mt-1 text-sm text-gray-500">Add jamaat names here so they can be selected during registration.</p>
+              <h2 className="page-title text-xl">Manage Jamaats</h2>
+              <p className="page-subtitle mt-1 text-sm">Add jamaat names here so they can be selected during registration.</p>
             </div>
           </div>
 
@@ -194,12 +194,12 @@ export default function AdminUsersPage() {
               value={jamaatName}
               onChange={(event) => setJamaatName(event.target.value)}
               placeholder="e.g. Kutchi Jamaat"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-700"
+              className="form-input w-full px-3 py-2"
             />
             <button
               type="submit"
               disabled={jamaatLoading}
-              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-60"
+              className="btn-primary rounded-lg px-4 py-2 text-sm font-semibold transition disabled:opacity-60"
             >
               {jamaatLoading ? 'Adding...' : 'Add Jamaat'}
             </button>
@@ -219,11 +219,11 @@ export default function AdminUsersPage() {
         </div>
       ) : null}
 
-      <div className="rounded-2xl bg-white p-6 shadow-lg">
+      <div className="page-card p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h2 className="text-xl font-semibold text-gray-800">Members by Jamaat</h2>
-            <p className="mt-1 text-sm text-gray-500">Click a jamaat to view only that group’s members.</p>
+            <h2 className="page-title text-xl">Members by Jamaat</h2>
+            <p className="page-subtitle mt-1 text-sm">Click a jamaat to view only that group’s members.</p>
           </div>
         </div>
 
@@ -233,7 +233,7 @@ export default function AdminUsersPage() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search by name, mobile, email, or jamaat"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-700"
+              className="form-input w-full px-3 py-2"
             />
 
             <div className="flex flex-wrap gap-2">
@@ -263,7 +263,7 @@ export default function AdminUsersPage() {
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search by name, mobile, or email"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-700"
+              className="form-input w-full px-3 py-2"
             />
           </div>
         )}
@@ -280,28 +280,28 @@ export default function AdminUsersPage() {
           <p className="text-sm text-gray-500">Loading users...</p>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 text-left text-sm">
-              <thead className="bg-gray-50">
+            <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
+              <thead className="bg-slate-50">
                 <tr>
-                  <th className="px-4 py-3 font-semibold text-gray-700">Name</th>
-                  <th className="px-4 py-3 font-semibold text-gray-700">Mobile</th>
-                  <th className="px-4 py-3 font-semibold text-gray-700">Email</th>
-                  {!isJamaatAdmin ? <th className="px-4 py-3 font-semibold text-gray-700">Role</th> : null}
-                  <th className="px-4 py-3 font-semibold text-gray-700">Actions</th>
+                  <th className="px-4 py-3 font-semibold text-slate-700">Name</th>
+                  <th className="px-4 py-3 font-semibold text-slate-700">Mobile</th>
+                  <th className="px-4 py-3 font-semibold text-slate-700">Email</th>
+                  {!isJamaatAdmin ? <th className="px-4 py-3 font-semibold text-slate-700">Role</th> : null}
+                  <th className="px-4 py-3 font-semibold text-slate-700">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-slate-100">
                 {visibleUsers.map((user) => (
                   <tr key={user._id}>
-                    <td className="px-4 py-3 font-medium text-gray-800">{user.fullName}</td>
-                    <td className="px-4 py-3 text-gray-600">{user.mobile}</td>
-                    <td className="px-4 py-3 text-gray-600">{user.email || '-'}</td>
+                    <td className="px-4 py-3 font-medium text-slate-800">{user.fullName}</td>
+                    <td className="px-4 py-3 text-slate-600">{user.mobile}</td>
+                    <td className="px-4 py-3 text-slate-600">{user.email || '-'}</td>
                     {!isJamaatAdmin ? (
                       <td className="px-4 py-3">
                         <select
                           value={user.role}
                           onChange={(event) => handleRoleChange(user._id, event.target.value as 'jamaat_admin' | 'member')}
-                          className="rounded-lg border border-gray-300 px-3 py-2 text-sm text-gray-700"
+                          className="form-input rounded-lg px-3 py-2 text-sm"
                         >
                           <option value="member">Member</option>
                           <option value="jamaat_admin">Jamaat Admin</option>
@@ -312,7 +312,7 @@ export default function AdminUsersPage() {
                       <button
                         type="button"
                         onClick={() => handleRemove(user._id)}
-                        className="rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
+                        className="rounded-lg border border-red-600 bg-red-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
                       >
                         Remove
                       </button>

@@ -94,45 +94,39 @@ export default function Login() {
     }
   };
 
-  const panelClass = "rounded-[1.6rem] border border-white/35 bg-white/80 p-6 shadow-[0_24px_70px_-38px_rgba(7,33,69,0.75)] backdrop-blur-xl sm:p-8";
+  const panelClass = "page-card p-6 sm:p-8";
 
   return (
-    <div className="auth-scene relative isolate overflow-hidden px-4 py-10 sm:px-6 lg:px-8">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="register-orb register-orb-one" />
-        <div className="register-orb register-orb-two" />
-        <div className="register-orb register-orb-three" />
-      </div>
-
-      <div className="relative mx-auto w-full max-w-xl">
+    <div className="px-4 py-10 sm:px-6 lg:px-8">
+      <div className="mx-auto w-full max-w-xl">
         <div className={panelClass}>
           <div className="mb-6 text-center">
-            <p className="inline-flex rounded-full bg-[#0f3d5e]/10 px-3 py-1 text-xs font-semibold tracking-[0.2em] text-[#0f3d5e]">WELCOME BACK</p>
-            <h2 className="mt-3 text-3xl font-black tracking-tight text-[#0d2742]">Member Login</h2>
-            <p className="mt-1 text-sm text-[#4b6788]">Access your community dashboard and updates.</p>
+            <p className="inline-flex rounded-full bg-blue-50 px-3 py-1 text-xs font-semibold tracking-[0.2em] text-blue-700">WELCOME BACK</p>
+            <h2 className="page-title mt-3 text-3xl">Member Login</h2>
+            <p className="page-subtitle mt-1 text-sm">Access your community dashboard and updates.</p>
           </div>
 
           {!forgotMode ? (
             <form className="flex flex-col gap-4 text-gray-700" onSubmit={handleSubmit}>
-              <div className="register-field">
-                <label className="register-label">Mobile Number or Email</label>
+              <div>
+                <label className="form-label">Mobile Number or Email</label>
                 <input
                   type="text"
                   placeholder="03XX-XXXXXXX or you@example.com"
-                  className="register-input"
+                  className="form-input"
                   required
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                 />
               </div>
 
-              <div className="register-field">
-                <label className="register-label">Password</label>
+              <div>
+                <label className="form-label">Password</label>
                 <div className="relative">
                   <input
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
-                    className="register-input w-full pr-10"
+                    className="form-input w-full pr-10"
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
@@ -164,7 +158,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={loading}
-                className="rounded-xl bg-gradient-to-r from-[#0f3d5e] via-[#1465a5] to-[#10a0b8] px-4 py-3 text-base font-bold text-white shadow-lg shadow-cyan-700/20 transition hover:scale-[1.01] disabled:opacity-60"
+                className="btn-primary rounded-xl px-4 py-3 text-base font-bold transition disabled:opacity-60"
               >
                 {loading ? "Logging in..." : "Login"}
               </button>
@@ -182,12 +176,12 @@ export default function Login() {
             </form>
           ) : (
             <form className="flex flex-col gap-4 text-gray-700" onSubmit={otpSent ? handleResetPassword : handleSendResetOtp}>
-              <div className="register-field">
-                <label className="register-label">Email</label>
+              <div>
+                <label className="form-label">Email</label>
                 <input
                   type="email"
                   placeholder="you@example.com"
-                  className="register-input"
+                  className="form-input"
                   required
                   value={resetEmail}
                   onChange={(e) => setResetEmail(e.target.value)}
@@ -196,24 +190,24 @@ export default function Login() {
 
               {otpSent ? (
                 <>
-                  <div className="register-field">
-                    <label className="register-label">OTP</label>
+                  <div>
+                    <label className="form-label">OTP</label>
                     <input
                       type="text"
                       placeholder="Enter 6-digit OTP"
-                      className="register-input"
+                      className="form-input"
                       required
                       value={resetOtp}
                       onChange={(e) => setResetOtp(e.target.value)}
                     />
                   </div>
 
-                  <div className="register-field">
-                    <label className="register-label">New Password</label>
+                  <div>
+                    <label className="form-label">New Password</label>
                     <input
                       type="password"
                       placeholder="Enter new password"
-                      className="register-input"
+                      className="form-input"
                       required
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
@@ -227,7 +221,7 @@ export default function Login() {
               <button
                 type="submit"
                 disabled={resetLoading}
-                className="rounded-xl bg-gradient-to-r from-[#0f3d5e] via-[#1465a5] to-[#10a0b8] px-4 py-3 text-base font-bold text-white shadow-lg shadow-cyan-700/20 transition hover:scale-[1.01] disabled:opacity-60"
+                className="btn-primary rounded-xl px-4 py-3 text-base font-bold transition disabled:opacity-60"
               >
                 {resetLoading ? "Please wait..." : otpSent ? "Reset Password" : "Send OTP"}
               </button>

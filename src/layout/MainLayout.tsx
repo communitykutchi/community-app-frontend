@@ -12,25 +12,23 @@ export default function MainLayout({ children }: MainLayoutProps) {
   const year = new Date().getFullYear();
 
   return (
-    <div className="site-shell min-h-screen w-full flex flex-col">
-      {/* Header: delegated to Navbar component */}
+    <div className="app-shell min-h-screen w-full">
       <Navbar />
 
-      {/* Main content: center page content horizontally and vertically when possible */}
-      <main className={isAuthVisualRoute ? 'flex-1 w-full p-0 bg-transparent' : 'site-main flex-1 w-full p-6'}>
+      <main className={isAuthVisualRoute ? 'w-full px-0 py-0' : 'w-full px-4 py-6 sm:px-6 lg:px-8'}>
         {isAuthVisualRoute ? (
           children
         ) : (
-          <div className="site-content w-full max-w-5xl mx-auto">
+          <div className="site-content mx-auto w-full max-w-6xl">
             {children}
           </div>
         )}
       </main>
 
-      <footer className="w-full border-t border-slate-200 bg-white">
-        <div className="mx-auto flex w-full max-w-5xl flex-col items-center justify-between gap-2 px-4 py-4 text-sm text-slate-600 md:flex-row">
-          <p className="font-medium text-slate-700">© {year} All Kutchi Community's Hub</p>
-          <p className="text-xs tracking-wide text-slate-500">Community • Privacy • Support</p>
+      <footer className="mt-6 w-full border-t border-slate-200/80 bg-white/90">
+        <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-2 px-4 py-4 text-sm text-slate-600 md:flex-row md:px-6">
+          <p className="font-semibold text-slate-700">© {year} All Kutchi Community Hub</p>
+          <p className="text-xs tracking-wide text-slate-500">Simple. Fast. Reliable.</p>
         </div>
       </footer>
     </div>

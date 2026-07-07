@@ -1,281 +1,126 @@
-@import "tailwindcss";                                
+@import "tailwindcss";
+
 :root {
-  font-family: "Poppins", "Segoe UI", sans-serif;
+  --brand-900: #0f172a;
+  --brand-700: #1e3a5f;
+  --brand-500: #2563eb;
+  --accent-500: #0f766e;
+  --surface-100: #f8fafc;
+  --surface-200: #eef2f7;
+  --text-900: #111827;
+  --text-700: #334155;
+  --text-500: #64748b;
+  --border: #dbe2ea;
+  font-family: "Manrope", "Segoe UI", sans-serif;
   line-height: 1.5;
   font-weight: 400;
-
   color-scheme: light;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  /* don't force a global link color; let components inherit or set their own color */
-  color: inherit;
-  text-decoration: inherit;
-}
-a:hover {
-  /* default hover: underline to indicate link without changing color */
-  text-decoration: underline;
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
-  /* remove flex centering so app can use full viewport width */
-  display: block;
   min-width: 320px;
   min-height: 100vh;
-  width: 100%;
+  color: var(--text-900);
+  background:
+    radial-gradient(circle at 8% 14%, rgba(37, 99, 235, 0.12), transparent 34%),
+    radial-gradient(circle at 84% 8%, rgba(15, 118, 110, 0.12), transparent 30%),
+    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.site-content > * {
+  animation: rise-in 220ms ease-out;
+}
+
+.page-card {
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 12px 30px -24px rgba(15, 23, 42, 0.45);
+}
+
+.page-title {
+  margin: 0;
+  color: var(--text-900);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+
+.page-subtitle {
+  margin: 0;
+  color: var(--text-500);
+}
+
+.form-label {
+  margin-bottom: 0.35rem;
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-700);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.form-input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--text-900);
+  padding: 0.65rem 0.8rem;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.btn-primary {
+  border: 1px solid #1d4ed8;
+  background: linear-gradient(90deg, #1d4ed8 0%, #2563eb 100%);
+  color: #fff;
+}
+
+.btn-secondary {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text-700);
 }
 
 button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  /* don't force a background color here — allow component/Tailwind classes to control button color */
   cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: transparent;
-}
-button:focus,
-button:focus-visible {
-  outline: none;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
-}
-@keyframes gradientMove {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-.animate-gradientMove {
-  animation: gradientMove 12s ease infinite;
-}
-
-@keyframes registerFloat {
-  0% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-  50% {
-    transform: translate3d(0, -18px, 0) scale(1.06);
-  }
-  100% {
-    transform: translate3d(0, 0, 0) scale(1);
-  }
-}
-
-@keyframes pulseGlow {
-  0% {
-    opacity: 0.45;
-  }
-  50% {
-    opacity: 0.9;
-  }
-  100% {
-    opacity: 0.45;
-  }
-}
-
-.register-scene {
-  min-height: calc(100vh - 6rem);
-  background:
-    radial-gradient(circle at 12% 10%, rgba(13, 122, 153, 0.22), transparent 38%),
-    radial-gradient(circle at 88% 26%, rgba(42, 78, 135, 0.24), transparent 34%),
-    linear-gradient(135deg, #f6fbff 0%, #def1ff 42%, #d9f3f0 100%);
-}
-
-.auth-scene {
-  min-height: calc(100vh - 6rem);
-  background:
-    radial-gradient(circle at 14% 16%, rgba(15, 61, 94, 0.18), transparent 36%),
-    radial-gradient(circle at 86% 18%, rgba(20, 101, 165, 0.2), transparent 33%),
-    linear-gradient(130deg, #f3fbff 0%, #e2f2ff 46%, #d8f1ef 100%);
-}
-
-.site-main {
-  background:
-    radial-gradient(circle at 12% 12%, rgba(13, 122, 153, 0.14), transparent 36%),
-    radial-gradient(circle at 88% 18%, rgba(20, 101, 165, 0.14), transparent 32%),
-    linear-gradient(145deg, #f7fcff 0%, #e9f5ff 50%, #e5f7f5 100%);
-}
-
-.site-content .bg-white {
-  background: rgba(255, 255, 255, 0.82) !important;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(12px);
-}
-
-.site-content .shadow,
-.site-content .shadow-lg,
-.site-content .shadow-xl,
-.site-content .shadow-sm {
-  box-shadow: 0 24px 60px -40px rgba(7, 33, 69, 0.65) !important;
-}
-
-.site-content input,
-.site-content select,
-.site-content textarea {
-  border-color: rgba(20, 70, 116, 0.18) !important;
-  background: rgba(255, 255, 255, 0.88) !important;
-  color: #17324d;
-}
-
-.site-content input:focus,
-.site-content select:focus,
-.site-content textarea:focus {
-  outline: none;
-  border-color: rgba(20, 101, 165, 0.55) !important;
-  box-shadow: 0 0 0 4px rgba(20, 101, 165, 0.14) !important;
-}
-
-.site-content .bg-blue-600,
-.site-content .bg-indigo-600,
-.site-content .bg-blue-500 {
-  background-image: linear-gradient(120deg, #0f3d5e 0%, #1465a5 52%, #10a0b8 100%) !important;
-}
-
-.site-content .text-blue-600,
-.site-content .text-blue-700 {
-  color: #0f3d5e !important;
-}
-
-.site-content table thead {
-  background: rgba(20, 101, 165, 0.08) !important;
-}
-
-.register-orb {
-  position: absolute;
-  border-radius: 9999px;
-  filter: blur(18px);
-  animation: registerFloat 9s ease-in-out infinite;
-}
-
-.register-orb-one {
-  width: 15rem;
-  height: 15rem;
-  left: -4rem;
-  top: -3rem;
-  background: linear-gradient(140deg, rgba(20, 101, 165, 0.35), rgba(14, 68, 122, 0.2));
-}
-
-.register-orb-two {
-  width: 13rem;
-  height: 13rem;
-  right: -3rem;
-  top: 22%;
-  background: linear-gradient(160deg, rgba(16, 160, 184, 0.35), rgba(43, 115, 110, 0.2));
-  animation-delay: 1.6s;
-}
-
-.register-orb-three {
-  width: 12rem;
-  height: 12rem;
-  left: 45%;
-  bottom: -4rem;
-  background: linear-gradient(140deg, rgba(12, 61, 94, 0.35), rgba(20, 101, 165, 0.15));
-  animation-delay: 0.7s;
-}
-
-.register-field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-}
-
-.register-label {
-  font-size: 0.8rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: #24415f;
-  font-weight: 700;
-}
-
-.register-input {
-  width: 100%;
-  border: 1px solid rgba(20, 70, 116, 0.18);
-  border-radius: 0.8rem;
-  background: rgba(255, 255, 255, 0.85);
-  color: #17324d;
-  padding: 0.65rem 0.8rem;
-  transition: box-shadow 180ms ease, border-color 180ms ease, transform 180ms ease;
-}
-
-.register-input:focus {
-  outline: none;
-  border-color: rgba(20, 101, 165, 0.55);
-  box-shadow: 0 0 0 4px rgba(20, 101, 165, 0.14);
-  transform: translateY(-1px);
-}
-
-.register-input::placeholder {
-  color: #7290ac;
-}
-
-@media (max-width: 640px) {
-  .register-scene {
-    min-height: calc(100vh - 4rem);
-  }
-
-  .register-orb {
-    filter: blur(14px);
-  }
-}
-@keyframes fadeIn {
+@keyframes rise-in {
   from {
     opacity: 0;
-    transform: translateY(25px);
+    transform: translateY(10px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
-}
-@keyframes gradientMove {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
-
-.animate-gradientMove {
-  animation: gradientMove 12s ease infinite;
 }

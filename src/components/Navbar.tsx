@@ -63,38 +63,38 @@ export default function Navbar() {
 		  ];
 
 	const desktopLinkClass = (to: string) =>
-		`rounded-lg border px-3 py-2 text-sm font-semibold transition ${isActive(to)
-			? 'border-slate-900 bg-slate-900 text-white'
-			: 'border-slate-300 bg-slate-100 text-slate-800 hover:border-slate-400 hover:bg-slate-200 hover:text-slate-900'}`;
+		`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${isActive(to)
+			? 'bg-slate-900 !text-white hover:!text-white'
+			: 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'}`;
 
 	const mobileLinkClass = (to: string) =>
-		`block w-full rounded-xl px-3 py-2.5 text-sm font-semibold transition ${isActive(to)
-			? 'border border-slate-900 bg-slate-900 text-white shadow-sm'
-			: 'border border-slate-300 bg-slate-100 text-slate-800 hover:border-slate-400 hover:bg-slate-200 hover:text-slate-900'}`;
+		`block w-full rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${isActive(to)
+			? 'bg-slate-900 !text-white hover:!text-white'
+			: 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'}`;
 
 	if (isAuthRoute) {
 		return (
-			<header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/90 backdrop-blur">
-				<div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 md:px-2">
+			<header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/95 backdrop-blur">
+				<div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 md:px-6">
 					<Link to="/" className="min-w-0 flex max-w-[62%] items-center gap-3 sm:max-w-none">
-						<div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-cyan-500 via-sky-500 to-blue-700 text-sm font-black text-white shadow-[0_10px_20px_-10px_rgba(14,116,144,0.8)]">
+						<div className="grid h-9 w-9 place-items-center rounded-lg bg-slate-900 text-sm font-black text-white">
 							KH
 						</div>
 						<div className="min-w-0">
-							<p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Kutchi Hub</p>
+							<p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Community Portal</p>
 							<p className="truncate text-xs font-bold leading-tight text-slate-900 sm:text-sm md:text-base">All Kutchi Community</p>
 						</div>
 					</Link>
 					<div className="flex items-center gap-2">
 						<Link
 							to="/login"
-							className={`rounded-lg border px-3 py-2 text-xs font-semibold transition sm:text-sm ${isActive('/login') ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 bg-slate-100 text-slate-800 hover:border-slate-400 hover:bg-slate-200 hover:text-slate-900'}`}
+							className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors sm:text-sm ${isActive('/login') ? 'bg-slate-900 !text-white hover:!text-white' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'}`}
 						>
 							Login
 						</Link>
 						<Link
 							to="/register"
-							className={`rounded-lg border px-3 py-2 text-xs font-semibold transition sm:text-sm ${isActive('/register') ? 'border-slate-900 bg-slate-900 text-white' : 'border-slate-300 bg-slate-100 text-slate-800 hover:border-slate-400 hover:bg-slate-200 hover:text-slate-900'}`}
+							className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors sm:text-sm ${isActive('/register') ? 'bg-slate-900 !text-white hover:!text-white' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'}`}
 						>
 							Register
 						</Link>
@@ -105,20 +105,20 @@ export default function Navbar() {
 	}
 
 	return (
-		<header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/90 text-slate-900 backdrop-blur">
-			<div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 md:px-2">
+		<header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/95 text-slate-900 backdrop-blur">
+			<div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 md:px-6">
 				<Link to="/" className="min-w-0 flex max-w-[72%] items-center gap-2 sm:max-w-none sm:gap-3">
-					<div className="grid h-8 w-8 place-items-center rounded-xl bg-gradient-to-br from-cyan-500 via-sky-500 to-blue-700 text-xs font-black text-white shadow-[0_10px_20px_-10px_rgba(14,116,144,0.8)] sm:h-9 sm:w-9 sm:text-sm">
+					<div className="grid h-8 w-8 place-items-center rounded-lg bg-slate-900 text-xs font-black text-white sm:h-9 sm:w-9 sm:text-sm">
 						KH
 					</div>
 					<div>
-						<p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">Kutchi Hub</p>
+						<p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">Community Portal</p>
 						<h1 className="truncate text-xs font-bold sm:text-sm md:text-base">All Kutchi Community</h1>
 					</div>
 				</Link>
 
 				<div className="hidden items-center gap-3 md:flex">
-					<nav className="flex items-center gap-1 rounded-full border border-slate-200 bg-white p-1 shadow-sm">
+					<nav className="flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1">
 						{navItems.map((item) => (
 							<Link key={item.to} to={item.to} className={desktopLinkClass(item.to)}>
 								{item.label}
@@ -126,7 +126,7 @@ export default function Navbar() {
 						))}
 					</nav>
 					{isAuthenticated ? (
-						<button onClick={handleLogout} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-50 hover:text-slate-900">
+						<button onClick={handleLogout} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-100 hover:text-slate-900">
 							Logout
 						</button>
 					) : null}
@@ -150,7 +150,7 @@ export default function Navbar() {
 				</button>
 			</div>
 
-			<div id="mobile-menu" className={`border-t border-slate-200 bg-white px-4 py-3 shadow-sm md:hidden ${open ? 'block' : 'hidden'}`}>
+			<div id="mobile-menu" className={`border-t border-slate-200 bg-white px-4 py-3 md:hidden ${open ? 'block' : 'hidden'}`}>
 				<div className="mx-auto flex max-w-6xl flex-col gap-2">
 					<p className="px-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">Navigation</p>
 					{navItems.map((item) => (
@@ -159,7 +159,7 @@ export default function Navbar() {
 						</Link>
 					))}
 					{isAuthenticated ? (
-						<button onClick={handleLogout} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 hover:text-slate-900">
+						<button onClick={handleLogout} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900">
 							Logout
 						</button>
 					) : null}

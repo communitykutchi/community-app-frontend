@@ -172,26 +172,26 @@ export default function NoticesPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-      <div className="rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 p-6 text-white shadow-xl">
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-100">Community Notices & Alerts</p>
-        <h1 className="mt-2 text-2xl font-semibold">This channel is for important updates</h1>
-        <p className="mt-2 max-w-2xl text-sm text-blue-50">
+      <div className="page-card p-6">
+        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-700">Community Notices & Alerts</p>
+        <h1 className="page-title mt-2 text-2xl">This channel is for important updates</h1>
+        <p className="page-subtitle mt-2 max-w-2xl text-sm">
           {isAdminRole
             ? "You can publish alerts and important announcements for the community."
             : "You are viewing in member mode. You can read updates, react to them, and share them with others."}
         </p>
 
-        <div className="mt-4 inline-flex rounded-full bg-white/15 px-3 py-2 text-sm font-semibold text-blue-50">
+        <div className="mt-4 inline-flex rounded-full bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700">
           {role === "loading" ? "Checking access..." : isAdminRole ? "Admin access" : "Member access"}
         </div>
       </div>
 
       {isAdminRole ? (
-        <div className="rounded-2xl border border-blue-100 bg-white p-6 shadow-lg">
+        <div className="page-card p-6">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <h2 className="text-xl font-semibold text-gray-800">Post a new notice</h2>
-              <p className="text-sm text-gray-500">Admins can publish updates for everyone in the community.</p>
+              <h2 className="page-title text-xl">Post a new notice</h2>
+              <p className="page-subtitle text-sm">Admins can publish updates for everyone in the community.</p>
             </div>
             <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-700">Admin only</span>
           </div>
@@ -201,20 +201,20 @@ export default function NoticesPage() {
               value={title}
               onChange={(event) => setTitle(event.target.value)}
               placeholder="Notice title"
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className="form-input px-4 py-3"
             />
             <textarea
               value={body}
               onChange={(event) => setBody(event.target.value)}
               rows={4}
               placeholder="Write the alert or announcement..."
-              className="w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              className="form-input px-4 py-3"
             />
             <label className="flex items-center gap-2 text-sm text-gray-600">
               <input type="checkbox" checked={pinned} onChange={() => setPinned((current) => !current)} />
               Pin this notice to the top
             </label>
-            <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition hover:bg-blue-700">
+            <button type="submit" className="btn-primary rounded-lg px-4 py-2 font-semibold transition">
               Publish notice
             </button>
           </form>
@@ -222,23 +222,23 @@ export default function NoticesPage() {
           {status ? <p className="mt-3 text-sm text-emerald-600">{status}</p> : null}
         </div>
       ) : (
-        <div className="rounded-2xl border border-gray-200 bg-white p-4 text-sm text-gray-600 shadow-sm">
+        <div className="page-card p-4 text-sm text-slate-600">
           You are viewing in member mode. You can read updates, react to them, and share them with others.
         </div>
       )}
 
       <div className="space-y-3">
         {notices.map((notice) => (
-          <article key={notice.id} className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+          <article key={notice.id} className="page-card p-5">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-lg font-semibold text-gray-800">{notice.title}</h3>
+                  <h3 className="text-lg font-semibold text-slate-800">{notice.title}</h3>
                   {notice.pinned ? <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">Pinned</span> : null}
                 </div>
-                <p className="mt-2 text-sm leading-6 text-gray-700">{notice.body}</p>
+                <p className="mt-2 text-sm leading-6 text-slate-700">{notice.body}</p>
               </div>
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-slate-500">
                 <p>{notice.author}</p>
                 <p>{new Date(notice.createdAt).toLocaleString()}</p>
               </div>
@@ -255,7 +255,7 @@ export default function NoticesPage() {
               <button
                 type="button"
                 onClick={() => handleShare(notice)}
-                className="rounded-full bg-gray-100 px-3 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-200"
+                className="rounded-full bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-200"
               >
                 Share · {notice.shares}
               </button>
@@ -287,18 +287,18 @@ export default function NoticesPage() {
             </div>
 
             {isAdminRole && editingNoticeId === notice.id ? (
-              <div className="mt-4 space-y-3 rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <div className="mt-4 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <input
                   value={editTitle}
                   onChange={(event) => setEditTitle(event.target.value)}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-700"
+                  className="form-input px-3 py-2"
                   placeholder="Edit title"
                 />
                 <textarea
                   value={editBody}
                   onChange={(event) => setEditBody(event.target.value)}
                   rows={3}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-700"
+                  className="form-input px-3 py-2"
                   placeholder="Edit message"
                 />
                 <label className="flex items-center gap-2 text-sm text-gray-600">
@@ -306,10 +306,10 @@ export default function NoticesPage() {
                   Pin this notice
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  <button type="button" onClick={() => saveEdit(notice.id)} className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold text-white">
+                  <button type="button" onClick={() => saveEdit(notice.id)} className="btn-primary rounded-lg px-3 py-2 text-sm font-semibold">
                     Save
                   </button>
-                  <button type="button" onClick={cancelEdit} className="rounded-lg bg-gray-200 px-3 py-2 text-sm font-semibold text-gray-700">
+                  <button type="button" onClick={cancelEdit} className="btn-secondary rounded-lg px-3 py-2 text-sm font-semibold">
                     Cancel
                   </button>
                 </div>

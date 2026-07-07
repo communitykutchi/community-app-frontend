@@ -155,20 +155,14 @@ export default function Register() {
     message.toLowerCase().includes('verified');
 
   return (
-    <div className="register-scene relative isolate overflow-hidden px-4 py-8 sm:px-6 lg:px-8">
-      <div className="pointer-events-none absolute inset-0">
-        <div className="register-orb register-orb-one" />
-        <div className="register-orb register-orb-two" />
-        <div className="register-orb register-orb-three" />
-      </div>
-
-      <div className="relative mx-auto w-full max-w-5xl rounded-[2rem] border border-white/30 bg-white/75 p-6 shadow-[0_30px_80px_-40px_rgba(7,33,69,0.75)] backdrop-blur-xl sm:p-8">
+    <div className="px-4 py-8 sm:px-6 lg:px-8">
+      <div className="page-card mx-auto w-full max-w-5xl p-6 sm:p-8">
         <div className="mb-7 text-center sm:mb-8">
-          <p className="inline-flex items-center rounded-full bg-[#0f3d5e]/10 px-4 py-1 text-xs font-semibold tracking-[0.2em] text-[#0f3d5e]">
+          <p className="inline-flex items-center rounded-full bg-blue-50 px-4 py-1 text-xs font-semibold tracking-[0.2em] text-blue-700">
             COMMUNITY MEMBERSHIP
           </p>
-          <h2 className="mt-3 text-3xl font-black tracking-tight text-[#0d2742] sm:text-4xl">Create Your Member Profile</h2>
-          <p className="mt-2 text-sm text-[#345070] sm:text-base">Fill details once, verify your email, and join your jamaat dashboard.</p>
+          <h2 className="page-title mt-3 text-3xl sm:text-4xl">Create Your Member Profile</h2>
+          <p className="page-subtitle mt-2 text-sm sm:text-base">Fill details once, verify your email, and join your jamaat dashboard.</p>
         </div>
 
         {message && (
@@ -179,48 +173,48 @@ export default function Register() {
 
         <form className="space-y-6 text-gray-700" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2 md:gap-5">
-            <div className="register-field">
-              <label className="register-label">Full Name</label>
-              <input name="fullName" value={form.fullName} onChange={handleChange} placeholder="Full name" className="register-input" required />
+            <div>
+              <label className="form-label">Full Name</label>
+              <input name="fullName" value={form.fullName} onChange={handleChange} placeholder="Full name" className="form-input" required />
             </div>
 
-            <div className="register-field">
-              <label className="register-label">Father Name</label>
-              <input name="fatherName" value={form.fatherName} onChange={handleChange} placeholder="Father full name" className="register-input" />
+            <div>
+              <label className="form-label">Father Name</label>
+              <input name="fatherName" value={form.fatherName} onChange={handleChange} placeholder="Father full name" className="form-input" />
             </div>
 
-            <div className="register-field">
-              <label className="register-label">Mother Name</label>
-              <input name="motherName" value={form.motherName} onChange={handleChange} placeholder="Mother full name" className="register-input" />
+            <div>
+              <label className="form-label">Mother Name</label>
+              <input name="motherName" value={form.motherName} onChange={handleChange} placeholder="Mother full name" className="form-input" />
             </div>
 
-            <div className="register-field">
-              <label className="register-label">Family Members</label>
-              <input name="familyMembers" value={form.familyMembers} onChange={handleChange} type="number" min="1" placeholder="e.g. 4" className="register-input" />
+            <div>
+              <label className="form-label">Family Members</label>
+              <input name="familyMembers" value={form.familyMembers} onChange={handleChange} type="number" min="1" placeholder="e.g. 4" className="form-input" />
             </div>
 
-            <div className="register-field">
-              <label className="register-label">Date of Birth</label>
-              <input name="dob" value={form.dob} onChange={handleChange} type="date" className="register-input" />
+            <div>
+              <label className="form-label">Date of Birth</label>
+              <input name="dob" value={form.dob} onChange={handleChange} type="date" className="form-input" />
             </div>
 
-            <div className="register-field">
-              <label className="register-label">CNIC Number</label>
-              <input name="cnic" value={form.cnic} onChange={handleChange} placeholder="XXXXX-XXXXXXX-X" className="register-input" />
+            <div>
+              <label className="form-label">CNIC Number</label>
+              <input name="cnic" value={form.cnic} onChange={handleChange} placeholder="XXXXX-XXXXXXX-X" className="form-input" />
             </div>
 
-            <div className="register-field">
-              <label className="register-label">Mobile Number</label>
-              <input name="mobile" value={form.mobile} onChange={handleChange} placeholder="03XX-XXXXXXX" className="register-input" required />
+            <div>
+              <label className="form-label">Mobile Number</label>
+              <input name="mobile" value={form.mobile} onChange={handleChange} placeholder="03XX-XXXXXXX" className="form-input" required />
             </div>
 
-            <div className="register-field">
-              <label className="register-label">Jamaat</label>
+            <div>
+              <label className="form-label">Jamaat</label>
               <select
                 name="jamaat"
                 value={form.jamaat}
                 onChange={handleChange}
-                className="register-input"
+                className="form-input"
                 required
               >
                 <option value="">Select jamaat</option>
@@ -230,23 +224,23 @@ export default function Register() {
               </select>
             </div>
 
-            <div className="register-field md:col-span-2">
-              <label className="register-label">Email Address</label>
-              <input name="email" value={form.email} onChange={handleChange} type="email" placeholder="you@example.com" className="register-input" />
+            <div className="md:col-span-2">
+              <label className="form-label">Email Address</label>
+              <input name="email" value={form.email} onChange={handleChange} type="email" placeholder="you@example.com" className="form-input" />
               <div className="mt-3 flex flex-wrap gap-2">
-                <button type="button" onClick={handleSendOtp} disabled={sendingOtp || !form.email} className="rounded-lg bg-[#0f3d5e] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#0b2f49] disabled:opacity-60">
+                <button type="button" onClick={handleSendOtp} disabled={sendingOtp || !form.email} className="btn-primary rounded-lg px-3 py-2 text-sm font-semibold transition disabled:opacity-60">
                   {sendingOtp ? 'Sending...' : otpSent ? 'Resend OTP' : 'Send OTP'}
                 </button>
-                <button type="button" onClick={handleVerifyOtp} disabled={verifyingOtp || !otpSent || !otpCode} className="rounded-lg bg-[#157347] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#0f5b38] disabled:opacity-60">
+                <button type="button" onClick={handleVerifyOtp} disabled={verifyingOtp || !otpSent || !otpCode} className="rounded-lg border border-emerald-300 bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60">
                   {verifyingOtp ? 'Verifying...' : 'Verify OTP'}
                 </button>
               </div>
-              <input value={otpCode} onChange={(e) => setOtpCode(e.target.value)} placeholder="Enter 6-digit OTP" className="register-input mt-3" />
-              <p className="mt-2 text-xs font-medium text-[#586f89]">{otpVerified ? 'Email verified.' : 'Please verify your email before registering.'}</p>
+              <input value={otpCode} onChange={(e) => setOtpCode(e.target.value)} placeholder="Enter 6-digit OTP" className="form-input mt-3" />
+              <p className="mt-2 text-xs font-medium text-slate-500">{otpVerified ? 'Email verified.' : 'Please verify your email before registering.'}</p>
             </div>
 
-            <div className="register-field md:col-span-2">
-              <label className="register-label">Password</label>
+            <div className="md:col-span-2">
+              <label className="form-label">Password</label>
               <div className="relative">
                 <input
                   name="password"
@@ -254,7 +248,7 @@ export default function Register() {
                   onChange={handleChange}
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Enter password"
-                  className="register-input w-full pr-10"
+                  className="form-input w-full pr-10"
                   required
                 />
                 <button
@@ -281,17 +275,17 @@ export default function Register() {
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <div className="register-field">
-              <label className="register-label">Home Status</label>
-              <select name="homeStatus" value={form.homeStatus} onChange={handleChange} className="register-input">
+            <div>
+              <label className="form-label">Home Status</label>
+              <select name="homeStatus" value={form.homeStatus} onChange={handleChange} className="form-input">
                 <option>Owner</option>
                 <option>Rent</option>
               </select>
             </div>
 
-            <div className="register-field">
-              <label className="register-label">Occupation</label>
-              <select name="occupation" value={form.occupation} onChange={handleChange} className="register-input">
+            <div>
+              <label className="form-label">Occupation</label>
+              <select name="occupation" value={form.occupation} onChange={handleChange} className="form-input">
                 <option>Employee</option>
                 <option>Business Man</option>
               </select>
@@ -299,9 +293,9 @@ export default function Register() {
           </div>
 
           {form.occupation === 'Business Man' && (
-            <div className="register-field">
-              <label className="register-label">Business Name</label>
-              <input name="businessName" value={form.businessName} onChange={handleChange} placeholder="Your business name" className="register-input" />
+            <div>
+              <label className="form-label">Business Name</label>
+              <input name="businessName" value={form.businessName} onChange={handleChange} placeholder="Your business name" className="form-input" />
             </div>
           )}
 
@@ -309,14 +303,14 @@ export default function Register() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-xl bg-gradient-to-r from-[#0f3d5e] via-[#1465a5] to-[#10a0b8] px-4 py-3 text-base font-bold text-white shadow-lg shadow-cyan-700/20 transition hover:scale-[1.01] disabled:opacity-60 sm:w-64"
+              className="btn-primary w-full rounded-xl px-4 py-3 text-base font-bold transition disabled:opacity-60 sm:w-64"
             >
               {loading ? 'Submitting...' : 'Register'}
             </button>
 
-            <div className="mt-4 text-sm text-[#35516f]">
+            <div className="mt-4 text-sm text-slate-600">
               <span className="mr-2">Already have an account?</span>
-              <a href="/login" className="font-semibold text-[#0f3d5e] hover:text-[#1465a5]">Login</a>
+              <a href="/login" className="font-semibold text-blue-700 hover:text-blue-800">Login</a>
             </div>
           </div>
         </form>
