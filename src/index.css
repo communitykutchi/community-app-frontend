@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+:root {
+  --brand-900: #0f172a;
+  --brand-700: #1e3a5f;
+  --brand-500: #2563eb;
+  --accent-500: #0f766e;
+  --surface-100: #f8fafc;
+  --surface-200: #eef2f7;
+  --text-900: #111827;
+  --text-700: #334155;
+  --text-500: #64748b;
+  --border: #dbe2ea;
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  color: var(--text-900);
+  background:
+    radial-gradient(circle at 8% 14%, rgba(37, 99, 235, 0.12), transparent 34%),
+    radial-gradient(circle at 84% 8%, rgba(15, 118, 110, 0.12), transparent 30%),
+    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.app-shell {
+  min-height: 100vh;
+}
+
+.site-content > * {
+  animation: rise-in 220ms ease-out;
+}
+
+.page-card {
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: #ffffff;
+  box-shadow: 0 12px 30px -24px rgba(15, 23, 42, 0.45);
+}
+
+.page-title {
+  margin: 0;
+  color: var(--text-900);
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+
+.page-subtitle {
+  margin: 0;
+  color: var(--text-500);
+}
+
+.form-label {
+  margin-bottom: 0.35rem;
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-700);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.form-input {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  color: var(--text-900);
+  padding: 0.65rem 0.8rem;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.btn-primary {
+  border: 1px solid #1d4ed8;
+  background: linear-gradient(90deg, #1d4ed8 0%, #2563eb 100%);
+  color: #fff;
+}
+
+.btn-secondary {
+  border: 1px solid var(--border);
+  background: #fff;
+  color: var(--text-700);
+}
+
+button {
+  cursor: pointer;
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
