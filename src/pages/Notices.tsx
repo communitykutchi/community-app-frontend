@@ -12,16 +12,12 @@ interface Notice {
   shares: number;
 }
 
-<<<<<<< HEAD
 type Role = "super_admin" | "moderator" | "member" | "loading";
 
 function normalizeRole(role?: string): Role | undefined {
   if (role === 'jamaat_admin') return 'moderator';
   return role as Role | undefined;
 }
-=======
-type Role = "super_admin" | "jamaat_admin" | "member" | "loading";
->>>>>>> 04b2b653aab20788d83c5ce2c3a65e0546c90875
 
 const starterNotices: Notice[] = [
   {
@@ -72,13 +68,8 @@ export default function NoticesPage() {
       try {
         const response = await API.get<{ success: boolean; user?: { role?: string } }>('/auth/me');
         if (response.data.success && response.data.user?.role) {
-<<<<<<< HEAD
           const nextRole = normalizeRole(response.data.user.role);
           setRole(nextRole === 'super_admin' || nextRole === 'moderator' ? nextRole : 'member');
-=======
-          const nextRole = response.data.user.role as Role;
-          setRole(nextRole === 'super_admin' || nextRole === 'jamaat_admin' ? nextRole : 'member');
->>>>>>> 04b2b653aab20788d83c5ce2c3a65e0546c90875
         } else {
           setRole('member');
         }
@@ -96,12 +87,8 @@ export default function NoticesPage() {
     }
   }, [notices]);
 
-<<<<<<< HEAD
   const isAdminRole = role === "super_admin" || role === "moderator";
   const roleResolved = role !== 'loading';
-=======
-  const isAdminRole = role === "super_admin" || role === "jamaat_admin";
->>>>>>> 04b2b653aab20788d83c5ce2c3a65e0546c90875
 
   const handlePost = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -195,13 +182,9 @@ export default function NoticesPage() {
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-700">Community Notices & Alerts</p>
         <h1 className="page-title mt-2 text-2xl">This channel is for important updates</h1>
         <p className="page-subtitle mt-2 max-w-2xl text-sm">
-<<<<<<< HEAD
           {!roleResolved
             ? "Checking your access level for notices..."
             : isAdminRole
-=======
-          {isAdminRole
->>>>>>> 04b2b653aab20788d83c5ce2c3a65e0546c90875
             ? "You can publish alerts and important announcements for the community."
             : "You are viewing in member mode. You can read updates, react to them, and share them with others."}
         </p>
@@ -211,13 +194,9 @@ export default function NoticesPage() {
         </div>
       </div>
 
-<<<<<<< HEAD
       {!roleResolved ? (
         <div className="page-card p-4 text-sm text-slate-600">Checking access...</div>
       ) : isAdminRole ? (
-=======
-      {isAdminRole ? (
->>>>>>> 04b2b653aab20788d83c5ce2c3a65e0546c90875
         <div className="page-card p-6">
           <div className="flex items-center justify-between gap-3">
             <div>
@@ -290,11 +269,7 @@ export default function NoticesPage() {
               >
                 Share · {notice.shares}
               </button>
-<<<<<<< HEAD
               {roleResolved && isAdminRole ? (
-=======
-              {isAdminRole ? (
->>>>>>> 04b2b653aab20788d83c5ce2c3a65e0546c90875
                 <>
                   <button
                     type="button"
@@ -321,11 +296,7 @@ export default function NoticesPage() {
               ) : null}
             </div>
 
-<<<<<<< HEAD
             {roleResolved && isAdminRole && editingNoticeId === notice.id ? (
-=======
-            {isAdminRole && editingNoticeId === notice.id ? (
->>>>>>> 04b2b653aab20788d83c5ce2c3a65e0546c90875
               <div className="mt-4 space-y-3 rounded-xl border border-slate-200 bg-slate-50 p-4">
                 <input
                   value={editTitle}

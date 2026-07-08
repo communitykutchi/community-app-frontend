@@ -2,7 +2,6 @@ import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import API from '../api/axios.js';
 
-<<<<<<< HEAD
 function normalizeRole(role?: string) {
 	if (role === 'jamaat_admin') return 'moderator';
 	return role;
@@ -12,12 +11,6 @@ export default function Navbar() {
 	const [open, setOpen] = useState(false);
 	const [authToken, setAuthToken] = useState<string | null>(() => localStorage.getItem('token'));
 	const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(localStorage.getItem('token')));
-=======
-export default function Navbar() {
-	const [open, setOpen] = useState(false);
-	const [authToken, setAuthToken] = useState<string | null>(() => localStorage.getItem('token'));
-	const [isAuthenticated, setIsAuthenticated] = useState(false);
->>>>>>> 04b2b653aab20788d83c5ce2c3a65e0546c90875
 	const [isAdmin, setIsAdmin] = useState(false);
 	const navigate = useNavigate();
 	const location = useLocation();
@@ -39,13 +32,8 @@ export default function Navbar() {
 
 		API.get('/auth/me').then((response) => {
 			if (cancelled) return;
-<<<<<<< HEAD
 			const role = normalizeRole(response.data?.user?.role);
 			setIsAdmin(role === 'super_admin' || role === 'moderator' || role === 'admin');
-=======
-			const role = response.data?.user?.role;
-			setIsAdmin(role === 'super_admin' || role === 'jamaat_admin' || role === 'admin');
->>>>>>> 04b2b653aab20788d83c5ce2c3a65e0546c90875
 		}).catch(() => {
 			if (cancelled) return;
 			setIsAdmin(false);

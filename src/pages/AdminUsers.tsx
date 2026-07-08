@@ -6,7 +6,6 @@ interface UserItem {
   fullName: string;
   mobile: string;
   email?: string;
-<<<<<<< HEAD
   role: "super_admin" | "moderator" | "member";
   jamaat?: string;
 }
@@ -17,12 +16,6 @@ function normalizeRole(role?: string): UserItem['role'] {
   return 'member';
 }
 
-=======
-  role: "super_admin" | "jamaat_admin" | "member";
-  jamaat?: string;
-}
-
->>>>>>> 04b2b653aab20788d83c5ce2c3a65e0546c90875
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<UserItem[]>([]);
   const [message, setMessage] = useState("");
@@ -33,16 +26,12 @@ export default function AdminUsersPage() {
   const [selectedJamaat, setSelectedJamaat] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [currentUser, setCurrentUser] = useState<{ role: string; jamaat?: string } | null>(null);
-<<<<<<< HEAD
   const [currentUserLoading, setCurrentUserLoading] = useState(true);
-=======
->>>>>>> 04b2b653aab20788d83c5ce2c3a65e0546c90875
 
   const loadCurrentUser = async () => {
     try {
       const response = await API.get<{ success: boolean; user?: { role: string; jamaat?: string } }>('/auth/me');
       if (response.data.success) {
-<<<<<<< HEAD
         const rawUser = response.data.user || null;
         const nextUser = rawUser ? { ...rawUser, role: normalizeRole(rawUser.role) } : null;
         setCurrentUser(nextUser);
@@ -56,12 +45,6 @@ export default function AdminUsersPage() {
       return null;
     } finally {
       setCurrentUserLoading(false);
-=======
-        setCurrentUser(response.data.user || null);
-      }
-    } catch {
-      setCurrentUser(null);
->>>>>>> 04b2b653aab20788d83c5ce2c3a65e0546c90875
     }
   };
 
@@ -71,15 +54,11 @@ export default function AdminUsersPage() {
       setMessage('');
       const response = await API.get<{ success: boolean; users: UserItem[]; message?: string }>('/auth/users');
       if (response.data.success) {
-<<<<<<< HEAD
         const normalizedUsers: UserItem[] = (response.data.users || []).map((user) => ({
           ...user,
           role: normalizeRole(user.role),
         }));
         setUsers(normalizedUsers);
-=======
-        setUsers(response.data.users || []);
->>>>>>> 04b2b653aab20788d83c5ce2c3a65e0546c90875
       } else {
         setMessage(response.data.message || 'Unable to load users.');
       }
@@ -103,7 +82,6 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     const init = async () => {
-<<<<<<< HEAD
       const user = await loadCurrentUser();
       const role = user?.role;
       if (role === 'super_admin' || role === 'moderator') {
@@ -112,27 +90,17 @@ export default function AdminUsersPage() {
       if (role === 'super_admin') {
         await loadGroups();
       }
-=======
-      await loadCurrentUser();
-      await loadUsers();
-      await loadGroups();
->>>>>>> 04b2b653aab20788d83c5ce2c3a65e0546c90875
     };
 
     void init();
   }, []);
 
   useEffect(() => {
-<<<<<<< HEAD
     if (currentUser?.role === 'moderator' && currentUser.jamaat?.trim()) {
-=======
-    if (currentUser?.role === 'jamaat_admin' && currentUser.jamaat?.trim()) {
->>>>>>> 04b2b653aab20788d83c5ce2c3a65e0546c90875
       setSelectedJamaat(currentUser.jamaat.trim());
     }
   }, [currentUser]);
 
-<<<<<<< HEAD
   const isSuperAdmin = currentUser?.role === 'super_admin';
   const isJamaatAdmin = currentUser?.role === 'moderator';
   const canAccessAdminPage = isSuperAdmin || isJamaatAdmin;
@@ -140,11 +108,6 @@ export default function AdminUsersPage() {
   const canManageRoles = isSuperAdmin;
   const scopedJamaat = currentUser?.jamaat?.trim() || null;
   const adminCount = useMemo(() => users.filter((user) => user.role === 'super_admin' || user.role === 'moderator').length, [users]);
-=======
-  const isJamaatAdmin = currentUser?.role === 'jamaat_admin';
-  const scopedJamaat = currentUser?.jamaat?.trim() || null;
-  const adminCount = useMemo(() => users.filter((user) => user.role === 'super_admin' || user.role === 'jamaat_admin').length, [users]);
->>>>>>> 04b2b653aab20788d83c5ce2c3a65e0546c90875
 
   const jamaatGroups = useMemo(() => {
     const grouped = new Map<string, number>();
@@ -177,11 +140,7 @@ export default function AdminUsersPage() {
     });
   }, [users, selectedJamaat, search, isJamaatAdmin, scopedJamaat]);
 
-<<<<<<< HEAD
   const handleRoleChange = async (userId: string, role: 'moderator' | 'member') => {
-=======
-  const handleRoleChange = async (userId: string, role: 'jamaat_admin' | 'member') => {
->>>>>>> 04b2b653aab20788d83c5ce2c3a65e0546c90875
     try {
       const response = await API.put(`/auth/users/${userId}/role`, { role });
       if (response.data.success) {
@@ -232,7 +191,6 @@ export default function AdminUsersPage() {
     }
   };
 
-<<<<<<< HEAD
   if (currentUserLoading) {
     return (
       <div className="mx-auto w-full max-w-5xl space-y-6">
@@ -254,8 +212,6 @@ export default function AdminUsersPage() {
     );
   }
 
-=======
->>>>>>> 04b2b653aab20788d83c5ce2c3a65e0546c90875
   return (
     <div className="mx-auto w-full max-w-5xl space-y-6">
       <div className="page-card p-6">
@@ -274,11 +230,7 @@ export default function AdminUsersPage() {
         {message ? <p className="mt-3 text-sm text-emerald-600">{message}</p> : null}
       </div>
 
-<<<<<<< HEAD
       {canManageJamaats ? (
-=======
-      {!isJamaatAdmin ? (
->>>>>>> 04b2b653aab20788d83c5ce2c3a65e0546c90875
         <div className="page-card p-6">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -325,11 +277,7 @@ export default function AdminUsersPage() {
           </div>
         </div>
 
-<<<<<<< HEAD
         {canManageJamaats ? (
-=======
-        {!isJamaatAdmin ? (
->>>>>>> 04b2b653aab20788d83c5ce2c3a65e0546c90875
           <div className="mt-4 flex flex-col gap-3">
             <input
               value={search}
@@ -388,11 +336,7 @@ export default function AdminUsersPage() {
                   <th className="px-4 py-3 font-semibold text-slate-700">Name</th>
                   <th className="px-4 py-3 font-semibold text-slate-700">Mobile</th>
                   <th className="px-4 py-3 font-semibold text-slate-700">Email</th>
-<<<<<<< HEAD
                             {canManageRoles ? <th className="px-4 py-3 font-semibold text-slate-700">Role</th> : null}
-=======
-                  {!isJamaatAdmin ? <th className="px-4 py-3 font-semibold text-slate-700">Role</th> : null}
->>>>>>> 04b2b653aab20788d83c5ce2c3a65e0546c90875
                   <th className="px-4 py-3 font-semibold text-slate-700">Actions</th>
                 </tr>
               </thead>
@@ -402,7 +346,6 @@ export default function AdminUsersPage() {
                     <td className="px-4 py-3 font-medium text-slate-800">{user.fullName}</td>
                     <td className="px-4 py-3 text-slate-600">{user.mobile}</td>
                     <td className="px-4 py-3 text-slate-600">{user.email || '-'}</td>
-<<<<<<< HEAD
                     {canManageRoles ? (
                       <td className="px-4 py-3">
                         <select
@@ -412,17 +355,6 @@ export default function AdminUsersPage() {
                         >
                           <option value="member">Member</option>
                           <option value="moderator">Moderator</option>
-=======
-                    {!isJamaatAdmin ? (
-                      <td className="px-4 py-3">
-                        <select
-                          value={user.role}
-                          onChange={(event) => handleRoleChange(user._id, event.target.value as 'jamaat_admin' | 'member')}
-                          className="form-input rounded-lg px-3 py-2 text-sm"
-                        >
-                          <option value="member">Member</option>
-                          <option value="jamaat_admin">Jamaat Admin</option>
->>>>>>> 04b2b653aab20788d83c5ce2c3a65e0546c90875
                         </select>
                       </td>
                     ) : null}
