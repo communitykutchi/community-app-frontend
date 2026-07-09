@@ -6,6 +6,7 @@ import Register from "./pages/Register.js";
 import Feed from "./pages/Feed.js";
 import Notices from "./pages/Notices.js";
 import AdminUsers from "./pages/AdminUsers.js";
+import PeopleProfile from "./pages/personProfile.js";
 import MainLayout from "./layout/MainLayout.js";
 import PrivateRoute from "./routes/PrivateRoute.js";
 
@@ -45,6 +46,15 @@ function App() {
             element={
               <PrivateRoute>
                 <Notices />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <PrivateRoute>
+                <PeopleProfile />
               </PrivateRoute>
             }
           />

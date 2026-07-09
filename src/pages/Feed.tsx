@@ -1,5 +1,6 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import API from "../api/axios.js";
+import UserAvatar from "../components/UserAvatar.js";
 
 interface MediaItem {
   url: string;
@@ -10,6 +11,7 @@ interface ReplyItem {
   id: string;
   text: string;
   author: string;
+  authorPhotoUrl?: string;
   replyTo?: string;
 }
 
@@ -17,12 +19,14 @@ interface CommentItem {
   id: string;
   text: string;
   author: string;
+  authorPhotoUrl?: string;
   replies?: ReplyItem[];
 }
 
 interface Post {
   _id: string;
   authorName: string;
+  authorPhotoUrl?: string;
   text: string;
   media?: MediaItem[];
   createdAt: string;
@@ -35,13 +39,9 @@ interface Post {
 
 const MAX_POST_LENGTH = 1200;
 
-function getInitials(name: string) {
-  const parts = name.trim().split(/\s+/).filter(Boolean);
-  if (parts.length === 0) return "U";
-  return parts
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase())
-    .join("");
+interface CurrentUser {
+  fullName?: string;
+  profilePhotoUrl?: string;
 }
 
 function formatPostDate(value: string) {
@@ -99,6 +99,7 @@ export default function Feed() {
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
   const [replyOpenForComment, setReplyOpenForComment] = useState<Record<string, boolean>>({});
   const [replyTarget, setReplyTarget] = useState<Record<string, string>>({});
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
   const postTextLength = text.trim().length;
   const feedStats = posts.reduce(
@@ -125,6 +126,31 @@ export default function Feed() {
 
   useEffect(() => {
     void loadPosts();
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    API.get<{ user?: CurrentUser }>("/auth/me")
+      .then((response) => {
+        if (!cancelled) setCurrentUser(response.data.user || null);
+      })
+      .catch(() => {
+        if (!cancelled) setCurrentUser(null);
+      });
+
+    const refreshProfile = () => {
+      API.get<{ user?: CurrentUser }>("/auth/me")
+        .then((response) => setCurrentUser(response.data.user || null))
+        .catch(() => setCurrentUser(null));
+    };
+
+    window.addEventListener("community-profile-updated", refreshProfile);
+
+    return () => {
+      cancelled = true;
+      window.removeEventListener("community-profile-updated", refreshProfile);
+    };
   }, []);
 
   useEffect(() => {
@@ -307,9 +333,7 @@ export default function Feed() {
 
         <form onSubmit={handleSubmit} className="p-5 sm:p-6">
           <div className="flex gap-3">
-            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-blue-50 text-sm font-black text-blue-700">
-              ME
-            </div>
+            <UserAvatar name={currentUser?.fullName || "Me"} photoUrl={currentUser?.profilePhotoUrl} size="md" />
             <div className="min-w-0 flex-1">
               <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 transition focus-within:border-blue-300 focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]">
                 <textarea
@@ -457,9 +481,7 @@ export default function Feed() {
                   <div className="p-5">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex min-w-0 items-center gap-3">
-                        <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-slate-900 text-sm font-black text-white">
-                          {getInitials(post.authorName)}
-                        </div>
+                        <UserAvatar name={post.authorName} photoUrl={post.authorPhotoUrl} size="md" />
                         <div className="min-w-0">
                           <p className="truncate text-sm font-black text-slate-900">{post.authorName || "Community member"}</p>
                           <p className="text-xs font-medium text-slate-500">{formatPostDate(post.createdAt)}</p>
@@ -546,9 +568,7 @@ export default function Feed() {
                             return (
                               <div key={comment.id} className="rounded-xl border border-slate-200 bg-white p-3">
                                 <div className="flex items-start gap-3">
-                                  <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-blue-50 text-xs font-black text-blue-700">
-                                    {getInitials(comment.author)}
-                                  </div>
+                                  <UserAvatar name={comment.author} photoUrl={comment.authorPhotoUrl} size="sm" />
                                   <div className="min-w-0 flex-1">
                                     <div className="flex flex-wrap items-center justify-between gap-2">
                                       <span className="text-sm font-black text-slate-900">{comment.author}</span>
@@ -568,10 +588,13 @@ export default function Feed() {
                                     {(comment.replies || []).length > 0 ? (
                                       <div className="mt-3 space-y-2 border-l-2 border-blue-100 pl-3">
                                         {comment.replies?.map((reply) => (
-                                          <div key={reply.id} className="rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">
-                                            <span className="font-black text-slate-900">{reply.author}</span>
-                                            {reply.replyTo ? <span className="ml-1 text-slate-500">replying to {reply.replyTo}</span> : null}
-                                            <p className="mt-1 leading-6">{reply.text}</p>
+                                          <div key={reply.id} className="flex gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                                            <UserAvatar name={reply.author} photoUrl={reply.authorPhotoUrl} size="sm" />
+                                            <div className="min-w-0">
+                                              <span className="font-black text-slate-900">{reply.author}</span>
+                                              {reply.replyTo ? <span className="ml-1 text-slate-500">replying to {reply.replyTo}</span> : null}
+                                              <p className="mt-1 leading-6">{reply.text}</p>
+                                            </div>
                                           </div>
                                         ))}
                                       </div>

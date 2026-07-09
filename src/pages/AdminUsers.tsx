@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import API from "../api/axios.js";
+import UserAvatar from "../components/UserAvatar.js";
 
 interface UserItem {
   _id: string;
@@ -8,6 +9,7 @@ interface UserItem {
   email?: string;
   role: "super_admin" | "moderator" | "member";
   jamaat?: string;
+  profilePhotoUrl?: string;
 }
 
 function normalizeRole(role?: string): UserItem['role'] {
@@ -343,7 +345,12 @@ export default function AdminUsersPage() {
               <tbody className="divide-y divide-slate-100">
                 {visibleUsers.map((user) => (
                   <tr key={user._id}>
-                    <td className="px-4 py-3 font-medium text-slate-800">{user.fullName}</td>
+                    <td className="px-4 py-3 font-medium text-slate-800">
+                      <div className="flex min-w-48 items-center gap-3">
+                        <UserAvatar name={user.fullName} photoUrl={user.profilePhotoUrl} size="sm" />
+                        <span className="truncate">{user.fullName}</span>
+                      </div>
+                    </td>
                     <td className="px-4 py-3 text-slate-600">{user.mobile}</td>
                     <td className="px-4 py-3 text-slate-600">{user.email || '-'}</td>
                     {canManageRoles ? (

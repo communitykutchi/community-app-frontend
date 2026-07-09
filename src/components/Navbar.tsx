@@ -1,13 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import API from '../api/axios.js';
+import UserAvatar from './UserAvatar.js';
 
 const NOTICE_ACTIVITY_EVENT = 'community-notice-activity';
+const PROFILE_UPDATED_EVENT = 'community-profile-updated';
 
 interface NavItem {
 	to: string;
 	label: string;
 	unreadCount?: number;
+}
+
+interface CurrentUser {
+	fullName?: string;
+	role?: string;
+	profilePhotoUrl?: string;
 }
 
 function normalizeRole(role?: string) {
@@ -21,6 +29,7 @@ export default function Navbar() {
 	const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(localStorage.getItem('token')));
 	const [isAdmin, setIsAdmin] = useState(false);
 	const [unreadNoticeCount, setUnreadNoticeCount] = useState(0);
+	const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 	const navigate = useNavigate();
 	const location = useLocation();
 	const isAuthRoute = location.pathname === '/login' || location.pathname === '/register';
@@ -35,22 +44,48 @@ export default function Navbar() {
 		if (!authToken) {
 			setIsAdmin(false);
 			setUnreadNoticeCount(0);
+			setCurrentUser(null);
 			return;
 		}
 
 		let cancelled = false;
 
-		API.get<{ user?: { role?: string } }>('/auth/me').then((response) => {
+		API.get<{ user?: CurrentUser }>('/auth/me').then((response) => {
 			if (cancelled) return;
 			const role = normalizeRole(response.data?.user?.role);
+			setCurrentUser(response.data?.user || null);
 			setIsAdmin(role === 'super_admin' || role === 'moderator' || role === 'admin');
 		}).catch(() => {
 			if (cancelled) return;
 			setIsAdmin(false);
+			setCurrentUser(null);
 		});
 
 		return () => {
 			cancelled = true;
+		};
+	}, [authToken]);
+
+	useEffect(() => {
+		if (typeof window === 'undefined') return;
+
+		const refreshProfile = () => {
+			if (!authToken) return;
+			API.get<{ user?: CurrentUser }>('/auth/me')
+				.then((response) => {
+					const role = normalizeRole(response.data?.user?.role);
+					setCurrentUser(response.data?.user || null);
+					setIsAdmin(role === 'super_admin' || role === 'moderator' || role === 'admin');
+				})
+				.catch(() => {
+					setCurrentUser(null);
+				});
+		};
+
+		window.addEventListener(PROFILE_UPDATED_EVENT, refreshProfile);
+
+		return () => {
+			window.removeEventListener(PROFILE_UPDATED_EVENT, refreshProfile);
 		};
 	}, [authToken]);
 
@@ -108,6 +143,7 @@ export default function Navbar() {
 		setIsAuthenticated(false);
 		setIsAdmin(false);
 		setUnreadNoticeCount(0);
+		setCurrentUser(null);
 		setOpen(false);
 		navigate('/login');
 	}
@@ -119,6 +155,7 @@ export default function Navbar() {
 				{ to: '/', label: 'Home' },
 				{ to: '/feed', label: 'Feed' },
 				{ to: '/notices', label: 'Notices', unreadCount: unreadNoticeCount },
+				{ to: '/profile', label: 'Profile' },
 				...(isAdmin ? [{ to: '/admin/users', label: 'Admin' }] : []),
 		  ]
 		: [
@@ -200,6 +237,10 @@ export default function Navbar() {
 							</Link>
 						))}
 					</nav>
+					<Link to="/profile" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
+						<UserAvatar name={currentUser?.fullName} photoUrl={currentUser?.profilePhotoUrl} size="sm" />
+						<span className="max-w-28 truncate">{currentUser?.fullName || 'Profile'}</span>
+					</Link>
 					{isAuthenticated ? (
 						<button onClick={handleLogout} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-100 hover:text-slate-900">
 							Logout
@@ -233,6 +274,13 @@ export default function Navbar() {
 							{renderNavLabel(item)}
 						</Link>
 					))}
+					<Link to="/profile" onClick={() => setOpen(false)} className="mt-1 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3">
+						<UserAvatar name={currentUser?.fullName} photoUrl={currentUser?.profilePhotoUrl} size="sm" />
+						<div className="min-w-0">
+							<p className="truncate text-sm font-bold text-slate-900">{currentUser?.fullName || 'Profile'}</p>
+							<p className="text-xs font-semibold text-slate-500">View profile</p>
+						</div>
+					</Link>
 					{isAuthenticated ? (
 						<button onClick={handleLogout} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900">
 							Logout
