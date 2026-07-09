@@ -73,10 +73,10 @@ export default function MainLayout({ children }: MainLayoutProps) {
   }, [isAuthVisualRoute, navigate]);
 
   return (
-    <div className="app-shell min-h-screen w-full">
+    <div className="app-shell flex min-h-screen w-full flex-col">
       <Navbar />
 
-      <main className={isAuthVisualRoute ? 'w-full px-0 py-0' : 'w-full px-4 py-6 sm:px-6 lg:px-8'}>
+      <main className={isAuthVisualRoute ? 'w-full flex-1 px-0 py-0' : 'w-full flex-1 px-4 py-6 sm:px-6 lg:px-8'}>
         {isAuthVisualRoute ? (
           children
         ) : (

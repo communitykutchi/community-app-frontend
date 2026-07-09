@@ -2,6 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import API from '../api/axios.js';
 
+const NOTICE_ACTIVITY_EVENT = 'community-notice-activity';
+
+interface NavItem {
+	to: string;
+	label: string;
+	unreadCount?: number;
+}
+
 function normalizeRole(role?: string) {
 	if (role === 'jamaat_admin') return 'moderator';
 	return role;
@@ -12,6 +20,7 @@ export default function Navbar() {
 	const [authToken, setAuthToken] = useState<string | null>(() => localStorage.getItem('token'));
 	const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(localStorage.getItem('token')));
 	const [isAdmin, setIsAdmin] = useState(false);
+	const [unreadNoticeCount, setUnreadNoticeCount] = useState(0);
 	const navigate = useNavigate();
 	const location = useLocation();
 	const isAuthRoute = location.pathname === '/login' || location.pathname === '/register';
@@ -25,12 +34,13 @@ export default function Navbar() {
 		setIsAuthenticated(Boolean(authToken));
 		if (!authToken) {
 			setIsAdmin(false);
+			setUnreadNoticeCount(0);
 			return;
 		}
 
 		let cancelled = false;
 
-		API.get('/auth/me').then((response) => {
+		API.get<{ user?: { role?: string } }>('/auth/me').then((response) => {
 			if (cancelled) return;
 			const role = normalizeRole(response.data?.user?.role);
 			setIsAdmin(role === 'super_admin' || role === 'moderator' || role === 'admin');
@@ -44,22 +54,71 @@ export default function Navbar() {
 		};
 	}, [authToken]);
 
+	useEffect(() => {
+		let cancelled = false;
+
+		if (!authToken) {
+			setUnreadNoticeCount(0);
+			return;
+		}
+
+		API.get<{ unreadCount?: number }>('/notices/unread-count')
+			.then((response) => {
+				if (cancelled) return;
+				setUnreadNoticeCount(Number(response.data?.unreadCount || 0));
+			})
+			.catch(() => {
+				if (cancelled) return;
+				setUnreadNoticeCount(0);
+			});
+
+		return () => {
+			cancelled = true;
+		};
+	}, [authToken, location.pathname]);
+
+	useEffect(() => {
+		if (typeof window === 'undefined') return;
+
+		const refreshUnreadCount = () => {
+			if (!authToken) {
+				setUnreadNoticeCount(0);
+				return;
+			}
+
+			API.get<{ unreadCount?: number }>('/notices/unread-count')
+				.then((response) => {
+					setUnreadNoticeCount(Number(response.data?.unreadCount || 0));
+				})
+				.catch(() => {
+					setUnreadNoticeCount(0);
+				});
+		};
+
+		window.addEventListener(NOTICE_ACTIVITY_EVENT, refreshUnreadCount);
+
+		return () => {
+			window.removeEventListener(NOTICE_ACTIVITY_EVENT, refreshUnreadCount);
+		};
+	}, [authToken]);
+
 	function handleLogout() {
 		localStorage.removeItem('token');
 		setAuthToken(null);
 		setIsAuthenticated(false);
 		setIsAdmin(false);
+		setUnreadNoticeCount(0);
 		setOpen(false);
 		navigate('/login');
 	}
 
 	const isActive = (to: string) => location.pathname === to;
 
-	const navItems = isAuthenticated
+	const navItems: NavItem[] = isAuthenticated
 		? [
 				{ to: '/', label: 'Home' },
 				{ to: '/feed', label: 'Feed' },
-				{ to: '/notices', label: 'Notices' },
+				{ to: '/notices', label: 'Notices', unreadCount: unreadNoticeCount },
 				...(isAdmin ? [{ to: '/admin/users', label: 'Admin' }] : []),
 		  ]
 		: [
@@ -76,6 +135,17 @@ export default function Navbar() {
 		`block w-full rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${isActive(to)
 			? 'bg-slate-900 !text-white hover:!text-white'
 			: 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'}`;
+
+	const renderNavLabel = (item: NavItem) => (
+		<span className="inline-flex items-center gap-2">
+			<span>{item.label}</span>
+			{item.unreadCount && item.unreadCount > 0 ? (
+				<span className="inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-[11px] font-bold leading-none text-white">
+					{item.unreadCount > 99 ? '99+' : item.unreadCount}
+				</span>
+			) : null}
+		</span>
+	);
 
 	if (isAuthRoute) {
 		return (
@@ -126,7 +196,7 @@ export default function Navbar() {
 					<nav className="flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1">
 						{navItems.map((item) => (
 							<Link key={item.to} to={item.to} className={desktopLinkClass(item.to)}>
-								{item.label}
+								{renderNavLabel(item)}
 							</Link>
 						))}
 					</nav>
@@ -160,7 +230,7 @@ export default function Navbar() {
 					<p className="px-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">Navigation</p>
 					{navItems.map((item) => (
 						<Link key={item.to} to={item.to} className={mobileLinkClass(item.to)} onClick={() => setOpen(false)}>
-							{item.label}
+							{renderNavLabel(item)}
 						</Link>
 					))}
 					{isAuthenticated ? (

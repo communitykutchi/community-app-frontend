@@ -1,6 +1,27 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useEffect, useState } from "react";
 import API from "../api/axios.js";
+const MAX_POST_LENGTH = 1200;
+function getInitials(name) {
+    const parts = name.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0)
+        return "U";
+    return parts
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase())
+        .join("");
+}
+function formatPostDate(value) {
+    const date = new Date(value);
+    if (!Number.isFinite(date.getTime()))
+        return "";
+    return new Intl.DateTimeFormat(undefined, {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+    }).format(date);
+}
 export default function Feed() {
     const configuredApiBase = import.meta.env.VITE_API_URL || "https://community-app-backend-wrb0.onrender.com";
     const apiOrigin = (() => {
@@ -18,7 +39,6 @@ export default function Feed() {
         if (url.startsWith("http")) {
             try {
                 const mediaUrl = new URL(url);
-                // Some records may store localhost URLs from dev uploads; remap them to configured API host.
                 if (mediaUrl.hostname === "localhost" || mediaUrl.hostname === "127.0.0.1") {
                     return `${apiOrigin}${mediaUrl.pathname}${mediaUrl.search}`;
                 }
@@ -42,50 +62,18 @@ export default function Feed() {
     const [replyDrafts, setReplyDrafts] = useState({});
     const [replyOpenForComment, setReplyOpenForComment] = useState({});
     const [replyTarget, setReplyTarget] = useState({});
-    const [persistedPosts, setPersistedPosts] = useState(() => {
-        if (typeof window === "undefined")
-            return [];
-        try {
-            const saved = window.localStorage.getItem("community-feed-posts");
-            return saved ? JSON.parse(saved) : [];
-        }
-        catch {
-            return [];
-        }
-    });
-    const [currentUserName, setCurrentUserName] = useState(() => {
-        if (typeof window === "undefined")
-            return "You";
-        try {
-            return window.localStorage.getItem("userName") || window.localStorage.getItem("fullName") || "You";
-        }
-        catch {
-            return "You";
-        }
-    });
+    const postTextLength = text.trim().length;
+    const feedStats = posts.reduce((totals, post) => ({
+        likes: totals.likes + (post.likes ?? 0),
+        comments: totals.comments + (post.comments ?? 0),
+        shares: totals.shares + (post.shares ?? 0),
+    }), { likes: 0, comments: 0, shares: 0 });
     const loadPosts = async () => {
         try {
             setFetching(true);
             setError("");
             const response = await API.get("/posts/all");
-            const savedPosts = persistedPosts.length > 0 ? persistedPosts : [];
-            const mergedPosts = response.data.map((post) => {
-                const existing = savedPosts.find((item) => item._id === post._id);
-                return {
-                    ...post,
-                    likes: existing?.likes ?? post.likes ?? 0,
-                    shares: existing?.shares ?? post.shares ?? 0,
-                    comments: existing?.comments ?? post.comments ?? 0,
-                    liked: existing?.liked ?? post.liked ?? false,
-                    commentsList: existing?.commentsList ?? post.commentsList ?? [],
-                };
-            });
-            const finalPosts = [...mergedPosts, ...savedPosts.filter((saved) => !mergedPosts.some((post) => post._id === saved._id))];
-            setPosts(finalPosts);
-            setPersistedPosts(finalPosts);
-            if (typeof window !== "undefined") {
-                window.localStorage.setItem("community-feed-posts", JSON.stringify(finalPosts));
-            }
+            setPosts(response.data);
         }
         catch (err) {
             setError(err.response?.data?.message || "Unable to load posts.");
@@ -95,7 +83,7 @@ export default function Feed() {
         }
     };
     useEffect(() => {
-        loadPosts();
+        void loadPosts();
     }, []);
     useEffect(() => {
         return () => {
@@ -104,14 +92,24 @@ export default function Feed() {
     }, [previewUrls]);
     const handleFileChange = (event) => {
         const files = Array.from(event.target.files ?? []);
-        if (files.length === 0) {
+        if (files.length === 0)
+            return;
+        const slotsLeft = Math.max(0, 5 - selectedFiles.length);
+        const filesToAdd = files.slice(0, slotsLeft);
+        if (filesToAdd.length === 0) {
+            setError("You can attach up to 5 media files.");
+            event.target.value = "";
             return;
         }
-        const nextFiles = [...selectedFiles, ...files].slice(0, 5);
-        const nextPreviewUrls = [...previewUrls, ...files.map((file) => URL.createObjectURL(file))].slice(0, 5);
-        setSelectedFiles(nextFiles);
-        setPreviewUrls(nextPreviewUrls);
+        setSelectedFiles((current) => [...current, ...filesToAdd]);
+        setPreviewUrls((current) => [...current, ...filesToAdd.map((file) => URL.createObjectURL(file))]);
+        setError(files.length > filesToAdd.length ? "Only the first 5 media files were selected." : "");
         event.target.value = "";
+    };
+    const handleClearFiles = () => {
+        previewUrls.forEach((url) => URL.revokeObjectURL(url));
+        setSelectedFiles([]);
+        setPreviewUrls([]);
     };
     const handleRemoveFile = (index) => {
         setSelectedFiles((currentFiles) => currentFiles.filter((_, fileIndex) => fileIndex !== index));
@@ -123,69 +121,61 @@ export default function Feed() {
             return currentPreviewUrls.filter((_, fileIndex) => fileIndex !== index);
         });
     };
-    const updatePost = (postId, updater) => {
-        setPosts((currentPosts) => {
-            const updatedPosts = currentPosts.map((post) => (post._id === postId ? updater(post) : post));
-            setPersistedPosts(updatedPosts);
-            if (typeof window !== "undefined") {
-                window.localStorage.setItem("community-feed-posts", JSON.stringify(updatedPosts));
-            }
-            return updatedPosts;
-        });
+    const upsertPost = (updatedPost) => {
+        setPosts((currentPosts) => currentPosts.map((post) => (post._id === updatedPost._id ? updatedPost : post)));
     };
-    const handleLike = (postId) => {
-        updatePost(postId, (post) => ({
-            ...post,
-            liked: !post.liked,
-            likes: Math.max(0, (post.likes ?? 0) + (post.liked ? -1 : 1)),
-        }));
+    const handleLike = async (postId) => {
+        try {
+            const response = await API.patch(`/posts/${postId}/like`);
+            upsertPost(response.data);
+        }
+        catch (err) {
+            setError(err.response?.data?.message || "Unable to update like.");
+        }
     };
     const handleCommentToggle = (postId) => {
         setCommentOpenForPost((current) => ({ ...current, [postId]: !current[postId] }));
     };
-    const handleCommentSubmit = (postId, event) => {
+    const handleCommentSubmit = async (postId, event) => {
         event.preventDefault();
         const draft = (commentDrafts[postId] || "").trim();
         if (!draft)
             return;
-        updatePost(postId, (post) => ({
-            ...post,
-            comments: (post.comments ?? 0) + 1,
-            commentsList: [
-                ...(post.commentsList || []),
-                { id: `${postId}-${Date.now()}`, text: draft, author: currentUserName || "You" },
-            ],
-        }));
-        setCommentDrafts((current) => ({ ...current, [postId]: "" }));
+        try {
+            const response = await API.post(`/posts/${postId}/comments`, { text: draft });
+            upsertPost(response.data);
+            setCommentDrafts((current) => ({ ...current, [postId]: "" }));
+        }
+        catch (err) {
+            setError(err.response?.data?.message || "Unable to add comment.");
+        }
     };
-    const handleReplySubmit = (postId, commentId, event) => {
+    const handleReplySubmit = async (postId, commentId, event) => {
         event.preventDefault();
-        const draft = (replyDrafts[`${postId}-${commentId}`] || "").trim();
+        const replyKey = `${postId}-${commentId}`;
+        const draft = (replyDrafts[replyKey] || "").trim();
         if (!draft)
             return;
-        updatePost(postId, (post) => ({
-            ...post,
-            commentsList: (post.commentsList || []).map((comment) => comment.id === commentId
-                ? {
-                    ...comment,
-                    replies: [
-                        ...(comment.replies || []),
-                        {
-                            id: `${commentId}-${Date.now()}`,
-                            text: draft,
-                            author: currentUserName || "You",
-                            replyTo: comment.author,
-                        },
-                    ],
-                }
-                : comment),
-        }));
-        setReplyDrafts((current) => ({ ...current, [`${postId}-${commentId}`]: "" }));
-        setReplyOpenForComment((current) => ({ ...current, [`${postId}-${commentId}`]: false }));
-        setReplyTarget((current) => ({ ...current, [`${postId}-${commentId}`]: "" }));
+        try {
+            const response = await API.post(`/posts/${postId}/comments/${commentId}/replies`, { text: draft });
+            upsertPost(response.data);
+            setReplyDrafts((current) => ({ ...current, [replyKey]: "" }));
+            setReplyOpenForComment((current) => ({ ...current, [replyKey]: false }));
+            setReplyTarget((current) => ({ ...current, [replyKey]: "" }));
+        }
+        catch (err) {
+            setError(err.response?.data?.message || "Unable to add reply.");
+        }
     };
     const handleShare = async (postId) => {
-        updatePost(postId, (post) => ({ ...post, shares: (post.shares ?? 0) + 1 }));
+        try {
+            const response = await API.post(`/posts/${postId}/share`);
+            upsertPost(response.data);
+        }
+        catch (err) {
+            setError(err.response?.data?.message || "Unable to share post.");
+            return;
+        }
         if (navigator.share) {
             try {
                 await navigator.share({
@@ -195,13 +185,17 @@ export default function Feed() {
                 });
             }
             catch {
-                // Ignore share cancellation
+                // Ignore share cancellation.
             }
         }
     };
     const handleSubmit = async (event) => {
         event.preventDefault();
         setError("");
+        if (postTextLength > MAX_POST_LENGTH) {
+            setError(`Post is too long. Please keep it under ${MAX_POST_LENGTH} characters.`);
+            return;
+        }
         if (!text.trim() && selectedFiles.length === 0) {
             setError("Please enter text or choose a photo/video to post.");
             return;
@@ -216,18 +210,9 @@ export default function Feed() {
                 formData.append("media", file);
             });
             const response = await API.post("/posts/create", formData);
-            setPosts((existing) => {
-                const nextPosts = [response.data, ...existing];
-                setPersistedPosts(nextPosts);
-                if (typeof window !== "undefined") {
-                    window.localStorage.setItem("community-feed-posts", JSON.stringify(nextPosts));
-                }
-                return nextPosts;
-            });
+            setPosts((existing) => [response.data, ...existing]);
             setText("");
-            setSelectedFiles([]);
-            previewUrls.forEach((url) => URL.revokeObjectURL(url));
-            setPreviewUrls([]);
+            handleClearFiles();
         }
         catch (err) {
             setError(err.response?.data?.message || "Unable to create post.");
@@ -236,19 +221,26 @@ export default function Feed() {
             setLoading(false);
         }
     };
-    return (_jsxs("div", { className: "mx-auto w-full max-w-4xl space-y-6", children: [_jsxs("div", { className: "page-card p-6", children: [_jsx("h1", { className: "page-title text-2xl", children: "Create New Post" }), _jsx("p", { className: "page-subtitle mt-1 text-sm", children: "Share text, photos, or videos with the community." }), _jsxs("form", { onSubmit: handleSubmit, className: "mt-5 space-y-4", children: [_jsx("textarea", { value: text, onChange: (e) => setText(e.target.value), rows: 5, placeholder: "Share your update...", className: "form-input min-h-32 p-4" }), _jsxs("label", { className: "inline-flex cursor-pointer items-center rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100", children: ["Add photo/video", _jsx("input", { type: "file", accept: "image/*,video/*", multiple: true, onChange: handleFileChange, className: "hidden" })] }), previewUrls.length > 0 && (_jsx("div", { className: "grid gap-3 sm:grid-cols-2", children: previewUrls.map((previewUrl, index) => {
-                                    const file = selectedFiles[index];
-                                    const isVideo = file?.type?.startsWith("video/");
-                                    return (_jsxs("div", { className: "relative overflow-hidden rounded-lg border border-gray-200 bg-gray-50", children: [_jsx("button", { type: "button", onClick: () => handleRemoveFile(index), className: "absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-black/70 text-lg font-semibold text-white transition hover:bg-black/80", "aria-label": `Remove selected media ${index + 1}`, children: "\u00D7" }), isVideo ? (_jsx("video", { controls: true, src: previewUrl, className: "h-48 w-full object-cover" })) : (_jsx("img", { src: previewUrl, alt: "Selected preview", className: "h-48 w-full object-cover" }))] }, previewUrl));
-                                }) })), error && _jsx("div", { className: "text-sm text-red-600", children: error }), _jsx("button", { type: "submit", disabled: loading, className: "btn-primary inline-flex items-center justify-center rounded-lg px-5 py-3 transition disabled:cursor-not-allowed disabled:opacity-60", children: loading ? "Posting..." : "Post" })] })] }), _jsxs("div", { className: "page-card p-6", children: [_jsxs("div", { className: "flex items-center justify-between", children: [_jsx("h2", { className: "page-title text-xl", children: "Community Feed" }), fetching && _jsx("span", { className: "text-sm text-slate-500", children: "Loading..." })] }), posts.length === 0 && !fetching ? (_jsx("div", { className: "mt-6 text-center text-gray-500", children: "No posts yet. Be the first to share!" })) : (_jsx("div", { className: "mt-6 space-y-4", children: posts.map((post) => (_jsxs("article", { className: "rounded-xl border border-slate-200 bg-slate-50 p-4", children: [_jsxs("div", { className: "flex items-center justify-between gap-3 text-sm text-slate-500", children: [_jsxs("span", { children: ["By: ", post.authorName] }), _jsx("span", { children: new Date(post.createdAt).toLocaleString() })] }), post.text ? _jsx("p", { className: "mt-3 whitespace-pre-line text-slate-800", children: post.text }) : null, post.media && post.media.length > 0 ? (_jsx("div", { className: "mt-3 grid gap-3 sm:grid-cols-2", children: post.media.map((item, index) => {
-                                        const isVideo = (item.type || "").startsWith("video/");
-                                        return (_jsx("div", { className: "overflow-hidden rounded-lg border border-slate-200 bg-white", children: isVideo ? (_jsx("video", { controls: true, src: getMediaUrl(item.url), className: "h-48 w-full object-cover" })) : (_jsx("img", { src: getMediaUrl(item.url), alt: "Post media", className: "h-48 w-full object-cover" })) }, `${post._id}-${index}`));
-                                    }) })) : null, _jsxs("div", { className: "mt-4 border-t border-slate-200 pt-3", children: [_jsxs("div", { className: "flex flex-wrap items-center gap-2 text-sm", children: [_jsxs("button", { type: "button", onClick: () => handleLike(post._id), className: `flex items-center gap-2 rounded-full px-3 py-2 transition ${post.liked ? "bg-blue-50 text-blue-700" : "bg-slate-100 text-slate-600 hover:bg-slate-200"}`, children: [_jsx("svg", { xmlns: "http://www.w3.org/2000/svg", className: "h-4 w-4", viewBox: "0 0 24 24", fill: "currentColor", children: _jsx("path", { d: "M12 21s-6.4-4.35-8.2-8.16C2.5 10.14 3.5 7 6.3 6.1c1.7-.5 3.5.2 4.7 1.8 1.2-1.6 3-2.3 4.7-1.8 2.8.9 3.8 4.04 2.5 6.74C18.4 16.65 12 21 12 21Z" }) }), _jsx("span", { children: post.likes ?? 0 })] }), _jsxs("button", { type: "button", onClick: () => handleCommentToggle(post._id), className: "flex items-center gap-2 rounded-full bg-slate-100 px-3 py-2 text-slate-600 transition hover:bg-slate-200", children: [_jsx("svg", { xmlns: "http://www.w3.org/2000/svg", className: "h-4 w-4", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.8", children: _jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", d: "M8 10h8M8 14h5m-7 4h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z" }) }), _jsx("span", { children: post.comments ?? 0 })] }), _jsxs("button", { type: "button", onClick: () => handleShare(post._id), className: "flex items-center gap-2 rounded-full bg-slate-100 px-3 py-2 text-slate-600 transition hover:bg-slate-200", children: [_jsx("svg", { xmlns: "http://www.w3.org/2000/svg", className: "h-4 w-4", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.8", children: _jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", d: "M7 14v3a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-3M12 4v10m0 0 3-3m-3 3-3-3" }) }), _jsx("span", { children: post.shares ?? 0 })] })] }), commentOpenForPost[post._id] && (_jsxs("div", { className: "mt-3 rounded-lg bg-white p-3 border border-slate-200", children: [(post.commentsList || []).length > 0 && (_jsx("div", { className: "space-y-2", children: post.commentsList?.map((comment) => (_jsxs("div", { className: "rounded-lg border border-slate-200 bg-slate-50 px-3 py-2", children: [_jsxs("div", { className: "flex items-center justify-between gap-2", children: [_jsx("span", { className: "text-sm font-semibold text-slate-800", children: comment.author }), _jsx("button", { type: "button", onClick: () => {
-                                                                            const key = `${post._id}-${comment.id}`;
-                                                                            setReplyOpenForComment((current) => ({ ...current, [key]: !current[key] }));
-                                                                            setReplyTarget((current) => ({ ...current, [key]: comment.author }));
-                                                                        }, className: "text-xs font-medium text-blue-700 hover:underline", children: "Reply" })] }), _jsx("p", { className: "mt-1 text-sm text-slate-700", children: comment.text }), (comment.replies || []).length > 0 && (_jsx("div", { className: "mt-2 space-y-2 border-l-2 border-blue-100 pl-3", children: comment.replies?.map((reply) => (_jsxs("div", { className: "rounded-md bg-white px-2 py-2 text-sm text-slate-700", children: [_jsx("span", { className: "font-semibold text-slate-800", children: reply.author }), reply.replyTo ? _jsxs("span", { className: "ml-1 text-slate-500", children: ["replying to ", reply.replyTo] }) : null, _jsx("p", { className: "mt-1", children: reply.text })] }, reply.id))) })), replyOpenForComment[`${post._id}-${comment.id}`] && (_jsxs("form", { onSubmit: (event) => handleReplySubmit(post._id, comment.id, event), className: "mt-2 flex flex-col gap-2 sm:flex-row", children: [_jsx("input", { value: replyDrafts[`${post._id}-${comment.id}`] || "", onChange: (event) => setReplyDrafts((current) => ({
-                                                                            ...current,
-                                                                            [`${post._id}-${comment.id}`]: event.target.value,
-                                                                        })), placeholder: `Reply to ${replyTarget[`${post._id}-${comment.id}`] || comment.author}...`, className: "form-input rounded-full px-4 py-2 text-sm" }), _jsx("button", { type: "submit", className: "btn-primary rounded-full px-4 py-2 text-sm font-medium transition", children: "Reply" })] }))] }, comment.id))) })), _jsxs("form", { onSubmit: (event) => handleCommentSubmit(post._id, event), className: "mt-3 flex flex-col gap-2 sm:flex-row", children: [_jsx("input", { value: commentDrafts[post._id] || "", onChange: (event) => setCommentDrafts((current) => ({ ...current, [post._id]: event.target.value })), placeholder: "Write a comment...", className: "form-input rounded-full px-4 py-2 text-sm" }), _jsx("button", { type: "submit", className: "btn-primary rounded-full px-4 py-2 text-sm font-medium transition", children: "Comment" })] })] }))] })] }, post._id))) }))] })] }));
+    return (_jsxs("div", { className: "mx-auto w-full max-w-6xl space-y-6", children: [_jsxs("section", { className: "overflow-hidden rounded-[1.35rem] border border-slate-200 bg-white shadow-[0_18px_55px_-38px_rgba(15,23,42,0.75)]", children: [_jsx("div", { className: "border-b border-slate-200 bg-slate-950 px-5 py-5 text-white sm:px-6", children: _jsxs("div", { className: "flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between", children: [_jsxs("div", { children: [_jsx("p", { className: "text-xs font-semibold uppercase tracking-[0.18em] text-blue-200", children: "Community Feed" }), _jsx("h1", { className: "mt-2 text-2xl font-black leading-tight sm:text-3xl", children: "Share updates with the community" }), _jsx("p", { className: "mt-2 max-w-2xl text-sm leading-6 text-slate-300", children: "Post announcements, moments, photos, videos, and short discussions in one clean place." })] }), _jsxs("div", { className: "grid grid-cols-3 gap-2 rounded-xl border border-white/10 bg-white/10 p-2 text-center backdrop-blur sm:min-w-80", children: [_jsxs("div", { className: "rounded-lg bg-white/10 px-3 py-2", children: [_jsx("p", { className: "text-lg font-black", children: posts.length }), _jsx("p", { className: "text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-300", children: "Posts" })] }), _jsxs("div", { className: "rounded-lg bg-white/10 px-3 py-2", children: [_jsx("p", { className: "text-lg font-black", children: feedStats.likes }), _jsx("p", { className: "text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-300", children: "Likes" })] }), _jsxs("div", { className: "rounded-lg bg-white/10 px-3 py-2", children: [_jsx("p", { className: "text-lg font-black", children: feedStats.comments }), _jsx("p", { className: "text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-300", children: "Comments" })] })] })] }) }), _jsx("form", { onSubmit: handleSubmit, className: "p-5 sm:p-6", children: _jsxs("div", { className: "flex gap-3", children: [_jsx("div", { className: "grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-blue-50 text-sm font-black text-blue-700", children: "ME" }), _jsxs("div", { className: "min-w-0 flex-1", children: [_jsxs("div", { className: "overflow-hidden rounded-xl border border-slate-200 bg-slate-50 transition focus-within:border-blue-300 focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]", children: [_jsx("textarea", { value: text, onChange: (event) => setText(event.target.value), rows: 4, maxLength: MAX_POST_LENGTH + 50, placeholder: "What would you like to share today?", className: "min-h-32 w-full resize-y border-0 bg-transparent p-4 text-sm leading-6 text-slate-900 outline-none placeholder:text-slate-400" }), _jsxs("div", { className: "flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-4 py-3", children: [_jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [_jsxs("label", { className: "inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700", children: [_jsx("svg", { xmlns: "http://www.w3.org/2000/svg", className: "h-4 w-4", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.8", children: _jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", d: "M4 16l4.6-4.6a2 2 0 0 1 2.8 0L16 16m-2-2 1.6-1.6a2 2 0 0 1 2.8 0L20 14m-2-8h.01M5 20h14a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1Z" }) }), "Media", _jsx("input", { type: "file", accept: "image/*,video/*", multiple: true, onChange: handleFileChange, className: "hidden" })] }), selectedFiles.length > 0 ? (_jsx("button", { type: "button", onClick: handleClearFiles, className: "rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 transition hover:bg-slate-200 hover:text-slate-800", children: "Clear media" })) : null] }), _jsxs("div", { className: "flex items-center gap-3", children: [_jsxs("span", { className: `text-xs font-semibold ${postTextLength > MAX_POST_LENGTH ? "text-red-600" : "text-slate-400"}`, children: [postTextLength, "/", MAX_POST_LENGTH] }), _jsx("button", { type: "submit", disabled: loading, className: "btn-primary inline-flex min-w-24 items-center justify-center rounded-lg px-4 py-2.5 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-60", children: loading ? "Posting..." : "Post" })] })] })] }), previewUrls.length > 0 ? (_jsxs("div", { className: "mt-4", children: [_jsxs("div", { className: "mb-2 flex items-center justify-between gap-3", children: [_jsxs("p", { className: "text-xs font-bold uppercase tracking-[0.12em] text-slate-500", children: [selectedFiles.length, " media selected"] }), _jsx("p", { className: "text-xs text-slate-400", children: "Maximum 5 files" })] }), _jsx("div", { className: "grid gap-3 sm:grid-cols-2 lg:grid-cols-3", children: previewUrls.map((previewUrl, index) => {
+                                                        const file = selectedFiles[index];
+                                                        const isVideo = file?.type?.startsWith("video/");
+                                                        return (_jsxs("div", { className: "relative overflow-hidden rounded-xl border border-slate-200 bg-slate-100", children: [_jsx("button", { type: "button", onClick: () => handleRemoveFile(index), className: "absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-lg bg-slate-950/80 text-lg font-semibold leading-none text-white transition hover:bg-slate-950", "aria-label": `Remove selected media ${index + 1}`, children: "x" }), isVideo ? (_jsx("video", { controls: true, src: previewUrl, className: "aspect-video w-full object-cover" })) : (_jsx("img", { src: previewUrl, alt: "Selected preview", className: "aspect-video w-full object-cover" })), _jsx("div", { className: "border-t border-slate-200 bg-white px-3 py-2", children: _jsx("p", { className: "truncate text-xs font-semibold text-slate-600", children: file?.name || "Selected media" }) })] }, previewUrl));
+                                                    }) })] })) : null, error ? (_jsx("div", { className: "mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700", children: error })) : null] })] }) })] }), _jsxs("section", { className: "space-y-4", children: [_jsxs("div", { className: "flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between", children: [_jsxs("div", { children: [_jsx("h2", { className: "page-title text-xl", children: "Latest Posts" }), _jsx("p", { className: "page-subtitle mt-1 text-sm", children: "Recent activity from members and admins." })] }), _jsxs("button", { type: "button", onClick: loadPosts, disabled: fetching, className: "inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60", children: [_jsx("svg", { xmlns: "http://www.w3.org/2000/svg", className: `h-4 w-4 ${fetching ? "animate-spin" : ""}`, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.8", children: _jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", d: "M20 11a8 8 0 1 0-2.34 5.66M20 11V5m0 6h-6" }) }), fetching ? "Refreshing" : "Refresh"] })] }), fetching && posts.length === 0 ? (_jsx("div", { className: "space-y-3", children: [0, 1, 2].map((item) => (_jsx("div", { className: "rounded-xl border border-slate-200 bg-white p-5 shadow-sm", children: _jsxs("div", { className: "flex animate-pulse gap-3", children: [_jsx("div", { className: "h-11 w-11 rounded-xl bg-slate-200" }), _jsxs("div", { className: "flex-1 space-y-3", children: [_jsx("div", { className: "h-3 w-36 rounded bg-slate-200" }), _jsx("div", { className: "h-3 w-full rounded bg-slate-100" }), _jsx("div", { className: "h-3 w-2/3 rounded bg-slate-100" })] })] }) }, item))) })) : posts.length === 0 ? (_jsxs("div", { className: "rounded-xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center shadow-sm", children: [_jsx("div", { className: "mx-auto grid h-12 w-12 place-items-center rounded-xl bg-blue-50 text-blue-700", children: _jsx("svg", { xmlns: "http://www.w3.org/2000/svg", className: "h-6 w-6", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.8", children: _jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", d: "M5 12h14M12 5v14" }) }) }), _jsx("h3", { className: "mt-4 text-lg font-black text-slate-900", children: "No posts yet" }), _jsx("p", { className: "mt-1 text-sm text-slate-500", children: "Be the first to start the community conversation." })] })) : (_jsx("div", { className: "space-y-4", children: posts.map((post) => {
+                            const comments = post.commentsList || [];
+                            const totalEngagement = (post.likes ?? 0) + (post.comments ?? 0) + (post.shares ?? 0);
+                            return (_jsxs("article", { className: "overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_14px_35px_-30px_rgba(15,23,42,0.7)]", children: [_jsxs("div", { className: "p-5", children: [_jsxs("div", { className: "flex items-start justify-between gap-4", children: [_jsxs("div", { className: "flex min-w-0 items-center gap-3", children: [_jsx("div", { className: "grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-slate-900 text-sm font-black text-white", children: getInitials(post.authorName) }), _jsxs("div", { className: "min-w-0", children: [_jsx("p", { className: "truncate text-sm font-black text-slate-900", children: post.authorName || "Community member" }), _jsx("p", { className: "text-xs font-medium text-slate-500", children: formatPostDate(post.createdAt) })] })] }), _jsxs("div", { className: "rounded-full bg-slate-50 px-3 py-1 text-xs font-bold text-slate-500", children: [totalEngagement, " interactions"] })] }), post.text ? _jsx("p", { className: "mt-4 whitespace-pre-line text-[15px] leading-7 text-slate-800", children: post.text }) : null, post.media && post.media.length > 0 ? (_jsx("div", { className: `mt-4 grid gap-3 ${post.media.length === 1 ? "grid-cols-1" : "sm:grid-cols-2"}`, children: post.media.map((item, index) => {
+                                                    const isVideo = (item.type || "").startsWith("video/");
+                                                    const mediaUrl = getMediaUrl(item.url);
+                                                    return (_jsx("div", { className: "overflow-hidden rounded-xl border border-slate-200 bg-slate-100", children: isVideo ? (_jsx("video", { controls: true, src: mediaUrl, className: "max-h-[420px] w-full bg-black object-contain" })) : (_jsx("img", { src: mediaUrl, alt: "Post media", className: "max-h-[420px] w-full object-cover" })) }, `${post._id}-${index}`));
+                                                }) })) : null, _jsx("div", { className: "mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4", children: _jsxs("div", { className: "flex flex-wrap items-center gap-2 text-sm", children: [_jsxs("button", { type: "button", onClick: () => handleLike(post._id), className: `inline-flex items-center gap-2 rounded-lg px-3 py-2 font-bold transition ${post.liked ? "bg-blue-50 text-blue-700" : "bg-slate-50 text-slate-600 hover:bg-blue-50 hover:text-blue-700"}`, children: [_jsx("svg", { xmlns: "http://www.w3.org/2000/svg", className: "h-4 w-4", viewBox: "0 0 24 24", fill: post.liked ? "currentColor" : "none", stroke: "currentColor", strokeWidth: "1.8", children: _jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", d: "M12 21s-6.4-4.35-8.2-8.16C2.5 10.14 3.5 7 6.3 6.1c1.7-.5 3.5.2 4.7 1.8 1.2-1.6 3-2.3 4.7-1.8 2.8.9 3.8 4.04 2.5 6.74C18.4 16.65 12 21 12 21Z" }) }), "Like", _jsx("span", { className: "rounded-full bg-white px-1.5 py-0.5 text-xs", children: post.likes ?? 0 })] }), _jsxs("button", { type: "button", onClick: () => handleCommentToggle(post._id), className: `inline-flex items-center gap-2 rounded-lg px-3 py-2 font-bold transition ${commentOpenForPost[post._id] ? "bg-slate-900 text-white" : "bg-slate-50 text-slate-600 hover:bg-slate-100"}`, children: [_jsx("svg", { xmlns: "http://www.w3.org/2000/svg", className: "h-4 w-4", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.8", children: _jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", d: "M8 10h8M8 14h5m-7 4h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z" }) }), "Comment", _jsx("span", { className: "rounded-full bg-white/90 px-1.5 py-0.5 text-xs text-slate-700", children: post.comments ?? 0 })] }), _jsxs("button", { type: "button", onClick: () => handleShare(post._id), className: "inline-flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 font-bold text-slate-600 transition hover:bg-slate-100", children: [_jsx("svg", { xmlns: "http://www.w3.org/2000/svg", className: "h-4 w-4", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "1.8", children: _jsx("path", { strokeLinecap: "round", strokeLinejoin: "round", d: "M7 14v3a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-3M12 4v10m0 0 3-3m-3 3-3-3" }) }), "Share", _jsx("span", { className: "rounded-full bg-white px-1.5 py-0.5 text-xs", children: post.shares ?? 0 })] })] }) })] }), commentOpenForPost[post._id] ? (_jsxs("div", { className: "border-t border-slate-100 bg-slate-50 p-5", children: [comments.length > 0 ? (_jsx("div", { className: "space-y-3", children: comments.map((comment) => {
+                                                    const replyKey = `${post._id}-${comment.id}`;
+                                                    return (_jsx("div", { className: "rounded-xl border border-slate-200 bg-white p-3", children: _jsxs("div", { className: "flex items-start gap-3", children: [_jsx("div", { className: "grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-blue-50 text-xs font-black text-blue-700", children: getInitials(comment.author) }), _jsxs("div", { className: "min-w-0 flex-1", children: [_jsxs("div", { className: "flex flex-wrap items-center justify-between gap-2", children: [_jsx("span", { className: "text-sm font-black text-slate-900", children: comment.author }), _jsx("button", { type: "button", onClick: () => {
+                                                                                        setReplyOpenForComment((current) => ({ ...current, [replyKey]: !current[replyKey] }));
+                                                                                        setReplyTarget((current) => ({ ...current, [replyKey]: comment.author }));
+                                                                                    }, className: "rounded-md px-2 py-1 text-xs font-bold text-blue-700 transition hover:bg-blue-50", children: "Reply" })] }), _jsx("p", { className: "mt-1 text-sm leading-6 text-slate-700", children: comment.text }), (comment.replies || []).length > 0 ? (_jsx("div", { className: "mt-3 space-y-2 border-l-2 border-blue-100 pl-3", children: comment.replies?.map((reply) => (_jsxs("div", { className: "rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700", children: [_jsx("span", { className: "font-black text-slate-900", children: reply.author }), reply.replyTo ? _jsxs("span", { className: "ml-1 text-slate-500", children: ["replying to ", reply.replyTo] }) : null, _jsx("p", { className: "mt-1 leading-6", children: reply.text })] }, reply.id))) })) : null, replyOpenForComment[replyKey] ? (_jsxs("form", { onSubmit: (event) => handleReplySubmit(post._id, comment.id, event), className: "mt-3 flex flex-col gap-2 sm:flex-row", children: [_jsx("input", { value: replyDrafts[replyKey] || "", onChange: (event) => setReplyDrafts((current) => ({
+                                                                                        ...current,
+                                                                                        [replyKey]: event.target.value,
+                                                                                    })), placeholder: `Reply to ${replyTarget[replyKey] || comment.author}...`, className: "form-input rounded-lg px-4 py-2 text-sm" }), _jsx("button", { type: "submit", className: "btn-primary rounded-lg px-4 py-2 text-sm font-bold transition", children: "Reply" })] })) : null] })] }) }, comment.id));
+                                                }) })) : (_jsx("p", { className: "rounded-xl border border-dashed border-slate-200 bg-white px-4 py-5 text-center text-sm text-slate-500", children: "No comments yet. Add the first one." })), _jsxs("form", { onSubmit: (event) => handleCommentSubmit(post._id, event), className: "mt-4 flex flex-col gap-2 sm:flex-row", children: [_jsx("input", { value: commentDrafts[post._id] || "", onChange: (event) => setCommentDrafts((current) => ({ ...current, [post._id]: event.target.value })), placeholder: "Write a thoughtful comment...", className: "form-input rounded-lg px-4 py-3 text-sm" }), _jsx("button", { type: "submit", className: "btn-primary rounded-lg px-5 py-3 text-sm font-bold transition", children: "Comment" })] })] })) : null] }, post._id));
+                        }) }))] })] }));
 }
