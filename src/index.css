@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --brand-900: #0f172a;
-  --brand-700: #1e3a5f;
-  --brand-500: #2563eb;
-  --accent-500: #0f766e;
+  --brand-900: #052e16;
+  --brand-700: #166534;
+  --brand-500: #10b981;
+  --accent-500: #34d399;
   --surface-100: #f8fafc;
-  --surface-200: #eef2f7;
-  --text-900: #111827;
-  --text-700: #334155;
-  --text-500: #64748b;
-  --border: #dbe2ea;
+  --surface-200: #ecfdf5;
+  --text-900: #052e16;
+  --text-700: #14532d;
+  --text-500: #4b5563;
+  --border: #d1fae5;
   font-family: "Manrope", "Segoe UI", sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -31,9 +31,9 @@ body {
   min-height: 100vh;
   color: var(--text-900);
   background:
-    radial-gradient(circle at 8% 14%, rgba(37, 99, 235, 0.12), transparent 34%),
-    radial-gradient(circle at 84% 8%, rgba(15, 118, 110, 0.12), transparent 30%),
-    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+    radial-gradient(circle at 8% 14%, rgba(16, 185, 129, 0.16), transparent 34%),
+    radial-gradient(circle at 84% 8%, rgba(52, 211, 153, 0.16), transparent 30%),
+    linear-gradient(180deg, #f8fafc 0%, #ecfdf5 100%);
 }
 
 a {
@@ -94,14 +94,75 @@ a {
 
 .form-input:focus {
   outline: none;
-  border-color: #93c5fd;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  border-color: #86efac;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.16);
 }
 
 .btn-primary {
-  border: 1px solid #1d4ed8;
-  background: linear-gradient(90deg, #1d4ed8 0%, #2563eb 100%);
+  border: 1px solid #047857;
+  background: linear-gradient(90deg, #047857 0%, #10b981 100%);
   color: #fff;
+}
+
+.bg-slate-950,
+.bg-slate-900,
+.bg-slate-800 {
+  background-color: var(--brand-900) !important;
+}
+
+.bg-slate-50 {
+  background-color: #f0fdf4 !important;
+}
+
+.text-slate-900 {
+  color: var(--text-900) !important;
+}
+
+.text-slate-800 {
+  color: var(--text-700) !important;
+}
+
+.text-slate-700,
+.text-slate-600,
+.text-slate-500,
+.text-slate-400 {
+  color: var(--text-700) !important;
+}
+
+.border-slate-200,
+.border-slate-300,
+.border-slate-400 {
+  border-color: var(--border) !important;
+}
+
+.border-slate-800 {
+  border-color: var(--brand-700) !important;
+}
+
+.bg-blue-50,
+.bg-blue-100 {
+  background-color: #ecfdf5 !important;
+}
+
+.bg-blue-600,
+.bg-blue-500 {
+  background-color: #10b981 !important;
+}
+
+.text-blue-700,
+.text-blue-800,
+.text-blue-600 {
+  color: #047857 !important;
+}
+
+.text-blue-100 {
+  color: #d1fae5 !important;
+}
+
+.border-blue-200,
+.border-blue-300,
+.border-blue-600 {
+  border-color: #10b981 !important;
 }
 
 .btn-secondary {

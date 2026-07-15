@@ -1,7 +1,6 @@
-import React, { ReactNode, useEffect } from 'react';
+import { ReactNode } from 'react';
 import Navbar from '../components/Navbar.js';
-import { useLocation, useNavigate } from 'react-router-dom';
-import API from '../api/axios.js';
+import { useLocation } from 'react-router-dom';
 
 type MainLayoutProps = {
   children: ReactNode;
@@ -9,68 +8,8 @@ type MainLayoutProps = {
 
 export default function MainLayout({ children }: MainLayoutProps) {
   const location = useLocation();
-  const navigate = useNavigate();
   const isAuthVisualRoute = location.pathname === '/register' || location.pathname === '/login';
   const year = new Date().getFullYear();
-
-  useEffect(() => {
-    if (isAuthVisualRoute) {
-      return;
-    }
-
-    const token = localStorage.getItem('token');
-    if (!token) {
-      return;
-    }
-
-    const INACTIVITY_LIMIT_MS = 30 * 60 * 1000;
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
-
-    const clearTimer = () => {
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-        timeoutId = null;
-      }
-    };
-
-    const logoutForInactivity = () => {
-      localStorage.removeItem('token');
-      delete API.defaults.headers.common.Authorization;
-      navigate('/login', { replace: true });
-    };
-
-    const resetTimer = () => {
-      if (!localStorage.getItem('token')) {
-        clearTimer();
-        return;
-      }
-
-      clearTimer();
-      timeoutId = setTimeout(logoutForInactivity, INACTIVITY_LIMIT_MS);
-    };
-
-    const activityEvents: Array<keyof WindowEventMap> = ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'];
-    activityEvents.forEach((eventName) => {
-      window.addEventListener(eventName, resetTimer, { passive: true });
-    });
-
-    const onVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
-        resetTimer();
-      }
-    };
-
-    document.addEventListener('visibilitychange', onVisibilityChange);
-    resetTimer();
-
-    return () => {
-      clearTimer();
-      activityEvents.forEach((eventName) => {
-        window.removeEventListener(eventName, resetTimer);
-      });
-      document.removeEventListener('visibilitychange', onVisibilityChange);
-    };
-  }, [isAuthVisualRoute, navigate]);
 
   return (
     <div className="app-shell flex min-h-screen w-full flex-col">

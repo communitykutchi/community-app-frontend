@@ -109,6 +109,7 @@ export default function NoticesPage() {
   const [editBody, setEditBody] = useState("");
   const [editNoticeType, setEditNoticeType] = useState<"notice" | "mayyat">("notice");
   const [editPinned, setEditPinned] = useState(false);
+  const [editMayyatDetails, setEditMayyatDetails] = useState<MayyatDetails>(emptyMayyatDetails);
 
   const isAdminRole = role === "super_admin" || role === "moderator";
   const roleResolved = role !== "loading";
@@ -254,12 +255,17 @@ export default function NoticesPage() {
     }
   };
 
+  const updateEditMayyatDetails = (field: keyof MayyatDetails, value: string) => {
+    setEditMayyatDetails((current) => ({ ...current, [field]: value }));
+  };
+
   const startEdit = (notice: Notice) => {
     setEditingNoticeId(notice.id);
     setEditTitle(notice.title);
     setEditBody(notice.body);
     setEditNoticeType(notice.type ?? "notice");
     setEditPinned(Boolean(notice.pinned));
+    setEditMayyatDetails(notice.type === "mayyat" && notice.mayyatDetails ? { ...notice.mayyatDetails } : emptyMayyatDetails);
   };
 
   const cancelEdit = () => {
@@ -268,20 +274,30 @@ export default function NoticesPage() {
     setEditBody("");
     setEditNoticeType("notice");
     setEditPinned(false);
+    setEditMayyatDetails(emptyMayyatDetails);
   };
 
   const saveEdit = async (noticeId: string) => {
-    if (!editTitle.trim() || !editBody.trim()) {
+    if (editNoticeType === "mayyat") {
+      if (!editMayyatDetails.deceasedName.trim() || !editMayyatDetails.funeralPrayerAt.trim() || !editMayyatDetails.funeralPrayerPlace.trim()) {
+        setStatus("Please add name, namaz-e-janaza time, and janaza place before saving.");
+        return;
+      }
+    } else if (!editTitle.trim() || !editBody.trim()) {
       setStatus("Please add both a title and a message before saving.");
       return;
     }
 
     try {
+      const nextTitle = editNoticeType === "mayyat" ? `Mayyat: ${editMayyatDetails.deceasedName.trim()}` : editTitle.trim();
+      const nextBody = editNoticeType === "mayyat" ? buildMayyatBody(editMayyatDetails) : editBody.trim();
+
       const response = await API.put<{ success: boolean; notice: Notice }>(`/notices/${noticeId}`, {
-        title: editTitle.trim(),
-        body: editBody.trim(),
+        title: nextTitle,
+        body: nextBody,
         type: editNoticeType,
         pinned: editPinned,
+        mayyatDetails: editNoticeType === "mayyat" ? { ...editMayyatDetails } : undefined,
       });
 
       if (response.data?.notice) {
@@ -329,10 +345,10 @@ export default function NoticesPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-      <div className="page-card p-6">
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-700">Community Notices & Alerts</p>
-        <h1 className="page-title mt-2 text-2xl">This channel is for important updates</h1>
-        <p className="page-subtitle mt-2 max-w-2xl text-sm">
+      <div className="overflow-hidden rounded-[1.5rem] border border-emerald-200 bg-gradient-to-br from-emerald-950 via-emerald-900 to-green-700 p-6 text-white shadow-[0_24px_60px_-30px_rgba(5,150,105,0.55)]">
+        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-100">Community Notices & Alerts</p>
+        <h1 className="mt-2 text-2xl font-black">This channel is for important updates</h1>
+        <p className="mt-2 max-w-2xl text-sm leading-7 text-emerald-50">
           {!roleResolved
             ? "Checking your access level for notices..."
             : isAdminRole
@@ -340,8 +356,8 @@ export default function NoticesPage() {
             : "You are viewing in member mode. You can read updates, react to them, and share them with others."}
         </p>
 
-        <div className="mt-4 inline-flex rounded-full bg-slate-100 px-3 py-2 text-sm font-semibold text-slate-700">
-          {role === "loading" ? "Checking access..." : isAdminRole ? "Admin access" : "Member access"}
+        <div className="mt-4 inline-flex rounded-full bg-white/15 px-3 py-2 text-sm font-semibold text-emerald-50">
+          {role === "loading" ? "Checking access..." : role === "moderator" ? "Moderator access" : role === "super_admin" ? "Admin access" : "Member access"}
         </div>
       </div>
 
@@ -580,7 +596,7 @@ export default function NoticesPage() {
                   </svg>
                   {hasShared ? "Shared" : "Share"} - {notice.shares}
                 </button>
-                {roleResolved && isAdminRole && !isMayyat ? (
+                {roleResolved && isAdminRole ? (
                   <>
                     <button
                       type="button"
@@ -643,19 +659,81 @@ export default function NoticesPage() {
                       Mayyat notification
                     </button>
                   </div>
-                  <input
-                    value={editTitle}
-                    onChange={(event) => setEditTitle(event.target.value)}
-                    className="form-input px-3 py-2"
-                    placeholder="Edit title"
-                  />
-                  <textarea
-                    value={editBody}
-                    onChange={(event) => setEditBody(event.target.value)}
-                    rows={3}
-                    className="form-input px-3 py-2"
-                    placeholder="Edit message"
-                  />
+                  {editNoticeType === "mayyat" ? (
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <input
+                        value={editMayyatDetails.deceasedName}
+                        onChange={(event) => updateEditMayyatDetails("deceasedName", event.target.value)}
+                        placeholder="Marhoom/marhooma ka naam"
+                        className="form-input px-3 py-2"
+                      />
+                      <input
+                        value={editMayyatDetails.relationName}
+                        onChange={(event) => updateEditMayyatDetails("relationName", event.target.value)}
+                        placeholder="Walid/shohar ya family reference"
+                        className="form-input px-3 py-2"
+                      />
+                      <input
+                        value={editMayyatDetails.age}
+                        onChange={(event) => updateEditMayyatDetails("age", event.target.value)}
+                        placeholder="Age"
+                        className="form-input px-3 py-2"
+                      />
+                      <input
+                        value={editMayyatDetails.jamaat}
+                        onChange={(event) => updateEditMayyatDetails("jamaat", event.target.value)}
+                        placeholder="Jamaat / area"
+                        className="form-input px-3 py-2"
+                      />
+                      <input
+                        value={editMayyatDetails.passedAwayAt}
+                        onChange={(event) => updateEditMayyatDetails("passedAwayAt", event.target.value)}
+                        placeholder="Inteqal date/time"
+                        className="form-input px-3 py-2"
+                      />
+                      <input
+                        value={editMayyatDetails.funeralPrayerAt}
+                        onChange={(event) => updateEditMayyatDetails("funeralPrayerAt", event.target.value)}
+                        placeholder="Namaz-e-janaza date/time"
+                        className="form-input px-3 py-2"
+                      />
+                      <input
+                        value={editMayyatDetails.funeralPrayerPlace}
+                        onChange={(event) => updateEditMayyatDetails("funeralPrayerPlace", event.target.value)}
+                        placeholder="Janaza place / masjid"
+                        className="form-input px-3 py-2 sm:col-span-2"
+                      />
+                      <input
+                        value={editMayyatDetails.burialPlace}
+                        onChange={(event) => updateEditMayyatDetails("burialPlace", event.target.value)}
+                        placeholder="Tadfeen / qabrastan"
+                        className="form-input px-3 py-2 sm:col-span-2"
+                      />
+                      <textarea
+                        value={editMayyatDetails.notes}
+                        onChange={(event) => updateEditMayyatDetails("notes", event.target.value)}
+                        rows={3}
+                        placeholder="Extra notes / dua request"
+                        className="form-input px-3 py-2 sm:col-span-2"
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <input
+                        value={editTitle}
+                        onChange={(event) => setEditTitle(event.target.value)}
+                        className="form-input px-3 py-2"
+                        placeholder="Edit title"
+                      />
+                      <textarea
+                        value={editBody}
+                        onChange={(event) => setEditBody(event.target.value)}
+                        rows={3}
+                        className="form-input px-3 py-2"
+                        placeholder="Edit message"
+                      />
+                    </>
+                  )}
                   <label className="flex items-center gap-2 text-sm text-gray-600">
                     <input type="checkbox" checked={editPinned} onChange={() => setEditPinned((current) => !current)} />
                     Pin this notice

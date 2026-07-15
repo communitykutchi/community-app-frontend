@@ -2,6 +2,7 @@ import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-run
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../api/axios.js';
+import { persistAuthToken } from '../auth/session.js';
 export default function Login() {
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
@@ -27,7 +28,7 @@ export default function Login() {
             });
             if (response.data.success) {
                 const token = response.data.token;
-                localStorage.setItem('token', token);
+                persistAuthToken(token);
                 API.defaults.headers.common.Authorization = `Bearer ${token}`;
                 navigate('/');
             }

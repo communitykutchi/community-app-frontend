@@ -14,7 +14,7 @@ interface UserItem {
 
 function normalizeRole(role?: string): UserItem['role'] {
   if (role === 'super_admin') return 'super_admin';
-  if (role === 'jamaat_admin' || role === 'moderator') return 'moderator';
+  if (role === 'moderator') return 'moderator';
   return 'member';
 }
 
@@ -219,7 +219,7 @@ export default function AdminUsersPage() {
       <div className="page-card p-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="page-title text-2xl">{isJamaatAdmin ? 'Jamaat Member Management' : 'Admin & Member Management'}</h1>
+            <h1 className="page-title text-2xl">{isJamaatAdmin ? 'Moderator Member Management' : 'Admin & Member Management'}</h1>
             <p className="page-subtitle mt-1 text-sm">
               {isJamaatAdmin
                 ? 'You can view members from your own jamaat only.'

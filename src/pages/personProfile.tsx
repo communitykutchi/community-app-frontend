@@ -76,7 +76,7 @@ function toForm(user: UserProfile): ProfileForm {
 
 function labelRole(role?: string) {
   if (role === "super_admin") return "Super Admin";
-  if (role === "jamaat_admin") return "Jamaat Admin";
+  if (role === "jamaat_admin" || role === "moderator") return "Moderator";
   if (role === "admin") return "Admin";
   return "Member";
 }
@@ -92,7 +92,7 @@ export default function PeopleProfile() {
   const [previewUrl, setPreviewUrl] = useState("");
 
   const profileCompletion = useMemo(() => {
-    const fields = ["fullName", "email", "mobile", "jamaat", "cast", "dob", "cnic"] as const;
+    const fields = ["fullName", "email", "mobile", "dob", "cnic"] as const;
     const filled = fields.filter((field) => String(form[field] || "").trim()).length;
     return Math.round((filled / fields.length) * 100);
   }, [form]);
@@ -221,7 +221,7 @@ export default function PeopleProfile() {
               <div className="min-w-0">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-200">{labelRole(user?.role)}</p>
                 <h1 className="mt-2 truncate text-3xl font-black leading-tight sm:text-4xl">{user?.fullName || "Your Profile"}</h1>
-                <p className="mt-2 truncate text-sm text-slate-300">@{user?.username || "member"} {user?.jamaat ? `- ${user.jamaat}` : ""}</p>
+                <p className="mt-2 truncate text-sm text-slate-300">@{user?.username || "member"}</p>
               </div>
             </div>
             <div className="rounded-xl border border-white/10 bg-white/10 p-4 text-left sm:min-w-56">
@@ -247,14 +247,6 @@ export default function PeopleProfile() {
                 <input name="fullName" value={form.fullName} onChange={handleChange} className="form-input" required />
               </div>
               <div>
-                <label className="form-label">Father Name</label>
-                <input name="fatherName" value={form.fatherName || ""} onChange={handleChange} className="form-input" />
-              </div>
-              <div>
-                <label className="form-label">Mother Name</label>
-                <input name="motherName" value={form.motherName || ""} onChange={handleChange} className="form-input" />
-              </div>
-              <div>
                 <label className="form-label">Email</label>
                 <input name="email" type="email" value={form.email || ""} onChange={handleChange} className="form-input" />
               </div>
@@ -269,48 +261,6 @@ export default function PeopleProfile() {
               <div>
                 <label className="form-label">Date of Birth</label>
                 <input name="dob" type="date" value={form.dob || ""} onChange={handleChange} className="form-input" />
-              </div>
-            </div>
-          </div>
-
-          <div className="space-y-5">
-            <div>
-              <h2 className="page-title text-xl">Community Details</h2>
-              <p className="page-subtitle mt-1 text-sm">These details help admins organize members.</p>
-            </div>
-
-            <div className="grid gap-4">
-              <div>
-                <label className="form-label">Jamaat / Group</label>
-                <input name="jamaat" value={form.jamaat || ""} onChange={handleChange} className="form-input" />
-              </div>
-              <div>
-                <label className="form-label">Cast</label>
-                <input name="cast" value={form.cast || ""} onChange={handleChange} className="form-input" />
-              </div>
-              <div>
-                <label className="form-label">Family Members</label>
-                <input name="familyMembers" type="number" min="0" value={form.familyMembers} onChange={handleChange} className="form-input" />
-              </div>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="form-label">Home Status</label>
-                  <select name="homeStatus" value={form.homeStatus} onChange={handleChange} className="form-input">
-                    <option value="Owner">Owner</option>
-                    <option value="Rent">Rent</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="form-label">Occupation</label>
-                  <select name="occupation" value={form.occupation} onChange={handleChange} className="form-input">
-                    <option value="Employee">Employee</option>
-                    <option value="Business Man">Business Man</option>
-                  </select>
-                </div>
-              </div>
-              <div>
-                <label className="form-label">Business Name</label>
-                <input name="businessName" value={form.businessName || ""} onChange={handleChange} className="form-input" />
               </div>
             </div>
           </div>

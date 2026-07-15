@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import API from '../api/axios.js';
+import { AUTH_CHANGED_EVENT, clearAuthToken, getAuthToken } from '../auth/session.js';
 import UserAvatar from './UserAvatar.js';
 
 const NOTICE_ACTIVITY_EVENT = 'community-notice-activity';
@@ -25,8 +26,8 @@ function normalizeRole(role?: string) {
 
 export default function Navbar() {
 	const [open, setOpen] = useState(false);
-	const [authToken, setAuthToken] = useState<string | null>(() => localStorage.getItem('token'));
-	const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(localStorage.getItem('token')));
+	const [authToken, setAuthToken] = useState<string | null>(() => getAuthToken());
+	const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(getAuthToken()));
 	const [isAdmin, setIsAdmin] = useState(false);
 	const [unreadNoticeCount, setUnreadNoticeCount] = useState(0);
 	const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
@@ -36,8 +37,24 @@ export default function Navbar() {
 
 	useEffect(() => {
 		setOpen(false);
-		setAuthToken(localStorage.getItem('token'));
+		setAuthToken(getAuthToken());
 	}, [location.pathname]);
+
+	useEffect(() => {
+		if (typeof window === 'undefined') return;
+
+		const syncAuthToken = () => {
+			setAuthToken(getAuthToken());
+		};
+
+		window.addEventListener(AUTH_CHANGED_EVENT, syncAuthToken);
+		window.addEventListener('storage', syncAuthToken);
+
+		return () => {
+			window.removeEventListener(AUTH_CHANGED_EVENT, syncAuthToken);
+			window.removeEventListener('storage', syncAuthToken);
+		};
+	}, []);
 
 	useEffect(() => {
 		setIsAuthenticated(Boolean(authToken));
@@ -54,7 +71,7 @@ export default function Navbar() {
 			if (cancelled) return;
 			const role = normalizeRole(response.data?.user?.role);
 			setCurrentUser(response.data?.user || null);
-			setIsAdmin(role === 'super_admin' || role === 'moderator' || role === 'admin');
+			setIsAdmin(role === 'super_admin' || role === 'admin');
 		}).catch(() => {
 			if (cancelled) return;
 			setIsAdmin(false);
@@ -75,7 +92,7 @@ export default function Navbar() {
 				.then((response) => {
 					const role = normalizeRole(response.data?.user?.role);
 					setCurrentUser(response.data?.user || null);
-					setIsAdmin(role === 'super_admin' || role === 'moderator' || role === 'admin');
+					setIsAdmin(role === 'super_admin' || role === 'admin');
 				})
 				.catch(() => {
 					setCurrentUser(null);
@@ -138,7 +155,7 @@ export default function Navbar() {
 	}, [authToken]);
 
 	function handleLogout() {
-		localStorage.removeItem('token');
+		clearAuthToken();
 		setAuthToken(null);
 		setIsAuthenticated(false);
 		setIsAdmin(false);
@@ -155,8 +172,7 @@ export default function Navbar() {
 				{ to: '/', label: 'Home' },
 				{ to: '/feed', label: 'Feed' },
 				{ to: '/notices', label: 'Notices', unreadCount: unreadNoticeCount },
-				{ to: '/profile', label: 'Profile' },
-				...(isAdmin ? [{ to: '/admin/users', label: 'Admin' }] : []),
+				...(isAdmin && currentUser?.role === 'super_admin' ? [{ to: '/admin/users', label: 'Admin' }] : []),
 		  ]
 		: [
 				{ to: '/login', label: 'Login' },
@@ -165,13 +181,13 @@ export default function Navbar() {
 
 	const desktopLinkClass = (to: string) =>
 		`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${isActive(to)
-			? 'bg-slate-900 !text-white hover:!text-white'
-			: 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'}`;
+			? 'bg-emerald-700 !text-white hover:!text-white'
+			: 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-700'}`;
 
 	const mobileLinkClass = (to: string) =>
 		`block w-full rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${isActive(to)
-			? 'bg-slate-900 !text-white hover:!text-white'
-			: 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'}`;
+			? 'bg-emerald-700 !text-white hover:!text-white'
+			: 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-700'}`;
 
 	const renderNavLabel = (item: NavItem) => (
 		<span className="inline-flex items-center gap-2">
@@ -189,7 +205,7 @@ export default function Navbar() {
 			<header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/95 backdrop-blur">
 				<div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 md:px-6">
 					<Link to="/" className="min-w-0 flex max-w-[62%] items-center gap-3 sm:max-w-none">
-						<div className="grid h-9 w-9 place-items-center rounded-lg bg-slate-900 text-sm font-black text-white">
+						<div className="grid h-9 w-9 place-items-center rounded-lg bg-emerald-700 text-sm font-black text-white">
 							KH
 						</div>
 						<div className="min-w-0">
@@ -220,7 +236,7 @@ export default function Navbar() {
 		<header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/95 text-slate-900 backdrop-blur">
 			<div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 md:px-6">
 				<Link to="/" className="min-w-0 flex max-w-[72%] items-center gap-2 sm:max-w-none sm:gap-3">
-					<div className="grid h-8 w-8 place-items-center rounded-lg bg-slate-900 text-xs font-black text-white sm:h-9 sm:w-9 sm:text-sm">
+					<div className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-700 text-xs font-black text-white sm:h-9 sm:w-9 sm:text-sm">
 						KH
 					</div>
 					<div>

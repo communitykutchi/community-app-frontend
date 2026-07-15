@@ -34,6 +34,7 @@ interface Post {
   comments?: number;
   shares?: number;
   liked?: boolean;
+  canDelete?: boolean;
   commentsList?: CommentItem[];
 }
 
@@ -42,6 +43,12 @@ const MAX_POST_LENGTH = 1200;
 interface CurrentUser {
   fullName?: string;
   profilePhotoUrl?: string;
+  role?: string;
+}
+
+function normalizeRole(role?: string) {
+  if (role === "jamaat_admin") return "moderator";
+  return role;
 }
 
 function formatPostDate(value: string) {
@@ -100,8 +107,18 @@ export default function Feed() {
   const [replyOpenForComment, setReplyOpenForComment] = useState<Record<string, boolean>>({});
   const [replyTarget, setReplyTarget] = useState<Record<string, string>>({});
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
+  const [openPostMenu, setOpenPostMenu] = useState<string | null>(null);
 
+  const currentRole = normalizeRole(currentUser?.role);
+  const canCreatePosts = currentRole === "super_admin" || currentRole === "moderator" || currentRole === "admin";
+  const canModeratePosts = currentRole === "super_admin" || currentRole === "moderator" || currentRole === "admin";
+  const isSuperAdmin = currentRole === "super_admin";
+  const [viewMode, setViewMode] = useState<"all" | "mine">("all");
   const postTextLength = text.trim().length;
+  const visiblePosts = viewMode === "mine" && currentUser?.fullName
+    ? posts.filter((post) => post.authorName === currentUser.fullName)
+    : posts;
+
   const feedStats = posts.reduce(
     (totals, post) => ({
       likes: totals.likes + (post.likes ?? 0),
@@ -111,21 +128,31 @@ export default function Feed() {
     { likes: 0, comments: 0, shares: 0 }
   );
 
-  const loadPosts = async () => {
+  const loadPosts = async (showSpinner = true) => {
     try {
-      setFetching(true);
+      if (showSpinner) setFetching(true);
       setError("");
       const response = await API.get<Post[]>("/posts/all");
       setPosts(response.data);
     } catch (err: any) {
       setError(err.response?.data?.message || "Unable to load posts.");
     } finally {
-      setFetching(false);
+      if (showSpinner) setFetching(false);
     }
   };
 
   useEffect(() => {
     void loadPosts();
+  }, []);
+
+  useEffect(() => {
+    const intervalId = window.setInterval(() => {
+      void loadPosts(false);
+    }, 5000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
   }, []);
 
   useEffect(() => {
@@ -265,12 +292,30 @@ export default function Feed() {
     }
   };
 
+  const handleDeletePost = async (postId: string) => {
+    const confirmed = window.confirm("Delete this post?");
+    if (!confirmed) return;
+
+    try {
+      setOpenPostMenu(null);
+      await API.delete(`/posts/${postId}`);
+      setPosts((currentPosts) => currentPosts.filter((post) => post._id !== postId));
+    } catch (err: any) {
+      setError(err.response?.data?.message || "Unable to delete post.");
+    }
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
 
     if (postTextLength > MAX_POST_LENGTH) {
       setError(`Post is too long. Please keep it under ${MAX_POST_LENGTH} characters.`);
+      return;
+    }
+
+    if (!canCreatePosts) {
+      setError("Only super admins and moderators can create posts.");
       return;
     }
 
@@ -331,99 +376,107 @@ export default function Feed() {
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-5 sm:p-6">
-          <div className="flex gap-3">
-            <UserAvatar name={currentUser?.fullName || "Me"} photoUrl={currentUser?.profilePhotoUrl} size="md" />
-            <div className="min-w-0 flex-1">
-              <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 transition focus-within:border-blue-300 focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]">
-                <textarea
-                  value={text}
-                  onChange={(event) => setText(event.target.value)}
-                  rows={4}
-                  maxLength={MAX_POST_LENGTH + 50}
-                  placeholder="What would you like to share today?"
-                  className="min-h-32 w-full resize-y border-0 bg-transparent p-4 text-sm leading-6 text-slate-900 outline-none placeholder:text-slate-400"
-                />
-                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-4 py-3">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.6-4.6a2 2 0 0 1 2.8 0L16 16m-2-2 1.6-1.6a2 2 0 0 1 2.8 0L20 14m-2-8h.01M5 20h14a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1Z" />
-                      </svg>
-                      Media
-                      <input type="file" accept="image/*,video/*" multiple onChange={handleFileChange} className="hidden" />
-                    </label>
-                    {selectedFiles.length > 0 ? (
+        {canCreatePosts ? (
+          <form onSubmit={handleSubmit} className="p-5 sm:p-6">
+            <div className="flex gap-3">
+              <UserAvatar name={currentUser?.fullName || "Me"} photoUrl={currentUser?.profilePhotoUrl} size="md" />
+              <div className="min-w-0 flex-1">
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 transition focus-within:border-blue-300 focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]">
+                  <textarea
+                    value={text}
+                    onChange={(event) => setText(event.target.value)}
+                    rows={4}
+                    maxLength={MAX_POST_LENGTH + 50}
+                    placeholder="What would you like to share today?"
+                    className="min-h-32 w-full resize-y border-0 bg-transparent p-4 text-sm leading-6 text-slate-900 outline-none placeholder:text-slate-400"
+                  />
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-4 py-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.6-4.6a2 2 0 0 1 2.8 0L16 16m-2-2 1.6-1.6a2 2 0 0 1 2.8 0L20 14m-2-8h.01M5 20h14a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1Z" />
+                        </svg>
+                        Media
+                        <input type="file" accept="image/*,video/*" multiple onChange={handleFileChange} className="hidden" />
+                      </label>
+                      {selectedFiles.length > 0 ? (
+                        <button
+                          type="button"
+                          onClick={handleClearFiles}
+                          className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 transition hover:bg-slate-200 hover:text-slate-800"
+                        >
+                          Clear media
+                        </button>
+                      ) : null}
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className={`text-xs font-semibold ${postTextLength > MAX_POST_LENGTH ? "text-red-600" : "text-slate-400"}`}>
+                        {postTextLength}/{MAX_POST_LENGTH}
+                      </span>
                       <button
-                        type="button"
-                        onClick={handleClearFiles}
-                        className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 transition hover:bg-slate-200 hover:text-slate-800"
+                        type="submit"
+                        disabled={loading}
+                        className="btn-primary inline-flex min-w-24 items-center justify-center rounded-lg px-4 py-2.5 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-60"
                       >
-                        Clear media
+                        {loading ? "Posting..." : "Post"}
                       </button>
-                    ) : null}
-                  </div>
-                  <div className="flex items-center gap-3">
-                    <span className={`text-xs font-semibold ${postTextLength > MAX_POST_LENGTH ? "text-red-600" : "text-slate-400"}`}>
-                      {postTextLength}/{MAX_POST_LENGTH}
-                    </span>
-                    <button
-                      type="submit"
-                      disabled={loading}
-                      className="btn-primary inline-flex min-w-24 items-center justify-center rounded-lg px-4 py-2.5 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      {loading ? "Posting..." : "Post"}
-                    </button>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              {previewUrls.length > 0 ? (
-                <div className="mt-4">
-                  <div className="mb-2 flex items-center justify-between gap-3">
-                    <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
-                      {selectedFiles.length} media selected
-                    </p>
-                    <p className="text-xs text-slate-400">Maximum 5 files</p>
-                  </div>
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {previewUrls.map((previewUrl, index) => {
-                      const file = selectedFiles[index];
-                      const isVideo = file?.type?.startsWith("video/");
+                {previewUrls.length > 0 ? (
+                  <div className="mt-4">
+                    <div className="mb-2 flex items-center justify-between gap-3">
+                      <p className="text-xs font-bold uppercase tracking-[0.12em] text-slate-500">
+                        {selectedFiles.length} media selected
+                      </p>
+                      <p className="text-xs text-slate-400">Maximum 5 files</p>
+                    </div>
+                    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                      {previewUrls.map((previewUrl, index) => {
+                        const file = selectedFiles[index];
+                        const isVideo = file?.type?.startsWith("video/");
 
-                      return (
-                        <div key={previewUrl} className="relative overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveFile(index)}
-                            className="absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-lg bg-slate-950/80 text-lg font-semibold leading-none text-white transition hover:bg-slate-950"
-                            aria-label={`Remove selected media ${index + 1}`}
-                          >
-                            x
-                          </button>
-                          {isVideo ? (
-                            <video controls src={previewUrl} className="aspect-video w-full object-cover" />
-                          ) : (
-                            <img src={previewUrl} alt="Selected preview" className="aspect-video w-full object-cover" />
-                          )}
-                          <div className="border-t border-slate-200 bg-white px-3 py-2">
-                            <p className="truncate text-xs font-semibold text-slate-600">{file?.name || "Selected media"}</p>
+                        return (
+                          <div key={previewUrl} className="relative overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveFile(index)}
+                              className="absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-lg bg-slate-950/80 text-lg font-semibold leading-none text-white transition hover:bg-slate-950"
+                              aria-label={`Remove selected media ${index + 1}`}
+                            >
+                              x
+                            </button>
+                            {isVideo ? (
+                              <video controls src={previewUrl} className="aspect-video w-full object-cover" />
+                            ) : (
+                              <img src={previewUrl} alt="Selected preview" className="aspect-video w-full object-cover" />
+                            )}
+                            <div className="border-t border-slate-200 bg-white px-3 py-2">
+                              <p className="truncate text-xs font-semibold text-slate-600">{file?.name || "Selected media"}</p>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      })}
+                    </div>
                   </div>
-                </div>
-              ) : null}
+                ) : null}
 
-              {error ? (
-                <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-                  {error}
-                </div>
-              ) : null}
+                {error ? (
+                  <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                    {error}
+                  </div>
+                ) : null}
+              </div>
+            </div>
+          </form>
+        ) : (
+          <div className="p-5 sm:p-6">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
+              Only super admins and moderators can create posts. Members can view posts, like, comment, and share them.
             </div>
           </div>
-        </form>
+        )}
       </section>
 
       <section className="space-y-4">
@@ -432,9 +485,27 @@ export default function Feed() {
             <h2 className="page-title text-xl">Latest Posts</h2>
             <p className="page-subtitle mt-1 text-sm">Recent activity from members and admins.</p>
           </div>
+          {canModeratePosts ? (
+            <div className="inline-flex rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
+              <button
+                type="button"
+                onClick={() => setViewMode("all")}
+                className={`rounded-md px-3 py-2 text-sm font-semibold transition ${viewMode === "all" ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"}`}
+              >
+                All posts
+              </button>
+              <button
+                type="button"
+                onClick={() => setViewMode("mine")}
+                className={`rounded-md px-3 py-2 text-sm font-semibold transition ${viewMode === "mine" ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"}`}
+              >
+                My posts
+              </button>
+            </div>
+          ) : null}
           <button
             type="button"
-            onClick={loadPosts}
+            onClick={() => void loadPosts()}
             disabled={fetching}
             className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
           >
@@ -460,7 +531,7 @@ export default function Feed() {
               </div>
             ))}
           </div>
-        ) : posts.length === 0 ? (
+        ) : visiblePosts.length === 0 ? (
           <div className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center shadow-sm">
             <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-blue-50 text-blue-700">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -472,7 +543,7 @@ export default function Feed() {
           </div>
         ) : (
           <div className="space-y-4">
-            {posts.map((post) => {
+            {visiblePosts.map((post) => {
               const comments = post.commentsList || [];
               const totalEngagement = (post.likes ?? 0) + (post.comments ?? 0) + (post.shares ?? 0);
 
@@ -487,8 +558,40 @@ export default function Feed() {
                           <p className="text-xs font-medium text-slate-500">{formatPostDate(post.createdAt)}</p>
                         </div>
                       </div>
-                      <div className="rounded-full bg-slate-50 px-3 py-1 text-xs font-bold text-slate-500">
-                        {totalEngagement} interactions
+                      <div className="flex items-start gap-2">
+                        <div className="rounded-full bg-slate-50 px-3 py-1 text-xs font-bold text-slate-500">
+                          {totalEngagement} interactions
+                        </div>
+                        {post.canDelete && (isSuperAdmin || (canModeratePosts && post.authorName === currentUser?.fullName)) ? (
+                          <div className="relative">
+                            <button
+                              type="button"
+                              onClick={() => setOpenPostMenu((current) => (current === post._id ? null : post._id))}
+                              className="grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+                              aria-label="Post actions"
+                              aria-haspopup="menu"
+                              aria-expanded={openPostMenu === post._id}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">
+                                <circle cx="12" cy="5" r="1.8" />
+                                <circle cx="12" cy="12" r="1.8" />
+                                <circle cx="12" cy="19" r="1.8" />
+                              </svg>
+                            </button>
+                            {openPostMenu === post._id ? (
+                              <div className="absolute right-0 top-9 z-20 w-40 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg" role="menu">
+                                <button
+                                  type="button"
+                                  onClick={() => handleDeletePost(post._id)}
+                                  className="block w-full px-3 py-2 text-left text-sm font-semibold text-red-700 transition hover:bg-red-50"
+                                  role="menuitem"
+                                >
+                                  Delete post
+                                </button>
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : null}
                       </div>
                     </div>
 
