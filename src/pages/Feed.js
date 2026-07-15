@@ -4,9 +4,11 @@ import API from "../api/axios.js";
 import UserAvatar from "../components/UserAvatar.js";
 const MAX_POST_LENGTH = 1200;
 function normalizeRole(role) {
-    if (role === "jamaat_admin")
-        return "moderator";
-    return role;
+    const normalized = (role || "").trim().toLowerCase();
+    if (["jamaat_admin", "admin", "moderator", "super_admin"].includes(normalized)) {
+        return normalized === "super_admin" ? "super_admin" : "moderator";
+    }
+    return normalized;
 }
 function formatPostDate(value) {
     const date = new Date(value);

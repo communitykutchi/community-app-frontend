@@ -47,8 +47,11 @@ interface CurrentUser {
 }
 
 function normalizeRole(role?: string) {
-  if (role === "jamaat_admin") return "moderator";
-  return role;
+  const normalized = (role || "").trim().toLowerCase();
+  if (["jamaat_admin", "admin", "moderator", "super_admin"].includes(normalized)) {
+    return normalized === "super_admin" ? "super_admin" : "moderator";
+  }
+  return normalized;
 }
 
 function formatPostDate(value: string) {
