@@ -36,12 +36,16 @@ type ProfileForm = Pick<
   | "occupation"
   | "businessName"
   | "jamaat"
+  | "username"
 > & {
   familyMembers: string;
 };
 
+type UsernameStatus = "idle" | "checking" | "available" | "taken" | "invalid";
+
 const emptyForm: ProfileForm = {
   fullName: "",
+  username: "",
   fatherName: "",
   motherName: "",
   familyMembers: "",
@@ -59,6 +63,7 @@ const emptyForm: ProfileForm = {
 function toForm(user: UserProfile): ProfileForm {
   return {
     fullName: user.fullName || "",
+    username: user.username || "",
     fatherName: user.fatherName || "",
     motherName: user.motherName || "",
     familyMembers: user.familyMembers ? String(user.familyMembers) : "",
@@ -90,6 +95,8 @@ export default function PeopleProfile() {
   const [status, setStatus] = useState("");
   const [error, setError] = useState("");
   const [previewUrl, setPreviewUrl] = useState("");
+  const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
+  const [usernameMessage, setUsernameMessage] = useState("");
 
   const profileCompletion = useMemo(() => {
     const fields = ["fullName", "email", "mobile", "dob", "cnic"] as const;
@@ -120,6 +127,52 @@ export default function PeopleProfile() {
       if (previewUrl) URL.revokeObjectURL(previewUrl);
     };
   }, [previewUrl]);
+
+  useEffect(() => {
+    const usernameValue = form.username?.trim().toLowerCase() || "";
+
+    if (!usernameValue) {
+      setUsernameStatus("idle");
+      setUsernameMessage("");
+      return;
+    }
+
+    const sameAsCurrent = user?.username?.toLowerCase() === usernameValue;
+    if (sameAsCurrent) {
+      setUsernameStatus("available");
+      setUsernameMessage("");
+      return;
+    }
+
+    if (usernameValue.length < 3 || usernameValue.length > 30 || !/^[a-z0-9._-]+$/.test(usernameValue)) {
+      setUsernameStatus("invalid");
+      setUsernameMessage("Use 3-30 lowercase letters, numbers, dots, underscores, or hyphens.");
+      return;
+    }
+
+    const timeoutId = window.setTimeout(async () => {
+      try {
+        setUsernameStatus("checking");
+        setUsernameMessage("Checking availability...");
+        const response = await API.get<{ success: boolean; available: boolean; message?: string }>('/auth/check-username', {
+          params: { username: usernameValue },
+        });
+
+        if (response.data.available) {
+          setUsernameStatus("available");
+          setUsernameMessage("Username available.");
+        } else {
+          setUsernameStatus("taken");
+          setUsernameMessage(response.data.message || "Username is already taken.");
+        }
+      } catch (err: any) {
+        setUsernameStatus("invalid");
+        setUsernameMessage(err.response?.data?.message || "Unable to validate username.");
+      }
+    }, 400);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [form.username, user?.username]);
 
   const handleChange = (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = event.target;
@@ -172,10 +225,24 @@ export default function PeopleProfile() {
       return;
     }
 
+    const normalizedUsername = form.username?.trim().toLowerCase() || "";
+    if (normalizedUsername) {
+      if (usernameStatus === "checking") {
+        setError("Please wait while we check username availability.");
+        return;
+      }
+
+      if (usernameStatus === "invalid" || usernameStatus === "taken") {
+        setError("Choose a valid, available username before saving.");
+        return;
+      }
+    }
+
     try {
       setSaving(true);
       const payload = {
         ...form,
+        username: normalizedUsername,
         fullName: form.fullName.trim(),
         familyMembers: form.familyMembers ? Number(form.familyMembers) : undefined,
       };
@@ -245,6 +312,24 @@ export default function PeopleProfile() {
               <div className="sm:col-span-2">
                 <label className="form-label">Full Name</label>
                 <input name="fullName" value={form.fullName} onChange={handleChange} className="form-input" required />
+              </div>
+              <div className="sm:col-span-2">
+                <label className="form-label">Username</label>
+                <input name="username" value={form.username || ""} onChange={handleChange} className="form-input" placeholder="e.g. community_member" />
+                <p className="mt-2 text-xs text-slate-500">Use lowercase letters, numbers, dots, underscores, or hyphens.</p>
+                {form.username ? (
+                  <p className={`mt-2 text-sm ${usernameStatus === "available" ? "text-emerald-600" : usernameStatus === "taken" || usernameStatus === "invalid" ? "text-rose-600" : "text-slate-500"}`}>
+                    {usernameStatus === "checking"
+                      ? "Checking availability..."
+                      : usernameStatus === "available"
+                        ? "Username available."
+                        : usernameStatus === "taken"
+                          ? "Username already taken."
+                          : usernameStatus === "invalid"
+                            ? "Please choose a valid username."
+                            : usernameMessage}
+                  </p>
+                ) : null}
               </div>
               <div>
                 <label className="form-label">Email</label>
