@@ -575,7 +575,17 @@ export default function NoticesPage() {
   }, [roleResolved]);
 
   const updateMayyatDetails = (field: keyof MayyatDetails, value: string) => {
-    setMayyatDetails((current) => ({ ...current, [field]: value }));
+    setMayyatDetails((current) => {
+      const updated = { ...current, [field]: value };
+      if (field === "deceasedNameRoman") updated.deceasedName = value;
+      if (field === "fatherNameRoman") updated.fatherName = value;
+      if (field === "relationRoman") updated.relation = value;
+      if (field === "funeralPrayerDayPartRoman") updated.funeralPrayerDayPart = value;
+      if (field === "funeralPrayerTimeRoman") updated.funeralPrayerTime = value;
+      if (field === "funeralPrayerPlaceRoman") updated.funeralPrayerPlace = value;
+      if (field === "notesRoman") updated.notes = value;
+      return updated;
+    });
   };
 
   const upsertNotice = (updatedNotice: Notice) => {
@@ -698,7 +708,17 @@ export default function NoticesPage() {
   };
 
   const updateEditMayyatDetails = (field: keyof MayyatDetails, value: string) => {
-    setEditMayyatDetails((current) => ({ ...current, [field]: value }));
+    setEditMayyatDetails((current) => {
+      const updated = { ...current, [field]: value };
+      if (field === "deceasedNameRoman") updated.deceasedName = value;
+      if (field === "fatherNameRoman") updated.fatherName = value;
+      if (field === "relationRoman") updated.relation = value;
+      if (field === "funeralPrayerDayPartRoman") updated.funeralPrayerDayPart = value;
+      if (field === "funeralPrayerTimeRoman") updated.funeralPrayerTime = value;
+      if (field === "funeralPrayerPlaceRoman") updated.funeralPrayerPlace = value;
+      if (field === "notesRoman") updated.notes = value;
+      return updated;
+    });
   };
 
   const startEdit = (notice: Notice) => {
@@ -748,32 +768,40 @@ export default function NoticesPage() {
           notesUrdu: editMayyatDetails.notesUrdu,
         };
       } else {
-        const decName = (editMayyatDetails.deceasedNameRoman ?? editMayyatDetails.deceasedName ?? existingDetails.deceasedNameRoman ?? "").trim();
-        const dayPart = (editMayyatDetails.funeralPrayerDayPartRoman ?? editMayyatDetails.funeralPrayerDayPart ?? existingDetails.funeralPrayerDayPartRoman ?? "").trim();
-        const time = (editMayyatDetails.funeralPrayerTimeRoman ?? editMayyatDetails.funeralPrayerTime ?? existingDetails.funeralPrayerTimeRoman ?? "").trim();
-        const place = (editMayyatDetails.funeralPrayerPlaceRoman ?? editMayyatDetails.funeralPrayerPlace ?? existingDetails.funeralPrayerPlaceRoman ?? "").trim();
+        const decName = (editMayyatDetails.deceasedNameRoman ?? editMayyatDetails.deceasedName ?? "").trim();
+        const dayPart = (editMayyatDetails.funeralPrayerDayPartRoman ?? editMayyatDetails.funeralPrayerDayPart ?? "").trim();
+        const time = (editMayyatDetails.funeralPrayerTimeRoman ?? editMayyatDetails.funeralPrayerTime ?? "").trim();
+        const place = (editMayyatDetails.funeralPrayerPlaceRoman ?? editMayyatDetails.funeralPrayerPlace ?? "").trim();
 
         if (!decName || (!dayPart && !time) || !place) {
           setStatus(t('add_name_time_place_required'));
           return;
         }
 
+        const decRoman = editMayyatDetails.deceasedNameRoman ?? editMayyatDetails.deceasedName ?? "";
+        const fRoman = editMayyatDetails.fatherNameRoman ?? editMayyatDetails.fatherName ?? "";
+        const relRoman = editMayyatDetails.relationRoman ?? editMayyatDetails.relation ?? "";
+        const dayPartRoman = editMayyatDetails.funeralPrayerDayPartRoman ?? editMayyatDetails.funeralPrayerDayPart ?? "";
+        const timeRoman = editMayyatDetails.funeralPrayerTimeRoman ?? editMayyatDetails.funeralPrayerTime ?? "";
+        const placeRoman = editMayyatDetails.funeralPrayerPlaceRoman ?? editMayyatDetails.funeralPrayerPlace ?? "";
+        const notesRoman = editMayyatDetails.notesRoman ?? editMayyatDetails.notes ?? "";
+
         mergedDetails = {
           ...existingDetails,
-          deceasedNameRoman: editMayyatDetails.deceasedNameRoman || editMayyatDetails.deceasedName,
-          fatherNameRoman: editMayyatDetails.fatherNameRoman || editMayyatDetails.fatherName,
-          relationRoman: editMayyatDetails.relationRoman || editMayyatDetails.relation,
-          funeralPrayerDayPartRoman: editMayyatDetails.funeralPrayerDayPartRoman || editMayyatDetails.funeralPrayerDayPart,
-          funeralPrayerTimeRoman: editMayyatDetails.funeralPrayerTimeRoman || editMayyatDetails.funeralPrayerTime,
-          funeralPrayerPlaceRoman: editMayyatDetails.funeralPrayerPlaceRoman || editMayyatDetails.funeralPrayerPlace,
-          notesRoman: editMayyatDetails.notesRoman || editMayyatDetails.notes,
-          deceasedName: editMayyatDetails.deceasedNameRoman || editMayyatDetails.deceasedName || existingDetails.deceasedName,
-          fatherName: editMayyatDetails.fatherNameRoman || editMayyatDetails.fatherName || existingDetails.fatherName,
-          relation: editMayyatDetails.relationRoman || editMayyatDetails.relation || existingDetails.relation,
-          funeralPrayerDayPart: editMayyatDetails.funeralPrayerDayPartRoman || editMayyatDetails.funeralPrayerDayPart || existingDetails.funeralPrayerDayPart,
-          funeralPrayerTime: editMayyatDetails.funeralPrayerTimeRoman || editMayyatDetails.funeralPrayerTime || existingDetails.funeralPrayerTime,
-          funeralPrayerPlace: editMayyatDetails.funeralPrayerPlaceRoman || editMayyatDetails.funeralPrayerPlace || existingDetails.funeralPrayerPlace,
-          notes: editMayyatDetails.notesRoman || editMayyatDetails.notes || existingDetails.notes,
+          deceasedNameRoman: decRoman,
+          fatherNameRoman: fRoman,
+          relationRoman: relRoman,
+          funeralPrayerDayPartRoman: dayPartRoman,
+          funeralPrayerTimeRoman: timeRoman,
+          funeralPrayerPlaceRoman: placeRoman,
+          notesRoman: notesRoman,
+          deceasedName: decRoman,
+          fatherName: fRoman,
+          relation: relRoman,
+          funeralPrayerDayPart: dayPartRoman,
+          funeralPrayerTime: timeRoman,
+          funeralPrayerPlace: placeRoman,
+          notes: notesRoman,
         };
       }
 
@@ -943,43 +971,43 @@ export default function NoticesPage() {
                 {createFormLangTab === "roman" ? (
                   <div className="grid gap-3 sm:grid-cols-2">
                     <input
-                      value={mayyatDetails.deceasedNameRoman || mayyatDetails.deceasedName}
+                      value={mayyatDetails.deceasedNameRoman ?? mayyatDetails.deceasedName ?? ""}
                       onChange={(event) => updateMayyatDetails("deceasedNameRoman", event.target.value)}
                       placeholder="Marhoom Ka Naam *"
                       className="form-input px-4 py-3"
                     />
                     <input
-                      value={mayyatDetails.fatherNameRoman || mayyatDetails.fatherName}
+                      value={mayyatDetails.fatherNameRoman ?? mayyatDetails.fatherName ?? ""}
                       onChange={(event) => updateMayyatDetails("fatherNameRoman", event.target.value)}
                       placeholder="Walid Ka Naam"
                       className="form-input px-4 py-3"
                     />
                     <input
-                      value={mayyatDetails.relationRoman || mayyatDetails.relation}
+                      value={mayyatDetails.relationRoman ?? mayyatDetails.relation ?? ""}
                       onChange={(event) => updateMayyatDetails("relationRoman", event.target.value)}
                       placeholder="Rishta (e.g. walad / beta / beti / shohar)"
                       className="form-input px-4 py-3"
                     />
                     <input
-                      value={mayyatDetails.funeralPrayerDayPartRoman || mayyatDetails.funeralPrayerDayPart}
+                      value={mayyatDetails.funeralPrayerDayPartRoman ?? mayyatDetails.funeralPrayerDayPart ?? ""}
                       onChange={(event) => updateMayyatDetails("funeralPrayerDayPartRoman", event.target.value)}
                       placeholder="Subah / Raat / Din Part (e.g. Subah / Raat)"
                       className="form-input px-4 py-3"
                     />
                     <input
-                      value={mayyatDetails.funeralPrayerTimeRoman || mayyatDetails.funeralPrayerTime}
+                      value={mayyatDetails.funeralPrayerTimeRoman ?? mayyatDetails.funeralPrayerTime ?? ""}
                       onChange={(event) => updateMayyatDetails("funeralPrayerTimeRoman", event.target.value)}
                       placeholder="Waqt (e.g. 10:00 / 5:00)"
                       className="form-input px-4 py-3"
                     />
                     <input
-                      value={mayyatDetails.funeralPrayerPlaceRoman || mayyatDetails.funeralPrayerPlace}
+                      value={mayyatDetails.funeralPrayerPlaceRoman ?? mayyatDetails.funeralPrayerPlace ?? ""}
                       onChange={(event) => updateMayyatDetails("funeralPrayerPlaceRoman", event.target.value)}
                       placeholder="Namaz-e-Janaza Ka Muqam (Masjid + Address) *"
                       className="form-input px-4 py-3"
                     />
                     <input
-                      value={mayyatDetails.notesRoman || mayyatDetails.notes}
+                      value={mayyatDetails.notesRoman ?? mayyatDetails.notes ?? ""}
                       onChange={(event) => updateMayyatDetails("notesRoman", event.target.value)}
                       placeholder="Extra Notes / Dua Request (Optional)"
                       className="form-input px-4 py-3 sm:col-span-2"
@@ -1233,43 +1261,43 @@ export default function NoticesPage() {
                         <p className="text-xs font-bold uppercase tracking-wider text-slate-500">Editing Mayyat Notification (Roman Urdu)</p>
                         <div className="grid gap-3 sm:grid-cols-2">
                           <input
-                            value={editMayyatDetails.deceasedNameRoman || editMayyatDetails.deceasedName}
+                            value={editMayyatDetails.deceasedNameRoman ?? editMayyatDetails.deceasedName ?? ""}
                             onChange={(event) => updateEditMayyatDetails("deceasedNameRoman", event.target.value)}
                             placeholder="Marhoom Ka Naam *"
                             className="form-input px-3 py-2"
                           />
                           <input
-                            value={editMayyatDetails.fatherNameRoman || editMayyatDetails.fatherName}
+                            value={editMayyatDetails.fatherNameRoman ?? editMayyatDetails.fatherName ?? ""}
                             onChange={(event) => updateEditMayyatDetails("fatherNameRoman", event.target.value)}
                             placeholder="Walid Ka Naam"
                             className="form-input px-3 py-2"
                           />
                           <input
-                            value={editMayyatDetails.relationRoman || editMayyatDetails.relation}
+                            value={editMayyatDetails.relationRoman ?? editMayyatDetails.relation ?? ""}
                             onChange={(event) => updateEditMayyatDetails("relationRoman", event.target.value)}
                             placeholder="Rishta (e.g. walad / beta / beti / shohar)"
                             className="form-input px-3 py-2"
                           />
                           <input
-                            value={editMayyatDetails.funeralPrayerDayPartRoman || editMayyatDetails.funeralPrayerDayPart}
+                            value={editMayyatDetails.funeralPrayerDayPartRoman ?? editMayyatDetails.funeralPrayerDayPart ?? ""}
                             onChange={(event) => updateEditMayyatDetails("funeralPrayerDayPartRoman", event.target.value)}
                             placeholder="Subah / Raat / Din Part (e.g. Subah / Raat)"
                             className="form-input px-3 py-2"
                           />
                           <input
-                            value={editMayyatDetails.funeralPrayerTimeRoman || editMayyatDetails.funeralPrayerTime}
+                            value={editMayyatDetails.funeralPrayerTimeRoman ?? editMayyatDetails.funeralPrayerTime ?? ""}
                             onChange={(event) => updateEditMayyatDetails("funeralPrayerTimeRoman", event.target.value)}
                             placeholder="Waqt (e.g. 10:00 / 5:00)"
                             className="form-input px-3 py-2"
                           />
                           <input
-                            value={editMayyatDetails.funeralPrayerPlaceRoman || editMayyatDetails.funeralPrayerPlace}
+                            value={editMayyatDetails.funeralPrayerPlaceRoman ?? editMayyatDetails.funeralPrayerPlace ?? ""}
                             onChange={(event) => updateEditMayyatDetails("funeralPrayerPlaceRoman", event.target.value)}
                             placeholder="Namaz-e-Janaza Ka Muqam (Masjid + Address) *"
                             className="form-input px-3 py-2"
                           />
                           <input
-                            value={editMayyatDetails.notesRoman || editMayyatDetails.notes}
+                            value={editMayyatDetails.notesRoman ?? editMayyatDetails.notes ?? ""}
                             onChange={(event) => updateEditMayyatDetails("notesRoman", event.target.value)}
                             placeholder="Extra Notes / Dua Request (Optional)"
                             className="form-input px-3 py-2 sm:col-span-2"
