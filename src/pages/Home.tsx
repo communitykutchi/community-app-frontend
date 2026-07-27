@@ -1,43 +1,67 @@
 import { Link } from "react-router-dom";
 
-const quickActions = [
-  {
-    title: "Community Feed",
-    description: "Posts, photos, aur updates ko aik jagah par follow karein.",
-    to: "/feed",
-  },
-  {
-    title: "Notices",
-    description: "Important announcements aur mayyat notifications ko jaldi dekhein.",
-    to: "/notices",
-  },
-  {
-    title: "Profile",
-    description: "Apni details update karen aur community profile complete rakhein.",
-    to: "/profile",
-  },
-];
+const homeTranslations: Record<string, string> = {
+  communityPortal: 'Community Portal',
+  welcomeTitle: 'Welcome to your All Kutchi Community Hub',
+  welcomeSubtitle: 'This platform keeps you connected to community updates, notices, and members.',
+  openFeed: 'Open Feed',
+  viewNotices: 'View Notices',
+  quickActionsTitle: 'Quick actions',
+  quickActionsDesc: 'Use these important sections to improve your community experience.',
+  whyThisSpace: 'Why this space matters',
+  highlight_1: 'Real-time community updates',
+  highlight_2: 'Fast access to notices and announcements',
+  highlight_3: 'Simple profile management',
+  highlight_4: 'Shared space for members and moderators',
+  tipTitle: 'Tip',
+  tipDesc: 'Check notices daily and keep sharing updates on the feed.',
+  ca_feed_title: 'Community Feed',
+  ca_feed_description: 'Follow posts, photos, and updates in one place.',
+  ca_notices_title: 'Notices',
+  ca_notices_description: 'See important announcements and obituaries quickly.',
+  ca_profile_title: 'Profile',
+  ca_profile_description: 'Update your details and keep your community profile complete.',
+};
 
-const highlights = [
-  "Real-time community updates",
-  "Fast access to notices and announcements",
-  "Simple profile management",
-  "Shared space for members and moderators",
-];
+const t = (key: string) => homeTranslations[key] || key;
 
 export default function Home() {
+  const quickActions = [
+    {
+      title: t('ca_feed_title'),
+      description: t('ca_feed_description'),
+      to: "/feed",
+    },
+    {
+      title: t('ca_notices_title'),
+      description: t('ca_notices_description'),
+      to: "/notices",
+    },
+    {
+      title: t('ca_profile_title'),
+      description: t('ca_profile_description'),
+      to: "/profile",
+    },
+  ];
+
+  const highlights = [
+    t('highlight_1'),
+    t('highlight_2'),
+    t('highlight_3'),
+    t('highlight_4'),
+  ];
+
   return (
     <section className="w-full space-y-6">
       <div className="overflow-hidden rounded-[1.5rem] border border-emerald-200 bg-gradient-to-br from-emerald-950 via-emerald-900 to-green-700 p-8 text-white shadow-[0_24px_60px_-30px_rgba(5,150,105,0.55)] sm:p-10">
         <p className="inline-flex rounded-full bg-white/15 px-4 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-emerald-100">
-          Community Portal
+          {t('communityPortal')}
         </p>
         <h1 className="mt-4 max-w-3xl text-3xl font-black leading-tight sm:text-4xl">
-          Welcome to your All Kutchi Community Hub
+          {t('welcomeTitle')}
         </h1>
         <p className="mt-4 max-w-3xl text-base leading-7 text-emerald-50">
-          Yeh platform aapko community updates, notices, aur members ke sath rabta mein rakhta hai. Aik hi jagah se announcements dekhen,
-          posts share karein, aur apni jamaat activities ko track karein.
+          {t('welcomeSubtitle')}
         </p>
 
         <div className="mt-6 flex flex-wrap gap-3">
@@ -45,23 +69,21 @@ export default function Home() {
             to="/feed"
             className="rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 transition hover:bg-slate-100"
           >
-            Open Feed
+            {t('openFeed')}
           </Link>
           <Link
             to="/notices"
             className="rounded-xl border border-white/20 bg-white/10 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-white/20"
           >
-            View Notices
+            {t('viewNotices')}
           </Link>
         </div>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="rounded-[1.25rem] border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-black text-slate-900">Quick actions</h2>
-          <p className="mt-2 text-sm leading-6 text-slate-600">
-            Apni community experience ko agay barhane ke liye ye important sections use karein.
-          </p>
+          <h2 className="text-xl font-black text-slate-900">{t('quickActionsTitle')}</h2>
+          <p className="mt-2 text-sm leading-6 text-slate-600">{t('quickActionsDesc')}</p>
 
           <div className="mt-5 space-y-3">
             {quickActions.map((item) => (
@@ -81,7 +103,7 @@ export default function Home() {
         </div>
 
         <div className="rounded-[1.25rem] border border-slate-200 bg-white p-6 shadow-sm">
-          <h2 className="text-xl font-black text-slate-900">Why this space matters</h2>
+          <h2 className="text-xl font-black text-slate-900">{t('whyThisSpace')}</h2>
           <ul className="mt-4 space-y-3 text-sm leading-6 text-slate-600">
             {highlights.map((item) => (
               <li key={item} className="flex gap-2">
@@ -92,10 +114,8 @@ export default function Home() {
           </ul>
 
           <div className="mt-6 rounded-xl border border-blue-100 bg-blue-50 p-4">
-            <p className="text-sm font-semibold text-blue-800">Tip</p>
-            <p className="mt-1 text-sm leading-6 text-blue-700">
-              Rozana notices check karein aur feed par naye updates share karte rahein.
-            </p>
+            <p className="text-sm font-semibold text-blue-800">{t('tipTitle')}</p>
+            <p className="mt-1 text-sm leading-6 text-blue-700">{t('tipDesc')}</p>
           </div>
         </div>
       </div>

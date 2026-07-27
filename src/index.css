@@ -185,3 +185,5 @@ button {
     transform: translateY(0);
   }
 }
+
+/* Legacy Urdu-specific styling removed; the app now uses the default layout only. */

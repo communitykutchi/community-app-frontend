@@ -7,6 +7,23 @@ import UserAvatar from './UserAvatar.js';
 const NOTICE_ACTIVITY_EVENT = 'community-notice-activity';
 const PROFILE_UPDATED_EVENT = 'community-profile-updated';
 
+const navbarTranslations: Record<string, string> = {
+  communityPortal: 'Community Portal',
+  allKutchiCommunity: 'All Kutchi Community',
+  Home: 'Home',
+  Feed: 'Feed',
+  Notices: 'Notices',
+  Admin: 'Admin',
+  Login: 'Login',
+  Register: 'Register',
+  Profile: 'Profile',
+  viewProfile: 'View profile',
+  Navigation: 'Navigation',
+  Logout: 'Logout',
+};
+
+const t = (key: string) => navbarTranslations[key] || key;
+
 interface NavItem {
 	to: string;
 	label: string;
@@ -168,16 +185,16 @@ export default function Navbar() {
 	const isActive = (to: string) => location.pathname === to;
 
 	const navItems: NavItem[] = isAuthenticated
-		? [
-				{ to: '/', label: 'Home' },
-				{ to: '/feed', label: 'Feed' },
-				{ to: '/notices', label: 'Notices', unreadCount: unreadNoticeCount },
-				...(isAdmin && currentUser?.role === 'super_admin' ? [{ to: '/admin/users', label: 'Admin' }] : []),
-		  ]
-		: [
-				{ to: '/login', label: 'Login' },
-				{ to: '/register', label: 'Register' },
-		  ];
+			? [
+							{ to: '/', label: t('Home') },
+							{ to: '/feed', label: t('Feed') },
+							{ to: '/notices', label: t('Notices'), unreadCount: unreadNoticeCount },
+							...(isAdmin && currentUser?.role === 'super_admin' ? [{ to: '/admin/users', label: t('Admin') }] : []),
+						]
+			: [
+							{ to: '/login', label: t('Login') },
+							{ to: '/register', label: t('Register') },
+						];
 
 	const desktopLinkClass = (to: string) =>
 		`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${isActive(to)
@@ -209,8 +226,8 @@ export default function Navbar() {
 							KH
 						</div>
 						<div className="min-w-0">
-							<p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">Community Portal</p>
-							<p className="truncate text-xs font-bold leading-tight text-slate-900 sm:text-sm md:text-base">All Kutchi Community</p>
+							<p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">{t('communityPortal')}</p>
+							<p className="truncate text-xs font-bold leading-tight text-slate-900 sm:text-sm md:text-base">{t('allKutchiCommunity')}</p>
 						</div>
 					</Link>
 					<div className="flex items-center gap-2">
@@ -218,13 +235,13 @@ export default function Navbar() {
 							to="/login"
 							className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors sm:text-sm ${isActive('/login') ? 'bg-slate-900 !text-white hover:!text-white' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'}`}
 						>
-							Login
+							{t('Login')}
 						</Link>
 						<Link
 							to="/register"
 							className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors sm:text-sm ${isActive('/register') ? 'bg-slate-900 !text-white hover:!text-white' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'}`}
 						>
-							Register
+							{t('Register')}
 						</Link>
 					</div>
 				</div>
@@ -240,8 +257,8 @@ export default function Navbar() {
 						KH
 					</div>
 					<div>
-						<p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">Community Portal</p>
-						<h1 className="truncate text-xs font-bold sm:text-sm md:text-base">All Kutchi Community</h1>
+						<p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">{t('communityPortal')}</p>
+						<h1 className="truncate text-xs font-bold sm:text-sm md:text-base">{t('allKutchiCommunity')}</h1>
 					</div>
 				</Link>
 
@@ -255,11 +272,11 @@ export default function Navbar() {
 					</nav>
 					<Link to="/profile" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
 						<UserAvatar name={currentUser?.fullName} photoUrl={currentUser?.profilePhotoUrl} size="sm" />
-						<span className="max-w-28 truncate">{currentUser?.fullName || 'Profile'}</span>
+						<span className="max-w-28 truncate">{currentUser?.fullName || t('Profile')}</span>
 					</Link>
 					{isAuthenticated ? (
 						<button onClick={handleLogout} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-100 hover:text-slate-900">
-							Logout
+							{t('Logout')}
 						</button>
 					) : null}
 				</div>
@@ -284,7 +301,7 @@ export default function Navbar() {
 
 			<div id="mobile-menu" className={`border-t border-slate-200 bg-white px-4 py-3 md:hidden ${open ? 'block' : 'hidden'}`}>
 				<div className="mx-auto flex max-w-6xl flex-col gap-2">
-					<p className="px-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">Navigation</p>
+					<p className="px-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">{t('Navigation')}</p>
 					{navItems.map((item) => (
 						<Link key={item.to} to={item.to} className={mobileLinkClass(item.to)} onClick={() => setOpen(false)}>
 							{renderNavLabel(item)}
@@ -293,13 +310,13 @@ export default function Navbar() {
 					<Link to="/profile" onClick={() => setOpen(false)} className="mt-1 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3">
 						<UserAvatar name={currentUser?.fullName} photoUrl={currentUser?.profilePhotoUrl} size="sm" />
 						<div className="min-w-0">
-							<p className="truncate text-sm font-bold text-slate-900">{currentUser?.fullName || 'Profile'}</p>
-							<p className="text-xs font-semibold text-slate-500">View profile</p>
+							<p className="truncate text-sm font-bold text-slate-900">{currentUser?.fullName || t('Profile')}</p>
+							<p className="text-xs font-semibold text-slate-500">{t('viewProfile')}</p>
 						</div>
 					</Link>
 					{isAuthenticated ? (
 						<button onClick={handleLogout} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900">
-							Logout
+							{t('Logout')}
 						</button>
 					) : null}
 				</div>

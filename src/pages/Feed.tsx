@@ -2,6 +2,17 @@ import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import API from "../api/axios.js";
 import UserAvatar from "../components/UserAvatar.js";
 
+const feedTranslations: Record<string, string> = {
+  feed_title: 'Community Feed',
+  feed_subtitle: 'Post announcements, moments, photos, videos, and short discussions in one clean place.',
+  posts: 'Posts',
+  likes: 'Likes',
+  comments: 'Comments',
+  placeholder_share: 'What would you like to share today?',
+};
+
+const t = (key: string) => feedTranslations[key] || key;
+
 interface MediaItem {
   url: string;
   type?: string;
@@ -356,24 +367,22 @@ export default function Feed() {
         <div className="border-b border-slate-200 bg-slate-950 px-5 py-5 text-white sm:px-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-200">Community Feed</p>
-              <h1 className="mt-2 text-2xl font-black leading-tight sm:text-3xl">Share updates with the community</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">
-                Post announcements, moments, photos, videos, and short discussions in one clean place.
-              </p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-200">{t('feed_title')}</p>
+              <h1 className="mt-2 text-2xl font-black leading-tight sm:text-3xl">{t('feed_title')}</h1>
+              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">{t('feed_subtitle')}</p>
             </div>
             <div className="grid grid-cols-3 gap-2 rounded-xl border border-white/10 bg-white/10 p-2 text-center backdrop-blur sm:min-w-80">
               <div className="rounded-lg bg-white/10 px-3 py-2">
                 <p className="text-lg font-black">{posts.length}</p>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-300">Posts</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-300">{t('posts')}</p>
               </div>
               <div className="rounded-lg bg-white/10 px-3 py-2">
                 <p className="text-lg font-black">{feedStats.likes}</p>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-300">Likes</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-300">{t('likes')}</p>
               </div>
               <div className="rounded-lg bg-white/10 px-3 py-2">
                 <p className="text-lg font-black">{feedStats.comments}</p>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-300">Comments</p>
+                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-300">{t('comments')}</p>
               </div>
             </div>
           </div>
@@ -390,7 +399,7 @@ export default function Feed() {
                     onChange={(event) => setText(event.target.value)}
                     rows={4}
                     maxLength={MAX_POST_LENGTH + 50}
-                    placeholder="What would you like to share today?"
+                    placeholder={t('placeholder_share')}
                     className="min-h-32 w-full resize-y border-0 bg-transparent p-4 text-sm leading-6 text-slate-900 outline-none placeholder:text-slate-400"
                   />
                   <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-4 py-3">
