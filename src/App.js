@@ -7,9 +7,12 @@ import Feed from "./pages/Feed.js";
 import Notices from "./pages/Notices.js";
 import AdminUsers from "./pages/AdminUsers.js";
 import PeopleProfile from "./pages/personProfile.js";
+import Friends from "./pages/Friends.js";
+import Chat from "./pages/Chat.js";
+import ChatHub from "./pages/ChatHub.js";
 import MainLayout from "./layout/MainLayout.js";
 import PrivateRoute from "./routes/PrivateRoute.js";
 function App() {
-    return (_jsx(Router, { children: _jsx(MainLayout, { children: _jsxs(Routes, { children: [_jsx(Route, { path: "/login", element: _jsx(Login, {}) }), _jsx(Route, { path: "/register", element: _jsx(Register, {}) }), _jsx(Route, { path: "/", element: _jsx(PrivateRoute, { children: _jsx(Home, {}) }) }), _jsx(Route, { path: "/feed", element: _jsx(PrivateRoute, { children: _jsx(Feed, {}) }) }), _jsx(Route, { path: "/notices", element: _jsx(PrivateRoute, { children: _jsx(Notices, {}) }) }), _jsx(Route, { path: "/profile", element: _jsx(PrivateRoute, { children: _jsx(PeopleProfile, {}) }) }), _jsx(Route, { path: "/admin/users", element: _jsx(PrivateRoute, { children: _jsx(AdminUsers, {}) }) }), _jsx(Route, { path: "*", element: _jsx(Navigate, { to: "/login", replace: true }) })] }) }) }));
+    return (_jsx(Router, { children: _jsx(MainLayout, { children: _jsxs(Routes, { children: [_jsx(Route, { path: "/login", element: _jsx(Login, {}) }), _jsx(Route, { path: "/register", element: _jsx(Register, {}) }), _jsx(Route, { path: "/", element: _jsx(PrivateRoute, { children: _jsx(Home, {}) }) }), _jsx(Route, { path: "/feed", element: _jsx(PrivateRoute, { children: _jsx(Feed, {}) }) }), _jsx(Route, { path: "/notices", element: _jsx(PrivateRoute, { children: _jsx(Notices, {}) }) }), _jsx(Route, { path: "/profile", element: _jsx(PrivateRoute, { children: _jsx(PeopleProfile, {}) }) }), _jsx(Route, { path: "/friends", element: _jsx(PrivateRoute, { children: _jsx(Friends, {}) }) }), _jsx(Route, { path: "/friends/:friendId/chat", element: _jsx(PrivateRoute, { children: _jsx(Chat, {}) }) }), _jsx(Route, { path: "/chats", element: _jsx(PrivateRoute, { children: _jsx(ChatHub, {}) }) }), _jsx(Route, { path: "/chat", element: _jsx(PrivateRoute, { children: _jsx(ChatHub, {}) }) }), _jsx(Route, { path: "/admin/users", element: _jsx(PrivateRoute, { children: _jsx(AdminUsers, {}) }) }), _jsx(Route, { path: "*", element: _jsx(Navigate, { to: "/login", replace: true }) })] }) }) }));
 }
 export default App;

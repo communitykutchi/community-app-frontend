@@ -1,7 +1,9 @@
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import Navbar from '../components/Navbar.js';
 import { useLocation } from 'react-router-dom';
+import { usePresence } from '../hooks/usePresence.js';
 export default function MainLayout({ children }) {
+    usePresence();
     const location = useLocation();
     const isAuthVisualRoute = location.pathname === '/register' || location.pathname === '/login';
     const year = new Date().getFullYear();

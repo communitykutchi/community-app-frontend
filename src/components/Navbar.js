@@ -12,6 +12,7 @@ const navbarTranslations = {
     Home: 'Home',
     Feed: 'Feed',
     Notices: 'Notices',
+    Friends: 'Friends',
     Admin: 'Admin',
     Login: 'Login',
     Register: 'Register',
@@ -156,6 +157,8 @@ export default function Navbar() {
         ? [
             { to: '/', label: t('Home') },
             { to: '/feed', label: t('Feed') },
+            { to: '/friends', label: t('Friends') },
+            { to: '/chats', label: 'Chat' },
             { to: '/notices', label: t('Notices'), unreadCount: unreadNoticeCount },
             ...(isAdmin && currentUser?.role === 'super_admin' ? [{ to: '/admin/users', label: t('Admin') }] : []),
         ]

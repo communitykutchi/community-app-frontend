@@ -7,6 +7,9 @@ import Feed from "./pages/Feed.js";
 import Notices from "./pages/Notices.js";
 import AdminUsers from "./pages/AdminUsers.js";
 import PeopleProfile from "./pages/personProfile.js";
+import Friends from "./pages/Friends.js";
+import Chat from "./pages/Chat.js";
+import ChatHub from "./pages/ChatHub.js";
 import MainLayout from "./layout/MainLayout.js";
 import PrivateRoute from "./routes/PrivateRoute.js";
 
@@ -55,6 +58,42 @@ function App() {
             element={
               <PrivateRoute>
                 <PeopleProfile />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/friends"
+            element={
+              <PrivateRoute>
+                <Friends />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/friends/:friendId/chat"
+            element={
+              <PrivateRoute>
+                <Chat />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/chats"
+            element={
+              <PrivateRoute>
+                <ChatHub />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/chat"
+            element={
+              <PrivateRoute>
+                <ChatHub />
               </PrivateRoute>
             }
           />

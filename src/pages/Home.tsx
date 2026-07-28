@@ -19,6 +19,8 @@ const homeTranslations: Record<string, string> = {
   ca_feed_description: 'Follow posts, photos, and updates in one place.',
   ca_notices_title: 'Notices',
   ca_notices_description: 'See important announcements and obituaries quickly.',
+  ca_friends_title: 'Friends',
+  ca_friends_description: 'Search members, add friends, and start conversations.',
   ca_profile_title: 'Profile',
   ca_profile_description: 'Update your details and keep your community profile complete.',
 };
@@ -31,6 +33,11 @@ export default function Home() {
       title: t('ca_feed_title'),
       description: t('ca_feed_description'),
       to: "/feed",
+    },
+    {
+      title: t('ca_friends_title'),
+      description: t('ca_friends_description'),
+      to: "/friends",
     },
     {
       title: t('ca_notices_title'),
