@@ -48,10 +48,32 @@ export default function Navbar() {
 	const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(getAuthToken()));
 	const [isAdmin, setIsAdmin] = useState(false);
 	const [unreadNoticeCount, setUnreadNoticeCount] = useState(0);
+	const [unreadChatCount, setUnreadChatCount] = useState(0);
 	const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 	const navigate = useNavigate();
 	const location = useLocation();
 	const isAuthRoute = location.pathname === '/login' || location.pathname === '/register';
+
+	useEffect(() => {
+		if (!authToken) {
+			setUnreadChatCount(0);
+			return;
+		}
+
+		const fetchUnreadChatCount = () => {
+			API.get<{ unreadCount?: number }>('/friends/unread-chat-count')
+				.then((response) => {
+					setUnreadChatCount(Number(response.data?.unreadCount || 0));
+				})
+				.catch(() => {
+					setUnreadChatCount(0);
+				});
+		};
+
+		fetchUnreadChatCount();
+		const timer = setInterval(fetchUnreadChatCount, 3000);
+		return () => clearInterval(timer);
+	}, [authToken, location.pathname]);
 
 	useEffect(() => {
 		setOpen(false);
@@ -172,7 +194,11 @@ export default function Navbar() {
 		};
 	}, [authToken]);
 
-	function handleLogout() {
+	async function handleLogout() {
+		try {
+			await API.post('/users/presence', { status: 'inactive' }).catch(() => {});
+			await API.post('/auth/logout').catch(() => {});
+		} catch {}
 		clearAuthToken();
 		setAuthToken(null);
 		setIsAuthenticated(false);
@@ -190,7 +216,7 @@ export default function Navbar() {
 							{ to: '/', label: t('Home') },
 							{ to: '/feed', label: t('Feed') },
 							{ to: '/friends', label: t('Friends') },
-							{ to: '/chats', label: 'Chat' },
+							{ to: '/chats', label: 'Chat', unreadCount: unreadChatCount },
 							{ to: '/notices', label: t('Notices'), unreadCount: unreadNoticeCount },
 							...(isAdmin && currentUser?.role === 'super_admin' ? [{ to: '/admin/users', label: t('Admin') }] : []),
 						]
@@ -201,13 +227,13 @@ export default function Navbar() {
 
 	const desktopLinkClass = (to: string) =>
 		`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${isActive(to)
-			? 'bg-emerald-700 !text-white hover:!text-white'
-			: 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-700'}`;
+			? 'bg-[#0f766e] !text-white hover:!text-white'
+			: 'text-slate-700 hover:bg-teal-50 hover:text-[#0f766e]'}`;
 
 	const mobileLinkClass = (to: string) =>
 		`block w-full rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${isActive(to)
-			? 'bg-emerald-700 !text-white hover:!text-white'
-			: 'text-slate-700 hover:bg-emerald-50 hover:text-emerald-700'}`;
+			? 'bg-[#0f766e] !text-white hover:!text-white'
+			: 'text-slate-700 hover:bg-teal-50 hover:text-[#0f766e]'}`;
 
 	const renderNavLabel = (item: NavItem) => (
 		<span className="inline-flex items-center gap-2">
@@ -225,8 +251,8 @@ export default function Navbar() {
 			<header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/95 backdrop-blur">
 				<div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 md:px-6">
 					<Link to="/" className="min-w-0 flex max-w-[62%] items-center gap-3 sm:max-w-none">
-						<div className="grid h-9 w-9 place-items-center rounded-lg bg-emerald-700 text-sm font-black text-white">
-							KH
+						<div className="grid h-9 w-9 place-items-center rounded-lg bg-[#0d9488] text-sm font-black text-white shadow-sm">
+							KC
 						</div>
 						<div className="min-w-0">
 							<p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">{t('communityPortal')}</p>
@@ -256,8 +282,8 @@ export default function Navbar() {
 		<header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/95 text-slate-900 backdrop-blur">
 			<div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 md:px-6">
 				<Link to="/" className="min-w-0 flex max-w-[72%] items-center gap-2 sm:max-w-none sm:gap-3">
-					<div className="grid h-8 w-8 place-items-center rounded-lg bg-emerald-700 text-xs font-black text-white sm:h-9 sm:w-9 sm:text-sm">
-						KH
+					<div className="grid h-8 w-8 place-items-center rounded-lg bg-[#0d9488] text-xs font-black text-white shadow-sm sm:h-9 sm:w-9 sm:text-sm">
+						KC
 					</div>
 					<div>
 						<p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">{t('communityPortal')}</p>

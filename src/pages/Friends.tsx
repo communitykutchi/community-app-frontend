@@ -13,6 +13,7 @@ interface UserItem {
   profilePhotoUrl?: string;
   isOnline?: boolean;
   lastActive?: string;
+  unreadCount?: number;
 }
 
 export default function Friends() {
@@ -27,6 +28,7 @@ export default function Friends() {
   const [sentRequests, setSentRequests] = useState<UserItem[]>([]);
 
   const [activeTab, setActiveTab] = useState<"search" | "requests" | "friends">("search");
+  const [unfriendConfirmUser, setUnfriendConfirmUser] = useState<UserItem | null>(null);
 
   const sentRequestIds = useMemo(
     () => new Set(sentRequests.map((request) => request._id)),
@@ -152,10 +154,11 @@ export default function Friends() {
 
   return (
     <section className="space-y-6">
-      <div className="rounded-[1.25rem] border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="overflow-hidden rounded-[1.5rem] border border-emerald-200 bg-gradient-to-br from-emerald-950 via-emerald-900 to-green-700 p-6 sm:p-8 text-white shadow-[0_24px_60px_-30px_rgba(5,150,105,0.55)]">
         <div>
-          <h1 className="text-2xl font-black text-slate-900">Friends</h1>
-          <p className="mt-2 text-sm leading-6 text-slate-600">Search community members, add friends, and manage requests.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-100">Community Friends</p>
+          <h1 className="mt-2 text-2xl font-black sm:text-3xl text-white">Friends</h1>
+          <p className="mt-2 text-sm leading-6 text-emerald-50">Search community members, add friends, and manage requests.</p>
         </div>
 
         <div className="mt-6 flex flex-wrap gap-2">
@@ -164,7 +167,7 @@ export default function Friends() {
               key={tab}
               type="button"
               onClick={() => setActiveTab(tab)}
-              className={`rounded-2xl px-4 py-2 text-sm font-semibold transition ${activeTab === tab ? "bg-emerald-700 text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}`}
+              className={`rounded-2xl px-4 py-2 text-sm font-semibold transition ${activeTab === tab ? "bg-white text-slate-900 shadow-sm" : "bg-white/15 text-white hover:bg-white/25"}`}
             >
               {tab === "search" ? "Search" : tab === "requests" ? "Requests" : "Friends"}
             </button>
@@ -361,13 +364,18 @@ export default function Friends() {
                         <button
                           type="button"
                           onClick={() => navigate(`/friends/${friend._id}/chat`)}
-                          className="inline-flex items-center justify-center rounded-2xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800"
+                          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800"
                         >
-                          Chat
+                          <span>Chat</span>
+                          {friend.unreadCount && friend.unreadCount > 0 ? (
+                            <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-[11px] font-black text-white">
+                              {friend.unreadCount > 99 ? '99+' : friend.unreadCount}
+                            </span>
+                          ) : null}
                         </button>
                         <button
                           type="button"
-                          onClick={() => handleUnfriend(friend._id)}
+                          onClick={() => setUnfriendConfirmUser(friend)}
                           className="inline-flex items-center justify-center rounded-2xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700"
                         >
                           Unfriend
@@ -379,6 +387,49 @@ export default function Friends() {
               })}
             </div>
           )}
+        </div>
+      ) : null}
+
+      {unfriendConfirmUser ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md space-y-5 rounded-3xl border border-slate-100 bg-white p-6 shadow-2xl">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-rose-100 text-rose-600">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-slate-900">Unfriend Confirmation</h3>
+                <p className="text-xs font-medium text-slate-500">Remove friend from your network</p>
+              </div>
+            </div>
+
+            <p className="text-sm leading-relaxed text-slate-600">
+              Are you sure you want to unfriend <span className="font-bold text-slate-900">{unfriendConfirmUser.fullName || unfriendConfirmUser.username || "this friend"}</span>?
+            </p>
+
+            <div className="flex items-center justify-end gap-3 pt-2">
+              <button
+                type="button"
+                onClick={() => setUnfriendConfirmUser(null)}
+                className="rounded-2xl border border-slate-200 bg-slate-100 px-4 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-200"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const friendId = unfriendConfirmUser._id;
+                  setUnfriendConfirmUser(null);
+                  handleUnfriend(friendId);
+                }}
+                className="rounded-2xl bg-rose-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-rose-600/30 transition hover:bg-rose-700"
+              >
+                Unfriend
+              </button>
+            </div>
+          </div>
         </div>
       ) : null}
     </section>

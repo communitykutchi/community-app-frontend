@@ -272,7 +272,7 @@ export default function PeopleProfile() {
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">
       <section className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_18px_55px_-42px_rgba(15,23,42,0.75)]">
-        <div className="bg-slate-950 px-5 py-6 text-white sm:px-6">
+        <div className="bg-gradient-to-br from-emerald-950 via-emerald-900 to-green-700 px-5 py-6 text-white sm:px-6">
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <div className="flex min-w-0 items-center gap-4">
               <div className="relative">

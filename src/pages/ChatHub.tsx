@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+
 import { useNavigate, useParams } from "react-router-dom";
 import API from "../api/axios.js";
 import UserAvatar from "../components/UserAvatar.js";
@@ -14,13 +15,16 @@ interface FriendUser {
   photoUrl?: string;
   isOnline?: boolean;
   lastActive?: string;
+  unreadCount?: number;
 }
 
 interface ChatMessage {
+  _id?: string;
   sender: { _id: string; fullName?: string; username?: string; profilePhotoUrl?: string; photoUrl?: string };
   text: string;
   isDelivered?: boolean;
   isRead?: boolean;
+  isDeletedForEveryone?: boolean;
   createdAt: string;
 }
 
@@ -29,6 +33,7 @@ interface ChatItem {
   participants: FriendUser[];
   messages: ChatMessage[];
   updatedAt?: string;
+  unreadCount?: number;
 }
 
 export default function ChatHub() {
@@ -39,6 +44,25 @@ export default function ChatHub() {
   const [chatsMap, setChatsMap] = useState<Record<string, ChatItem>>({});
   const [selectedFriendId, setSelectedFriendId] = useState<string | null>(paramFriendId || null);
   const [activeChat, setActiveChat] = useState<ChatItem | null>(null);
+  const [selectedDeleteMsg, setSelectedDeleteMsg] = useState<ChatMessage | null>(null);
+
+  const handleDeleteMessage = async (deleteType: "me" | "everyone") => {
+    if (!selectedDeleteMsg || !activeChat?._id) return;
+    const msgId = (selectedDeleteMsg as any)._id || (selectedDeleteMsg as any).id;
+    try {
+      const res = await API.delete<{ success: boolean; chat: ChatItem }>(
+        `/friends/chats/${activeChat._id}/messages/${msgId}`,
+        { data: { deleteType } }
+      );
+      if (res.data?.chat) {
+        setActiveChat(res.data.chat);
+      }
+      setSelectedDeleteMsg(null);
+    } catch (err: any) {
+      setStatus(err?.response?.data?.message || "Could not delete message.");
+      setSelectedDeleteMsg(null);
+    }
+  };
   
   const [searchQuery, setSearchQuery] = useState("");
   const [filterTab, setFilterTab] = useState<"all" | "recent">("all");
@@ -71,7 +95,6 @@ export default function ChatHub() {
 
   // Load friends and existing chats
   const loadData = async () => {
-    setLoading(true);
     try {
       // Load friends
       const friendsRes = await API.get<{ success: boolean; friends: FriendUser[] }>("/friends/me");
@@ -102,6 +125,10 @@ export default function ChatHub() {
 
   useEffect(() => {
     loadData();
+    const timer = setInterval(() => {
+      loadData();
+    }, 3000);
+    return () => clearInterval(timer);
   }, []);
 
   // Load specific active chat
@@ -133,13 +160,39 @@ export default function ChatHub() {
     }
   }, [selectedFriendId]);
 
-  // Scroll to bottom when messages update
-  useEffect(() => {
+  const userScrolledUpRef = useRef<boolean>(false);
+  const [userScrolledUp, setUserScrolledUp] = useState<boolean>(false);
+  const prevFriendIdRef = useRef<string | null>(null);
+
+  const handleScrollMessages = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    const isAtBottom = target.scrollHeight - target.scrollTop - target.clientHeight < 80;
+    userScrolledUpRef.current = !isAtBottom;
+    setUserScrolledUp(!isAtBottom);
+  };
+
+  const scrollToBottom = () => {
     const el = document.getElementById("chat-messages-container");
     if (el) {
       el.scrollTop = el.scrollHeight;
     }
-  }, [activeChat?.messages]);
+  };
+
+  useEffect(() => {
+    if (selectedFriendId !== prevFriendIdRef.current) {
+      // Friend changed - force scroll to bottom on mount
+      prevFriendIdRef.current = selectedFriendId;
+      userScrolledUpRef.current = false;
+      setUserScrolledUp(false);
+      setTimeout(scrollToBottom, 50);
+      return;
+    }
+
+    // Messages updated for same friend - only scroll if user hasn't scrolled up!
+    if (!userScrolledUpRef.current) {
+      scrollToBottom();
+    }
+  }, [activeChat?.messages?.length, selectedFriendId]);
 
   const handleSelectFriend = (id: string) => {
     setSelectedFriendId(id);
@@ -165,6 +218,9 @@ export default function ChatHub() {
       }
       setMessageText("");
       setShowEmojiPicker(false);
+      userScrolledUpRef.current = false;
+      setUserScrolledUp(false);
+      setTimeout(scrollToBottom, 50);
     } catch (err: any) {
       setStatus(err.response?.data?.message || "Message failed to send.");
     } finally {
@@ -244,38 +300,13 @@ export default function ChatHub() {
   const emojis = ["😊", "😂", "❤️", "👍", "🔥", "🎉", "👋", "🙌", "😍", "✨", "🙏", "😎"];
 
   return (
-    <section className="mx-auto max-w-7xl px-2 py-4 sm:px-4 lg:px-6">
-      {/* Top Banner Header */}
-      <div className="mb-4 flex flex-col gap-3 rounded-2xl bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 px-6 py-5 text-white shadow-xl sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="inline-block h-3 w-3 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="text-xs font-bold uppercase tracking-widest text-emerald-300">Messages Hub</span>
-          </div>
-          <h1 className="mt-1 text-2xl font-black tracking-tight sm:text-3xl">Community Chat Section</h1>
-          <p className="mt-1 text-xs text-slate-300 sm:text-sm">
-            Connect & talk with your community friends in real-time.
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate("/friends")}
-            className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-4 py-2 text-xs font-semibold text-white backdrop-blur hover:bg-white/20 transition"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-            </svg>
-            Add Friends
-          </button>
-        </div>
-      </div>
-
+    <section className="flex h-[calc(100vh-4.25rem)] w-full flex-col overflow-hidden px-2 py-2 sm:px-4 lg:px-6">
       {/* Main Split Interface */}
-      <div className="grid grid-cols-1 lg:grid-cols-[340px_minmax(0,1fr)] gap-4 h-[calc(100vh-12rem)] min-h-[580px]">
+      <div className="grid flex-1 grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)] gap-3 min-h-0 overflow-hidden">
         {/* Left Friends / Chats List Sidebar */}
-        <div className={`flex flex-col rounded-3xl border border-slate-200 bg-white shadow-lg overflow-hidden ${selectedFriendId ? 'hidden lg:flex' : 'flex'}`}>
+        <div className={`flex flex-col h-full min-h-0 rounded-2xl border border-slate-200 bg-white shadow-sm overflow-hidden ${selectedFriendId ? 'hidden lg:flex' : 'flex'}`}>
           {/* Sidebar Header & Search */}
-          <div className="border-b border-slate-100 bg-slate-50/70 p-4">
+          <div className="shrink-0 border-b border-slate-100 bg-slate-50/70 p-3">
             <div className="relative">
               <span className="absolute inset-y-0 left-3 grid place-items-center text-slate-400">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -325,6 +356,7 @@ export default function ChatHub() {
                 const friendChat = chatsMap[friend._id];
                 const lastMsg = friendChat?.messages?.[friendChat.messages.length - 1];
                 const friendPresence = getPresenceStatus(friend.isOnline, friend.lastActive);
+                const unreadCount = Number(friend.unreadCount || (friendChat as any)?.unreadCount || 0);
 
                 return (
                   <div
@@ -343,14 +375,20 @@ export default function ChatHub() {
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between gap-1">
                         <h4 className="text-xs font-bold text-slate-900 truncate">
                           {friend.fullName || friend.username || "Friend"}
                         </h4>
-                        {lastMsg?.createdAt && (
-                          <span className="text-[10px] text-slate-400">
-                            {new Date(lastMsg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {unreadCount > 0 ? (
+                          <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-black text-white shrink-0">
+                            {unreadCount > 99 ? '99+' : unreadCount}
                           </span>
+                        ) : (
+                          lastMsg?.createdAt && (
+                            <span className="text-[10px] text-slate-400 shrink-0">
+                              {new Date(lastMsg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          )
                         )}
                       </div>
                       <p className="text-[11px] text-slate-500 truncate mt-0.5">
@@ -369,7 +407,7 @@ export default function ChatHub() {
           {selectedFriendId && activePartner ? (
             <>
               {/* Chat View Header */}
-              <div className="flex items-center justify-between border-b border-slate-100 bg-slate-900 px-5 py-3 text-white">
+              <div className="shrink-0 flex items-center justify-between border-b border-slate-100 bg-slate-900 px-5 py-3 text-white">
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setSelectedFriendId(null)}
@@ -436,89 +474,119 @@ export default function ChatHub() {
               )}
 
               {/* Chat Messages Log */}
-              <div
-                id="chat-messages-container"
-                className="flex-1 overflow-y-auto bg-gradient-to-b from-slate-50 via-slate-100/50 to-emerald-50/20 p-4 space-y-3"
-              >
-                {!activeChat?.messages?.length ? (
-                  <div className="h-full flex flex-col items-center justify-center p-6 text-center">
-                    <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 grid place-items-center text-2xl shadow-inner mb-3">
-                      👋
-                    </div>
-                    <h3 className="text-sm font-bold text-slate-800">Say Hello to {activePartner.fullName || activePartner.username}!</h3>
-                    <p className="text-xs text-slate-500 max-w-xs mt-1">
-                      Start your conversation by sending a message below.
-                    </p>
-                  </div>
-                ) : (
-                  activeChat.messages.map((item, idx) => {
-                    const senderId = typeof item.sender === "object" && item.sender?._id 
-                      ? String(item.sender._id) 
-                      : String(item.sender || "");
-                    const isOutgoing = currentUser?._id 
-                      ? senderId === String(currentUser._id) 
-                      : (selectedFriendId ? senderId !== String(selectedFriendId) : false);
-
-                    const senderName = isOutgoing
-                      ? "You"
-                      : typeof item.sender === "object"
-                      ? item.sender.fullName || item.sender.username || activePartner?.fullName || "Friend"
-                      : activePartner?.fullName || activePartner?.username || "Friend";
-
-                    const senderPhoto = typeof item.sender === "object"
-                      ? item.sender.profilePhotoUrl || item.sender.photoUrl
-                      : undefined;
-
-                    return (
-                      <div
-                        key={idx}
-                        className={`flex items-end gap-2 ${isOutgoing ? "justify-end" : "justify-start"}`}
-                      >
-                        {!isOutgoing && (
-                          <UserAvatar
-                            name={senderName}
-                            photoUrl={senderPhoto || activePartner?.profilePhotoUrl || activePartner?.photoUrl}
-                            size="sm"
-                            className="ring-1 ring-slate-300 mb-0.5 shrink-0"
-                          />
-                        )}
-
-                        <div
-                          className={`max-w-[82%] sm:max-w-[75%] rounded-2xl ${
-                            isOutgoing
-                              ? "bg-emerald-600 text-white rounded-br-xs shadow-sm px-3.5 py-1.5"
-                              : "bg-white text-slate-900 border border-slate-200/90 rounded-bl-xs shadow-sm px-3.5 py-1.5"
-                          }`}
-                        >
-                          <p className={`text-[11px] font-bold mb-0.5 ${isOutgoing ? 'text-emerald-100' : 'text-emerald-700'}`}>
-                            {senderName}
-                          </p>
-                          <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                            <span className="text-xs sm:text-sm leading-snug whitespace-pre-wrap break-words font-normal">
-                              {item.text}
-                            </span>
-                            <span className={`text-[10px] ml-auto shrink-0 flex items-center gap-1 mt-0.5 ${isOutgoing ? 'text-emerald-100' : 'text-slate-400'}`}>
-                              {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                              {isOutgoing && (
-                                <svg className="w-3.5 h-3.5 text-emerald-100 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                              )}
-                            </span>
-                          </div>
-                        </div>
-
-                        {isOutgoing && (
-                          <UserAvatar
-                            name={currentUser?.fullName || currentUser?.username || 'You'}
-                            photoUrl={currentUser?.profilePhotoUrl || currentUser?.photoUrl || senderPhoto}
-                            size="sm"
-                            className="ring-1 ring-emerald-500/40 mb-0.5 shrink-0"
-                          />
-                        )}
+              <div className="relative flex-1 min-h-0 overflow-hidden flex flex-col">
+                <div
+                  id="chat-messages-container"
+                  onScroll={handleScrollMessages}
+                  className="flex-1 overflow-y-auto bg-gradient-to-b from-slate-50 via-slate-100/50 to-emerald-50/20 p-4 space-y-3"
+                >
+                  {!activeChat?.messages?.length ? (
+                    <div className="h-full flex flex-col items-center justify-center p-6 text-center">
+                      <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-600 grid place-items-center text-2xl shadow-inner mb-3">
+                        👋
                       </div>
-                    );
-                  })
+                      <h3 className="text-sm font-bold text-slate-800">Say Hello to {activePartner.fullName || activePartner.username}!</h3>
+                      <p className="text-xs text-slate-500 max-w-xs mt-1">
+                        Start your conversation by sending a message below.
+                      </p>
+                    </div>
+                  ) : (
+                    activeChat.messages.map((item, idx) => {
+                      const senderId = typeof item.sender === "object" && item.sender?._id 
+                        ? String(item.sender._id) 
+                        : String(item.sender || "");
+                      const isOutgoing = currentUser?._id 
+                        ? senderId === String(currentUser._id) 
+                        : (selectedFriendId ? senderId !== String(selectedFriendId) : false);
+
+                      const senderName = isOutgoing
+                        ? "You"
+                        : typeof item.sender === "object"
+                        ? item.sender.fullName || item.sender.username || activePartner?.fullName || "Friend"
+                        : activePartner?.fullName || activePartner?.username || "Friend";
+
+                      const senderPhoto = typeof item.sender === "object"
+                        ? item.sender.profilePhotoUrl || item.sender.photoUrl
+                        : undefined;
+
+                      return (
+                        <div
+                          key={idx}
+                          className={`flex items-end gap-2 ${isOutgoing ? "justify-end" : "justify-start"}`}
+                        >
+                          {!isOutgoing && (
+                            <UserAvatar
+                              name={senderName}
+                              photoUrl={senderPhoto || activePartner?.profilePhotoUrl || activePartner?.photoUrl}
+                              size="sm"
+                              className="ring-1 ring-slate-300 mb-0.5 shrink-0"
+                            />
+                          )}
+
+                          <div className="group relative flex items-center max-w-[82%] sm:max-w-[75%]">
+                            <div
+                              className={`w-full rounded-2xl ${
+                                isOutgoing
+                                  ? "bg-emerald-600 text-white rounded-br-xs shadow-sm px-3.5 py-1.5"
+                                  : "bg-white text-slate-900 border border-slate-200/90 rounded-bl-xs shadow-sm px-3.5 py-1.5"
+                              }`}
+                            >
+                              <p className={`text-[11px] font-bold mb-0.5 ${isOutgoing ? 'text-emerald-100' : 'text-emerald-700'}`}>
+                                {senderName}
+                              </p>
+                              <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+                                <span className={`text-xs sm:text-sm leading-snug whitespace-pre-wrap break-words font-normal ${item.isDeletedForEveryone ? 'italic opacity-80' : ''}`}>
+                                  {item.isDeletedForEveryone ? "🚫 " + item.text : item.text}
+                                </span>
+                                <span className={`text-[10px] ml-auto shrink-0 flex items-center gap-1 mt-0.5 ${isOutgoing ? 'text-emerald-100' : 'text-slate-400'}`}>
+                                  {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                  {isOutgoing && (
+                                    <svg className="w-3.5 h-3.5 text-emerald-100 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                  )}
+                                </span>
+                              </div>
+                            </div>
+
+                            <button
+                              type="button"
+                              onClick={() => setSelectedDeleteMsg(item)}
+                              className={`opacity-0 group-hover:opacity-100 transition-opacity duration-150 p-1 text-slate-400 hover:text-rose-500 rounded-full hover:bg-slate-200/60 ${isOutgoing ? 'order-first mr-1.5' : 'ml-1.5'}`}
+                              title="Delete message"
+                            >
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                          </div>
+
+                          {isOutgoing && (
+                            <UserAvatar
+                              name={currentUser?.fullName || currentUser?.username || 'You'}
+                              photoUrl={currentUser?.profilePhotoUrl || currentUser?.photoUrl || senderPhoto}
+                              size="sm"
+                              className="ring-1 ring-emerald-500/40 mb-0.5 shrink-0"
+                            />
+                          )}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+
+                {userScrolledUp && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      userScrolledUpRef.current = false;
+                      setUserScrolledUp(false);
+                      scrollToBottom();
+                    }}
+                    className="absolute bottom-4 right-6 z-20 flex items-center gap-1.5 rounded-full bg-emerald-700 px-3.5 py-1.5 text-xs font-bold text-white shadow-lg hover:bg-emerald-800 transition animate-bounce"
+                  >
+                    <span>↓ Scroll to bottom</span>
+                  </button>
                 )}
               </div>
 
@@ -539,7 +607,7 @@ export default function ChatHub() {
               )}
 
               {/* Message Input Box */}
-              <div className="p-3 bg-white border-t border-slate-100 flex items-center gap-2">
+              <div className="shrink-0 p-3 bg-white border-t border-slate-100 flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => setShowEmojiPicker((v) => !v)}
@@ -612,6 +680,68 @@ export default function ChatHub() {
           )}
         </div>
       </div>
+      {/* Delete Message Modal */}
+      {selectedDeleteMsg && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
+          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
+            <h3 className="text-base font-black text-slate-900">Delete Message</h3>
+            <p className="mt-1 text-xs text-slate-500">Choose how you would like to delete this message.</p>
+
+            <div className="mt-4 space-y-2.5">
+              {/* Delete for Me Button */}
+              <button
+                type="button"
+                onClick={() => handleDeleteMessage("me")}
+                className="w-full flex items-center gap-3 rounded-2xl bg-slate-100 p-3 text-left hover:bg-slate-200 transition"
+              >
+                <span className="text-xl">🗑️</span>
+                <div>
+                  <h4 className="text-xs font-bold text-slate-900">Delete for Me</h4>
+                  <p className="text-[11px] text-slate-500">Remove from your chat view</p>
+                </div>
+              </button>
+
+              {/* Delete for Everyone Button */}
+              {(() => {
+                const senderId = typeof selectedDeleteMsg.sender === "object" && selectedDeleteMsg.sender?._id
+                  ? String(selectedDeleteMsg.sender._id)
+                  : String(selectedDeleteMsg.sender || "");
+                const isOutgoing = currentUser?._id
+                  ? senderId === String(currentUser._id)
+                  : selectedFriendId
+                  ? senderId !== String(selectedFriendId)
+                  : false;
+                const hoursDiff = (Date.now() - new Date(selectedDeleteMsg.createdAt).getTime()) / (1000 * 60 * 60);
+                const canDeleteEveryone = isOutgoing && hoursDiff <= 24 && !selectedDeleteMsg.isDeletedForEveryone;
+
+                if (!canDeleteEveryone) return null;
+
+                return (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteMessage("everyone")}
+                    className="w-full flex items-center gap-3 rounded-2xl bg-rose-50 border border-rose-200 p-3 text-left hover:bg-rose-100 transition"
+                  >
+                    <span className="text-xl">🌐</span>
+                    <div>
+                      <h4 className="text-xs font-bold text-rose-700">Delete for Everyone</h4>
+                      <p className="text-[11px] text-rose-600">Remove for both participants (24h limit)</p>
+                    </div>
+                  </button>
+                );
+              })()}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setSelectedDeleteMsg(null)}
+              className="mt-4 w-full py-2 text-center text-xs font-bold text-slate-500 hover:text-slate-800 transition"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

@@ -35,10 +35,8 @@ export function usePresence() {
       stopHeartbeat();
       sendPresence("active");
       heartbeatTimer = setInterval(() => {
-        if (document.visibilityState === "visible") {
-          sendPresence("heartbeat");
-        }
-      }, 12000); // 12 seconds pulse
+        sendPresence("active");
+      }, 8000); // 8 seconds pulse
     };
 
     const stopHeartbeat = () => {
@@ -53,17 +51,7 @@ export function usePresence() {
         startHeartbeat();
       } else {
         stopHeartbeat();
-        sendPresence("inactive");
       }
-    };
-
-    const handleWindowFocus = () => {
-      startHeartbeat();
-    };
-
-    const handleWindowBlur = () => {
-      stopHeartbeat();
-      sendPresence("inactive");
     };
 
     const handlePageHide = () => {
@@ -72,22 +60,15 @@ export function usePresence() {
     };
 
     // Initial trigger
-    if (document.visibilityState === "visible") {
-      startHeartbeat();
-    }
+    startHeartbeat();
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("focus", handleWindowFocus);
-    window.addEventListener("blur", handleWindowBlur);
     window.addEventListener("pagehide", handlePageHide);
     window.addEventListener("beforeunload", handlePageHide);
 
     return () => {
       stopHeartbeat();
-      sendPresence("inactive");
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("focus", handleWindowFocus);
-      window.removeEventListener("blur", handleWindowBlur);
       window.removeEventListener("pagehide", handlePageHide);
       window.removeEventListener("beforeunload", handlePageHide);
     };

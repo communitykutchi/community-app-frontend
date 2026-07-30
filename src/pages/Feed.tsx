@@ -364,7 +364,7 @@ export default function Feed() {
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">
       <section className="overflow-hidden rounded-[1.35rem] border border-slate-200 bg-white shadow-[0_18px_55px_-38px_rgba(15,23,42,0.75)]">
-        <div className="border-b border-slate-200 bg-slate-950 px-5 py-5 text-white sm:px-6">
+        <div className="border-b border-emerald-800 bg-gradient-to-br from-emerald-950 via-emerald-900 to-green-700 px-5 py-5 text-white sm:px-6">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-200">{t('feed_title')}</p>

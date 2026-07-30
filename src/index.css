@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --brand-900: #052e16;
-  --brand-700: #166534;
-  --brand-500: #10b981;
-  --accent-500: #34d399;
+  --brand-900: #0f172a;
+  --brand-700: #0f766e;
+  --brand-500: #0d9488;
+  --accent-500: #14b8a6;
   --surface-100: #f8fafc;
-  --surface-200: #ecfdf5;
-  --text-900: #052e16;
-  --text-700: #14532d;
-  --text-500: #4b5563;
-  --border: #d1fae5;
+  --surface-200: #ccfbf1;
+  --text-900: #0f172a;
+  --text-700: #0f766e;
+  --text-500: #64748b;
+  --border: #e2e8f0;
   font-family: "Manrope", "Segoe UI", sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -31,9 +31,9 @@ body {
   min-height: 100vh;
   color: var(--text-900);
   background:
-    radial-gradient(circle at 8% 14%, rgba(16, 185, 129, 0.16), transparent 34%),
-    radial-gradient(circle at 84% 8%, rgba(52, 211, 153, 0.16), transparent 30%),
-    linear-gradient(180deg, #f8fafc 0%, #ecfdf5 100%);
+    radial-gradient(circle at 8% 14%, rgba(13, 148, 136, 0.12), transparent 34%),
+    radial-gradient(circle at 84% 8%, rgba(20, 184, 166, 0.12), transparent 30%),
+    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 a {
@@ -94,13 +94,13 @@ a {
 
 .form-input:focus {
   outline: none;
-  border-color: #86efac;
-  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.16);
+  border-color: #0d9488;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.16);
 }
 
 .btn-primary {
-  border: 1px solid #047857;
-  background: linear-gradient(90deg, #047857 0%, #10b981 100%);
+  border: 1px solid #0f766e;
+  background: linear-gradient(90deg, #0f766e 0%, #0d9488 100%);
   color: #fff;
 }
 
