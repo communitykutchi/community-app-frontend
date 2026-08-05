@@ -171,8 +171,14 @@ a {
   color: var(--text-700);
 }
 
-button {
+button, .btn-primary, .btn-secondary {
   cursor: pointer;
+  transition: transform 100ms ease-out, opacity 100ms ease-out, background-color 140ms ease, border-color 140ms ease, box-shadow 140ms ease;
+  user-select: none;
+}
+
+button:active, .btn-primary:active, .btn-secondary:active {
+  transform: scale(0.96);
 }
 
 @keyframes rise-in {
@@ -185,5 +191,6 @@ button {
     transform: translateY(0);
   }
 }
+
 
 /* Legacy Urdu-specific styling removed; the app now uses the default layout only. */

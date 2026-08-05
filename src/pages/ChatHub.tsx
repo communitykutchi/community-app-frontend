@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { useNavigate, useParams } from "react-router-dom";
-import API from "../api/axios.js";
-import UserAvatar from "../components/UserAvatar.js";
-import { getPresenceStatus } from "../utils/presence.js";
+import API from "../api/axios";
+import UserAvatar from "../components/UserAvatar";
+import { getPresenceStatus } from "../utils/presence";
 
 interface FriendUser {
   _id: string;
@@ -200,14 +200,32 @@ export default function ChatHub() {
   };
 
   const handleSendMessage = async () => {
-    if (!activeChat || !messageText.trim() || sending) return;
-    setSending(true);
+    if (!activeChat || !messageText.trim()) return;
+    const textToSend = messageText.trim();
+
+    setMessageText("");
+    setShowEmojiPicker(false);
     setStatus(null);
+    userScrolledUpRef.current = false;
+    setUserScrolledUp(false);
+
+    const tempId = "temp-" + Date.now();
+    const tempMsg: ChatMessage = {
+      _id: tempId,
+      sender: currentUser ? { _id: currentUser._id, fullName: currentUser.fullName, username: currentUser.username } : { _id: "" },
+      text: textToSend,
+      createdAt: new Date().toISOString(),
+      isDelivered: false,
+      isRead: false,
+    };
+
+    setActiveChat((prev) => (prev ? { ...prev, messages: [...prev.messages, tempMsg] } : prev));
+    setTimeout(scrollToBottom, 20);
 
     try {
       const res = await API.post<{ success: boolean; chat: ChatItem }>(
         `/friends/chats/${activeChat._id}/messages`,
-        { text: messageText.trim() }
+        { text: textToSend }
       );
       setActiveChat(res.data.chat);
       if (selectedFriendId) {
@@ -216,15 +234,10 @@ export default function ChatHub() {
           [selectedFriendId]: res.data.chat,
         }));
       }
-      setMessageText("");
-      setShowEmojiPicker(false);
-      userScrolledUpRef.current = false;
-      setUserScrolledUp(false);
       setTimeout(scrollToBottom, 50);
     } catch (err: any) {
       setStatus(err.response?.data?.message || "Message failed to send.");
-    } finally {
-      setSending(false);
+      setActiveChat((prev) => (prev ? { ...prev, messages: prev.messages.filter((m) => m._id !== tempId) } : prev));
     }
   };
 

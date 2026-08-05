@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
-import Navbar from '../components/Navbar.js';
+import Navbar from '../components/Navbar';
 import { useLocation } from 'react-router-dom';
-import { usePresence } from '../hooks/usePresence.js';
+import { usePresence } from '../hooks/usePresence';
 
 type MainLayoutProps = {
   children: ReactNode;

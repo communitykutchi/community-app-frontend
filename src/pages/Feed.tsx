@@ -1,6 +1,7 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
-import API from "../api/axios.js";
-import UserAvatar from "../components/UserAvatar.js";
+import API from "../api/axios";
+import UserAvatar from "../components/UserAvatar";
+import Toast from "../components/Toast";
 
 const feedTranslations: Record<string, string> = {
   feed_title: 'Community Feed',
@@ -78,13 +79,13 @@ function formatPostDate(value: string) {
 }
 
 export default function Feed() {
-  const configuredApiBase = import.meta.env.VITE_API_URL || "https://community-app-backend-wrb0.onrender.com";
+  const configuredApiBase = import.meta.env.VITE_API_URL || "https://backend.kutchicommunity.com";
   const apiOrigin = (() => {
     try {
       const fallbackOrigin = typeof window !== "undefined" ? window.location.origin : "http://localhost";
       return new URL(configuredApiBase, fallbackOrigin).origin;
     } catch {
-      return "https://community-app-backend-wrb0.onrender.com";
+      return "https://backend.kutchicommunity.com";
     }
   })();
 
@@ -113,6 +114,15 @@ export default function Feed() {
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [error, setError] = useState("");
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info"; isVisible: boolean }>({
+    message: "",
+    type: "success",
+    isVisible: false,
+  });
+
+  const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
+    setToast({ message, type, isVisible: true });
+  };
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [commentDrafts, setCommentDrafts] = useState<Record<string, string>>({});
@@ -240,13 +250,31 @@ export default function Feed() {
     setPosts((currentPosts) => currentPosts.map((post) => (post._id === updatedPost._id ? updatedPost : post)));
   };
 
-  const handleLike = async (postId: string) => {
-    try {
-      const response = await API.patch<Post>(`/posts/${postId}/like`);
-      upsertPost(response.data);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Unable to update like.");
-    }
+  const handleLike = (postId: string) => {
+    setPosts((currentPosts) =>
+      currentPosts.map((post) => {
+        if (post._id !== postId) return post;
+        const willLike = !post.liked;
+        const newLikes = willLike ? (post.likes || 0) + 1 : Math.max(0, (post.likes || 1) - 1);
+        return { ...post, liked: willLike, likes: newLikes };
+      })
+    );
+
+    API.patch<Post>(`/posts/${postId}/like`)
+      .then((response) => {
+        if (response.data) upsertPost(response.data);
+      })
+      .catch((err: any) => {
+        setPosts((currentPosts) =>
+          currentPosts.map((post) => {
+            if (post._id !== postId) return post;
+            const willLike = !post.liked;
+            const newLikes = willLike ? (post.likes || 0) + 1 : Math.max(0, (post.likes || 1) - 1);
+            return { ...post, liked: willLike, likes: newLikes };
+          })
+        );
+        showToast(err.response?.data?.message || "Unable to update like.", "error");
+      });
   };
 
   const handleCommentToggle = (postId: string) => {
@@ -258,12 +286,42 @@ export default function Feed() {
     const draft = (commentDrafts[postId] || "").trim();
     if (!draft) return;
 
+    setCommentDrafts((current) => ({ ...current, [postId]: "" }));
+
+    const tempComment: CommentItem = {
+      id: "temp-comment-" + Date.now(),
+      text: draft,
+      author: currentUser?.fullName || "You",
+      authorPhotoUrl: currentUser?.profilePhotoUrl,
+    };
+
+    setPosts((currentPosts) =>
+      currentPosts.map((post) => {
+        if (post._id !== postId) return post;
+        return {
+          ...post,
+          comments: (post.comments || 0) + 1,
+          commentsList: [...(post.commentsList || []), tempComment],
+        };
+      })
+    );
+    showToast("Comment posted!", "success");
+
     try {
       const response = await API.post<Post>(`/posts/${postId}/comments`, { text: draft });
       upsertPost(response.data);
-      setCommentDrafts((current) => ({ ...current, [postId]: "" }));
     } catch (err: any) {
-      setError(err.response?.data?.message || "Unable to add comment.");
+      setPosts((currentPosts) =>
+        currentPosts.map((post) => {
+          if (post._id !== postId) return post;
+          return {
+            ...post,
+            comments: Math.max(0, (post.comments || 1) - 1),
+            commentsList: (post.commentsList || []).filter((c) => c.id !== tempComment.id),
+          };
+        })
+      );
+      showToast(err.response?.data?.message || "Unable to add comment.", "error");
     }
   };
 
@@ -273,49 +331,66 @@ export default function Feed() {
     const draft = (replyDrafts[replyKey] || "").trim();
     if (!draft) return;
 
+    setReplyDrafts((current) => ({ ...current, [replyKey]: "" }));
+    setReplyOpenForComment((current) => ({ ...current, [replyKey]: false }));
+    setReplyTarget((current) => ({ ...current, [replyKey]: "" }));
+    showToast("Reply posted!", "success");
+
     try {
       const response = await API.post<Post>(`/posts/${postId}/comments/${commentId}/replies`, { text: draft });
       upsertPost(response.data);
-      setReplyDrafts((current) => ({ ...current, [replyKey]: "" }));
-      setReplyOpenForComment((current) => ({ ...current, [replyKey]: false }));
-      setReplyTarget((current) => ({ ...current, [replyKey]: "" }));
     } catch (err: any) {
-      setError(err.response?.data?.message || "Unable to add reply.");
+      showToast(err.response?.data?.message || "Unable to add reply.", "error");
     }
   };
 
   const handleShare = async (postId: string) => {
-    try {
-      const response = await API.post<Post>(`/posts/${postId}/share`);
-      upsertPost(response.data);
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Unable to share post.");
-      return;
-    }
+    setPosts((currentPosts) =>
+      currentPosts.map((p) => (p._id === postId ? { ...p, shares: (p.shares || 0) + 1 } : p))
+    );
+
+    const shareUrl = `${window.location.origin}/feed#${postId}`;
 
     if (navigator.share) {
       try {
         await navigator.share({
-          title: "Community post",
+          title: "Community Post",
           text: "Check out this post from the community feed",
-          url: window.location.href,
+          url: shareUrl,
         });
+        showToast("Post shared!", "success");
       } catch {
-        // Ignore share cancellation.
+        // User closed native share sheet
+      }
+    } else if (navigator.clipboard) {
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        showToast("Post link copied to clipboard!", "success");
+      } catch {
+        showToast("Link copied!", "success");
       }
     }
+
+    API.post<Post>(`/posts/${postId}/share`)
+      .then((res) => {
+        if (res.data) upsertPost(res.data);
+      })
+      .catch(() => {});
   };
 
   const handleDeletePost = async (postId: string) => {
-    const confirmed = window.confirm("Delete this post?");
-    if (!confirmed) return;
+    const postToDelete = posts.find((p) => p._id === postId);
+    setOpenPostMenu(null);
+    setPosts((currentPosts) => currentPosts.filter((post) => post._id !== postId));
+    showToast("Post deleted", "success");
 
     try {
-      setOpenPostMenu(null);
       await API.delete(`/posts/${postId}`);
-      setPosts((currentPosts) => currentPosts.filter((post) => post._id !== postId));
     } catch (err: any) {
-      setError(err.response?.data?.message || "Unable to delete post.");
+      if (postToDelete) {
+        setPosts((currentPosts) => [postToDelete, ...currentPosts]);
+      }
+      showToast(err.response?.data?.message || "Unable to delete post.", "error");
     }
   };
 
@@ -764,6 +839,13 @@ export default function Feed() {
           </div>
         )}
       </section>
+
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={() => setToast((prev) => ({ ...prev, isVisible: false }))}
+      />
     </div>
   );
 }

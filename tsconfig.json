@@ -1,15 +1,17 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "Node16",
+    "module": "ESNext",
     "jsx": "react-jsx",
     "jsxImportSource": "react",
-    "moduleResolution": "node16",
+    "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "types": ["vite/client", "react", "react-dom"],
     "strict": true,
+    "noEmit": true,
     "esModuleInterop": true,
     "ignoreDeprecations": "5.0"
   },
   "include": ["src"]
 }
+

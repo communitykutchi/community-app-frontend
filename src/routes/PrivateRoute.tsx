@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { type ReactNode } from "react";
-import { getAuthToken } from "../auth/session.js";
+import { getAuthToken } from "../auth/session";
 
 export default function PrivateRoute({ children }: { children: ReactNode }) {
   const token = getAuthToken();

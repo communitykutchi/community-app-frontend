@@ -1,17 +1,17 @@
 import { BrowserRouter as Router, Routes, Route , Navigate} from "react-router-dom";
 
-import Home from "./pages/Home.js";
-import Login from "./pages/Login.js";
-import Register from "./pages/Register.js";
-import Feed from "./pages/Feed.js";
-import Notices from "./pages/Notices.js";
-import AdminUsers from "./pages/AdminUsers.js";
-import PeopleProfile from "./pages/personProfile.js";
-import Friends from "./pages/Friends.js";
-import Chat from "./pages/Chat.js";
-import ChatHub from "./pages/ChatHub.js";
-import MainLayout from "./layout/MainLayout.js";
-import PrivateRoute from "./routes/PrivateRoute.js";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
+import Feed from "./pages/Feed";
+import Notices from "./pages/Notices";
+import AdminUsers from "./pages/AdminUsers";
+import PeopleProfile from "./pages/personProfile";
+import Friends from "./pages/Friends";
+import Chat from "./pages/Chat";
+import ChatHub from "./pages/ChatHub";
+import MainLayout from "./layout/MainLayout";
+import PrivateRoute from "./routes/PrivateRoute";
 
 function App() {
   return (

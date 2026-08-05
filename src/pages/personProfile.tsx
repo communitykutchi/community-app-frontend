@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
-import API from "../api/axios.js";
-import UserAvatar from "../components/UserAvatar.js";
+import API from "../api/axios";
+import UserAvatar from "../components/UserAvatar";
 
 interface UserProfile {
   _id: string;

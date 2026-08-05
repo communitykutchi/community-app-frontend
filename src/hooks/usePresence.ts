@@ -1,6 +1,6 @@
 import { useEffect } from "react";
-import API from "../api/axios.js";
-import { getAuthToken } from "../auth/session.js";
+import API from "../api/axios";
+import { getAuthToken } from "../auth/session";
 
 export function usePresence() {
   useEffect(() => {

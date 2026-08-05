@@ -1,9 +1,7 @@
 import axios from "axios";
-import { getAuthToken, clearAuthToken } from "../auth/session.js";
+import { getAuthToken, clearAuthToken } from "../auth/session";
 
-const baseURL = import.meta.env.DEV
-  ? import.meta.env.VITE_API_URL || "/api"
-  : import.meta.env.VITE_API_URL || "https://community-app-backend-wrb0.onrender.com";
+const baseURL = import.meta.env.VITE_API_URL || "https://backend.kutchicommunity.com";
 
 const API = axios.create({
   baseURL,

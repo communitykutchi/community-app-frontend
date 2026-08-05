@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../api/axios.js";
-import UserAvatar from "../components/UserAvatar.js";
-import { getPresenceStatus } from "../utils/presence.js";
+import API from "../api/axios";
+import UserAvatar from "../components/UserAvatar";
+import { getPresenceStatus } from "../utils/presence";
 
 interface UserItem {
   _id: string;

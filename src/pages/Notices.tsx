@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
-import API from "../api/axios.js";
+import API from "../api/axios";
+import Toast from "../components/Toast";
 
 const NOTICE_ACTIVITY_EVENT = "community-notice-activity";
 
@@ -496,6 +497,15 @@ export default function NoticesPage() {
   const [mayyatDetails, setMayyatDetails] = useState<MayyatDetails>(emptyMayyatDetails);
   const [pinned, setPinned] = useState(false);
   const [status, setStatus] = useState("");
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info"; isVisible: boolean }>({
+    message: "",
+    type: "success",
+    isVisible: false,
+  });
+
+  const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
+    setToast({ message, type, isVisible: true });
+  };
   const [editingNoticeId, setEditingNoticeId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [editBody, setEditBody] = useState("");
@@ -675,35 +685,73 @@ export default function NoticesPage() {
   };
 
   const handleReact = async (noticeId: string, reaction: ReactionKind) => {
+    setNotices((current) =>
+      current.map((n) => {
+        if (n.id !== noticeId) return n;
+        const previousReaction = n.userReaction;
+        const counts = { ...(n.reactionCounts || {}) };
+
+        if (previousReaction === reaction) {
+          counts[reaction] = Math.max(0, (counts[reaction] || 1) - 1);
+          return { ...n, userReaction: undefined, reactionCounts: counts, reactions: Math.max(0, n.reactions - 1) };
+        } else {
+          if (previousReaction) {
+            counts[previousReaction] = Math.max(0, (counts[previousReaction] || 1) - 1);
+          }
+          counts[reaction] = (counts[reaction] || 0) + 1;
+          const reactionsDelta = previousReaction ? 0 : 1;
+          return { ...n, userReaction: reaction, reactionCounts: counts, reactions: n.reactions + reactionsDelta };
+        }
+      })
+    );
+
     try {
       const response = await API.patch<{ success: boolean; notice: Notice }>(`/notices/${noticeId}/react`, { reaction });
       if (response.data?.notice) {
         upsertNotice(response.data.notice);
       }
     } catch {
-      setStatus(t('unable_react'));
+      showToast(t('unable_react'), "error");
     }
   };
 
   const handleTogglePin = async (notice: Notice) => {
+    const nextPinnedState = !notice.pinned;
+
+    setNotices((current) => {
+      const updated = current.map((item) =>
+        item.id === notice.id ? { ...item, pinned: nextPinnedState } : item
+      );
+      return [...updated].sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+    });
+
+    showToast(nextPinnedState ? "📌 Notice pinned to top!" : "Notice unpinned", "success");
+
     try {
-      const response = await API.patch<{ success: boolean; notice: Notice }>(`/notices/${notice.id}/pin`, { pinned: !notice.pinned });
+      const response = await API.patch<{ success: boolean; notice: Notice }>(`/notices/${notice.id}/pin`, { pinned: nextPinnedState });
       if (response.data?.notice) {
         upsertNotice(response.data.notice);
       }
-    } catch {
-      setStatus(t('unable_update_pin'));
+    } catch (err: any) {
+      setNotices((current) =>
+        current.map((item) => (item.id === notice.id ? { ...item, pinned: notice.pinned } : item))
+      );
+      const msg = err?.response?.data?.message || t('unable_update_pin');
+      showToast(msg, "error");
     }
   };
 
   const handleDelete = async (noticeId: string) => {
+    const targetNotice = notices.find((item) => item.id === noticeId);
+    setNotices((current) => current.filter((item) => item.id !== noticeId));
+    showToast(t('notice_deleted'), "success");
+    dispatchNoticeActivity();
+
     try {
       await API.delete(`/notices/${noticeId}`);
-      setNotices((current) => current.filter((item) => item.id !== noticeId));
-      setStatus(t('notice_deleted'));
-      dispatchNoticeActivity();
     } catch {
-      setStatus(t('unable_delete'));
+      if (targetNotice) upsertNotice(targetNotice);
+      showToast(t('unable_delete'), "error");
     }
   };
 
@@ -852,33 +900,37 @@ export default function NoticesPage() {
   };
 
   const handleShare = async (notice: Notice) => {
-    try {
-      const response = await API.post<{ success: boolean; notice: Notice }>(`/notices/${notice.id}/share`);
-      if (response.data?.notice) {
-        upsertNotice(response.data.notice);
-      }
+    setNotices((current) =>
+      current.map((item) => (item.id === notice.id ? { ...item, shares: (item.shares || 0) + 1, hasShared: true } : item))
+    );
 
-      const text = `${notice.type === "mayyat" ? "Mayyat Notification: " : ""}${notice.title}\n${notice.body}`;
-      if (navigator.share) {
-        try {
-          await navigator.share({
-            title: notice.title,
-            text,
-            url: window.location.href,
-          });
-        } catch {
-          // Ignore cancelled share action.
-        }
-        return;
-      }
+    const text = `${notice.type === "mayyat" ? "Mayyat Notification: " : ""}${notice.title}\n${notice.body}`;
 
-      if (navigator.clipboard) {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: notice.title,
+          text,
+          url: window.location.href,
+        });
+        showToast("Notice shared!", "success");
+      } catch {
+        // User cancelled share sheet
+      }
+    } else if (navigator.clipboard) {
+      try {
         await navigator.clipboard.writeText(text);
-        setStatus(t('notice_copied'));
+        showToast("Notice content copied to clipboard!", "success");
+      } catch {
+        showToast("Notice copied!", "success");
       }
-    } catch {
-      setStatus(t('unable_share'));
     }
+
+    API.post<{ success: boolean; notice: Notice }>(`/notices/${notice.id}/share`)
+      .then((response) => {
+        if (response.data?.notice) upsertNotice(response.data.notice);
+      })
+      .catch(() => {});
   };
 
   const noticeList = useMemo(() => notices, [notices]);
@@ -1388,6 +1440,13 @@ export default function NoticesPage() {
           );
         })}
       </div>
+
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={() => setToast((prev) => ({ ...prev, isVisible: false }))}
+      />
     </div>
   );
 }

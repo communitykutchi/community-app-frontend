@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import API from '../api/axios.js';
-import { AUTH_CHANGED_EVENT, clearAuthToken, getAuthToken } from '../auth/session.js';
-import UserAvatar from './UserAvatar.js';
+import API from '../api/axios';
+import { AUTH_CHANGED_EVENT, clearAuthToken, getAuthToken } from '../auth/session';
+import UserAvatar from './UserAvatar';
 
 const NOTICE_ACTIVITY_EVENT = 'community-notice-activity';
 const PROFILE_UPDATED_EVENT = 'community-profile-updated';

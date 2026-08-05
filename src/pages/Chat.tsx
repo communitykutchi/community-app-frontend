@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import API from "../api/axios.js";
-import UserAvatar from "../components/UserAvatar.js";
-import { getPresenceStatus } from "../utils/presence.js";
+import API from "../api/axios";
+import UserAvatar from "../components/UserAvatar";
+import { getPresenceStatus } from "../utils/presence";
 
 interface ChatMessage {
   _id?: string;
@@ -80,22 +80,33 @@ export default function Chat() {
   }, [chat?.messages]);
 
   const sendMessage = async () => {
-    if (!chat || !message.trim() || sending) return;
-    setSending(true);
+    if (!chat || !message.trim()) return;
+    const textToSend = message.trim();
+    setMessage("");
+    setShowEmojiPicker(false);
     setStatus(null);
+
+    const tempId = "temp-" + Date.now();
+    const tempMsg: ChatMessage = {
+      _id: tempId,
+      sender: currentUser ? { _id: currentUser._id, fullName: currentUser.fullName, username: currentUser.username } : { _id: "" },
+      text: textToSend,
+      createdAt: new Date().toISOString(),
+      isDelivered: false,
+      isRead: false,
+    };
+
+    setChat((prev) => (prev ? { ...prev, messages: [...prev.messages, tempMsg] } : prev));
 
     try {
       const response = await API.post<{ success: boolean; chat: ChatData }>(
         `/friends/chats/${chat._id}/messages`,
-        { text: message.trim() }
+        { text: textToSend }
       );
       setChat(response.data.chat);
-      setMessage("");
-      setShowEmojiPicker(false);
     } catch (err: any) {
       setStatus(err.response?.data?.message || "Unable to send message.");
-    } finally {
-      setSending(false);
+      setChat((prev) => (prev ? { ...prev, messages: prev.messages.filter((m) => m._id !== tempId) } : prev));
     }
   };
 

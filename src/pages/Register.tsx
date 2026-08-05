@@ -1,5 +1,5 @@
 import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
-import API from '../api/axios.js';
+import API from '../api/axios';
 
 const USERNAME_REGEX = /^[a-z0-9._-]+$/;
 

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import API from '../api/axios.js';
-import { persistAuthToken } from '../auth/session.js';
+import API from '../api/axios';
+import { persistAuthToken } from '../auth/session';
 
 export default function Login() {
   const [identifier, setIdentifier] = useState('');
