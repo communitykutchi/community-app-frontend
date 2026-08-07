@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 import { AUTH_CHANGED_EVENT, clearAuthToken, getAuthToken } from '../auth/session';
@@ -7,350 +7,627 @@ import UserAvatar from './UserAvatar';
 const NOTICE_ACTIVITY_EVENT = 'community-notice-activity';
 const PROFILE_UPDATED_EVENT = 'community-profile-updated';
 
-const navbarTranslations: Record<string, string> = {
-  communityPortal: 'Community Portal',
-  allKutchiCommunity: 'All Kutchi Community',
-  Home: 'Home',
-  Feed: 'Feed',
-  Notices: 'Notices',
-  Friends: 'Friends',
-  Admin: 'Admin',
-  Login: 'Login',
-  Register: 'Register',
-  Profile: 'Profile',
-  viewProfile: 'View profile',
-  Navigation: 'Navigation',
-  Logout: 'Logout',
-};
-
-const t = (key: string) => navbarTranslations[key] || key;
-
 interface NavItem {
-	to: string;
-	label: string;
-	unreadCount?: number;
+  to: string;
+  label: string;
+  unreadCount?: number;
+  icon: React.ReactNode;
+  isDropdown?: boolean;
 }
 
 interface CurrentUser {
-	fullName?: string;
-	role?: string;
-	profilePhotoUrl?: string;
+  fullName?: string;
+  role?: string;
+  profilePhotoUrl?: string;
+  jamaat?: string;
+}
+
+function capitalizeName(name?: string): string {
+  if (!name) return 'Profile';
+  return name
+    .toLowerCase()
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
 }
 
 function normalizeRole(role?: string) {
-	if (role === 'jamaat_admin') return 'moderator';
-	return role;
+  return role;
 }
 
 export default function Navbar() {
-	const [open, setOpen] = useState(false);
-	const [authToken, setAuthToken] = useState<string | null>(() => getAuthToken());
-	const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(getAuthToken()));
-	const [isAdmin, setIsAdmin] = useState(false);
-	const [unreadNoticeCount, setUnreadNoticeCount] = useState(0);
-	const [unreadChatCount, setUnreadChatCount] = useState(0);
-	const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
-	const navigate = useNavigate();
-	const location = useLocation();
-	const isAuthRoute = location.pathname === '/login' || location.pathname === '/register';
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [friendsDropdownOpen, setFriendsDropdownOpen] = useState(false);
+  const [authToken, setAuthToken] = useState<string | null>(() => getAuthToken());
+  const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(getAuthToken()));
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [unreadNoticeCount, setUnreadNoticeCount] = useState(0);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
+  const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
-	useEffect(() => {
-		if (!authToken) {
-			setUnreadChatCount(0);
-			return;
-		}
+  const formattedName = capitalizeName(currentUser?.fullName);
 
-		const fetchUnreadChatCount = () => {
-			API.get<{ unreadCount?: number }>('/friends/unread-chat-count')
-				.then((response) => {
-					setUnreadChatCount(Number(response.data?.unreadCount || 0));
-				})
-				.catch(() => {
-					setUnreadChatCount(0);
-				});
-		};
+  const navigate = useNavigate();
+  const location = useLocation();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const friendsDropdownRef = useRef<HTMLDivElement>(null);
+  const isAuthRoute = location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/banned';
+  // ... rest of effect hooks remain same
 
-		fetchUnreadChatCount();
-		const timer = setInterval(fetchUnreadChatCount, 3000);
-		return () => clearInterval(timer);
-	}, [authToken, location.pathname]);
 
-	useEffect(() => {
-		setOpen(false);
-		setAuthToken(getAuthToken());
-	}, [location.pathname]);
+  useEffect(() => {
+    if (!authToken) {
+      setUnreadChatCount(0);
+      return;
+    }
 
-	useEffect(() => {
-		if (typeof window === 'undefined') return;
+    const fetchUnreadChatCount = () => {
+      if (typeof document !== 'undefined' && document.hidden) return;
+      API.get<{ unreadCount?: number }>('/friends/unread-chat-count')
+        .then((response) => {
+          setUnreadChatCount(Number(response.data?.unreadCount || 0));
+        })
+        .catch(() => {
+          setUnreadChatCount(0);
+        });
+    };
 
-		const syncAuthToken = () => {
-			setAuthToken(getAuthToken());
-		};
+    fetchUnreadChatCount();
+    const timer = setInterval(fetchUnreadChatCount, 10000);
+    return () => clearInterval(timer);
+  }, [authToken, location.pathname]);
 
-		window.addEventListener(AUTH_CHANGED_EVENT, syncAuthToken);
-		window.addEventListener('storage', syncAuthToken);
+  useEffect(() => {
+    setMobileOpen(false);
+    setUserDropdownOpen(false);
+    setFriendsDropdownOpen(false);
+    setAuthToken(getAuthToken());
+  }, [location.pathname]);
 
-		return () => {
-			window.removeEventListener(AUTH_CHANGED_EVENT, syncAuthToken);
-			window.removeEventListener('storage', syncAuthToken);
-		};
-	}, []);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
 
-	useEffect(() => {
-		setIsAuthenticated(Boolean(authToken));
-		if (!authToken) {
-			setIsAdmin(false);
-			setUnreadNoticeCount(0);
-			setCurrentUser(null);
-			return;
-		}
+    const syncAuthToken = () => {
+      setAuthToken(getAuthToken());
+    };
 
-		let cancelled = false;
+    window.addEventListener(AUTH_CHANGED_EVENT, syncAuthToken);
+    window.addEventListener('storage', syncAuthToken);
 
-		API.get<{ user?: CurrentUser }>('/auth/me').then((response) => {
-			if (cancelled) return;
-			const role = normalizeRole(response.data?.user?.role);
-			setCurrentUser(response.data?.user || null);
-			setIsAdmin(role === 'super_admin' || role === 'admin');
-		}).catch(() => {
-			if (cancelled) return;
-			setIsAdmin(false);
-			setCurrentUser(null);
-		});
+    return () => {
+      window.removeEventListener(AUTH_CHANGED_EVENT, syncAuthToken);
+      window.removeEventListener('storage', syncAuthToken);
+    };
+  }, []);
 
-		return () => {
-			cancelled = true;
-		};
-	}, [authToken]);
+  useEffect(() => {
+    setIsAuthenticated(Boolean(authToken));
+    if (!authToken) {
+      setIsAdmin(false);
+      setUnreadNoticeCount(0);
+      setCurrentUser(null);
+      return;
+    }
 
-	useEffect(() => {
-		if (typeof window === 'undefined') return;
+    let cancelled = false;
 
-		const refreshProfile = () => {
-			if (!authToken) return;
-			API.get<{ user?: CurrentUser }>('/auth/me')
-				.then((response) => {
-					const role = normalizeRole(response.data?.user?.role);
-					setCurrentUser(response.data?.user || null);
-					setIsAdmin(role === 'super_admin' || role === 'admin');
-				})
-				.catch(() => {
-					setCurrentUser(null);
-				});
-		};
+    API.get<{ user?: CurrentUser }>('/auth/me').then((response) => {
+      if (cancelled) return;
+      const role = normalizeRole(response.data?.user?.role);
+      setCurrentUser(response.data?.user || null);
+      setIsAdmin(['super_admin', 'admin', 'moderator'].includes(role || ''));
+    }).catch(() => {
+      if (cancelled) return;
+      setIsAdmin(false);
+      setCurrentUser(null);
+    });
 
-		window.addEventListener(PROFILE_UPDATED_EVENT, refreshProfile);
+    return () => {
+      cancelled = true;
+    };
+  }, [authToken]);
 
-		return () => {
-			window.removeEventListener(PROFILE_UPDATED_EVENT, refreshProfile);
-		};
-	}, [authToken]);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
 
-	useEffect(() => {
-		let cancelled = false;
+    const refreshProfile = () => {
+      if (!authToken) return;
+      API.get<{ user?: CurrentUser }>('/auth/me')
+        .then((response) => {
+          const role = normalizeRole(response.data?.user?.role);
+          setCurrentUser(response.data?.user || null);
+          setIsAdmin(['super_admin', 'admin', 'moderator'].includes(role || ''));
+        })
+        .catch(() => {
+          setCurrentUser(null);
+        });
+    };
 
-		if (!authToken) {
-			setUnreadNoticeCount(0);
-			return;
-		}
+    window.addEventListener(PROFILE_UPDATED_EVENT, refreshProfile);
 
-		API.get<{ unreadCount?: number }>('/notices/unread-count')
-			.then((response) => {
-				if (cancelled) return;
-				setUnreadNoticeCount(Number(response.data?.unreadCount || 0));
-			})
-			.catch(() => {
-				if (cancelled) return;
-				setUnreadNoticeCount(0);
-			});
+    return () => {
+      window.removeEventListener(PROFILE_UPDATED_EVENT, refreshProfile);
+    };
+  }, [authToken]);
 
-		return () => {
-			cancelled = true;
-		};
-	}, [authToken, location.pathname]);
+  useEffect(() => {
+    let cancelled = false;
 
-	useEffect(() => {
-		if (typeof window === 'undefined') return;
+    if (!authToken) {
+      setUnreadNoticeCount(0);
+      return;
+    }
 
-		const refreshUnreadCount = () => {
-			if (!authToken) {
-				setUnreadNoticeCount(0);
-				return;
-			}
+    API.get<{ unreadCount?: number }>('/notices/unread-count')
+      .then((response) => {
+        if (cancelled) return;
+        setUnreadNoticeCount(Number(response.data?.unreadCount || 0));
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setUnreadNoticeCount(0);
+      });
 
-			API.get<{ unreadCount?: number }>('/notices/unread-count')
-				.then((response) => {
-					setUnreadNoticeCount(Number(response.data?.unreadCount || 0));
-				})
-				.catch(() => {
-					setUnreadNoticeCount(0);
-				});
-		};
+    return () => {
+      cancelled = true;
+    };
+  }, [authToken, location.pathname]);
 
-		window.addEventListener(NOTICE_ACTIVITY_EVENT, refreshUnreadCount);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
 
-		return () => {
-			window.removeEventListener(NOTICE_ACTIVITY_EVENT, refreshUnreadCount);
-		};
-	}, [authToken]);
+    const refreshUnreadCount = () => {
+      if (!authToken) {
+        setUnreadNoticeCount(0);
+        return;
+      }
 
-	async function handleLogout() {
-		try {
-			await API.post('/users/presence', { status: 'inactive' }).catch(() => {});
-			await API.post('/auth/logout').catch(() => {});
-		} catch {}
-		clearAuthToken();
-		setAuthToken(null);
-		setIsAuthenticated(false);
-		setIsAdmin(false);
-		setUnreadNoticeCount(0);
-		setCurrentUser(null);
-		setOpen(false);
-		navigate('/login');
-	}
+      API.get<{ unreadCount?: number }>('/notices/unread-count')
+        .then((response) => {
+          setUnreadNoticeCount(Number(response.data?.unreadCount || 0));
+        })
+        .catch(() => {
+          setUnreadNoticeCount(0);
+        });
+    };
 
-	const isActive = (to: string) => location.pathname === to;
+    window.addEventListener(NOTICE_ACTIVITY_EVENT, refreshUnreadCount);
 
-	const navItems: NavItem[] = isAuthenticated
-			? [
-							{ to: '/', label: t('Home') },
-							{ to: '/feed', label: t('Feed') },
-							{ to: '/friends', label: t('Friends') },
-							{ to: '/chats', label: 'Chat', unreadCount: unreadChatCount },
-							{ to: '/notices', label: t('Notices'), unreadCount: unreadNoticeCount },
-							...(isAdmin && currentUser?.role === 'super_admin' ? [{ to: '/admin/users', label: t('Admin') }] : []),
-						]
-			: [
-							{ to: '/login', label: t('Login') },
-							{ to: '/register', label: t('Register') },
-						];
+    return () => {
+      window.removeEventListener(NOTICE_ACTIVITY_EVENT, refreshUnreadCount);
+    };
+  }, [authToken]);
 
-	const desktopLinkClass = (to: string) =>
-		`rounded-lg px-3 py-2 text-sm font-semibold transition-colors ${isActive(to)
-			? 'bg-[#0f766e] !text-white hover:!text-white'
-			: 'text-slate-700 hover:bg-teal-50 hover:text-[#0f766e]'}`;
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setUserDropdownOpen(false);
+      }
+      if (friendsDropdownRef.current && !friendsDropdownRef.current.contains(e.target as Node)) {
+        setFriendsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
-	const mobileLinkClass = (to: string) =>
-		`block w-full rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors ${isActive(to)
-			? 'bg-[#0f766e] !text-white hover:!text-white'
-			: 'text-slate-700 hover:bg-teal-50 hover:text-[#0f766e]'}`;
+  async function handleLogout() {
+    try {
+      await API.post('/users/presence', { status: 'inactive' }).catch(() => {});
+      await API.post('/auth/logout').catch(() => {});
+    } catch {}
+    clearAuthToken();
+    setAuthToken(null);
+    setIsAuthenticated(false);
+    setIsAdmin(false);
+    setUnreadNoticeCount(0);
+    setCurrentUser(null);
+    setMobileOpen(false);
+    setUserDropdownOpen(false);
+    setFriendsDropdownOpen(false);
+    navigate('/login');
+  }
 
-	const renderNavLabel = (item: NavItem) => (
-		<span className="inline-flex items-center gap-2">
-			<span>{item.label}</span>
-			{item.unreadCount && item.unreadCount > 0 ? (
-				<span className="inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-[11px] font-bold leading-none text-white">
-					{item.unreadCount > 99 ? '99+' : item.unreadCount}
-				</span>
-			) : null}
-		</span>
-	);
+  const isActive = (to: string) => location.pathname === to;
 
-	if (isAuthRoute) {
-		return (
-			<header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/95 backdrop-blur">
-				<div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 md:px-6">
-					<Link to="/" className="min-w-0 flex max-w-[62%] items-center gap-3 sm:max-w-none">
-						<div className="grid h-9 w-9 place-items-center rounded-lg bg-[#0d9488] text-sm font-black text-white shadow-sm">
-							KC
-						</div>
-						<div className="min-w-0">
-							<p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-slate-500">{t('communityPortal')}</p>
-							<p className="truncate text-xs font-bold leading-tight text-slate-900 sm:text-sm md:text-base">{t('allKutchiCommunity')}</p>
-						</div>
-					</Link>
-					<div className="flex items-center gap-2">
-						<Link
-							to="/login"
-							className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors sm:text-sm ${isActive('/login') ? 'bg-slate-900 !text-white hover:!text-white' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'}`}
-						>
-							{t('Login')}
-						</Link>
-						<Link
-							to="/register"
-							className={`rounded-lg px-3 py-2 text-xs font-semibold transition-colors sm:text-sm ${isActive('/register') ? 'bg-slate-900 !text-white hover:!text-white' : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'}`}
-						>
-							{t('Register')}
-						</Link>
-					</div>
-				</div>
-			</header>
-		);
-	}
+  // Clean SVG Icons
+  const Icons = {
+    Home: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+      </svg>
+    ),
+    Feed: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6m-6 4h4" />
+      </svg>
+    ),
+    Notices: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+      </svg>
+    ),
+    Polls: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+      </svg>
+    ),
+    Jobs: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+    ),
+    Friends: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+      </svg>
+    ),
+    Chat: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+      </svg>
+    ),
+    Help: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+    Admin: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+      </svg>
+    ),
+  };
 
-	return (
-		<header className="sticky top-0 z-40 w-full border-b border-slate-200/80 bg-white/95 text-slate-900 backdrop-blur">
-			<div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 md:px-6">
-				<Link to="/" className="min-w-0 flex max-w-[72%] items-center gap-2 sm:max-w-none sm:gap-3">
-					<div className="grid h-8 w-8 place-items-center rounded-lg bg-[#0d9488] text-xs font-black text-white shadow-sm sm:h-9 sm:w-9 sm:text-sm">
-						KC
-					</div>
-					<div>
-						<p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-500 sm:text-[10px]">{t('communityPortal')}</p>
-						<h1 className="truncate text-xs font-bold sm:text-sm md:text-base">{t('allKutchiCommunity')}</h1>
-					</div>
-				</Link>
+  const navItems: NavItem[] = isAuthRoute
+    ? []
+    : isAuthenticated
+    ? [
+        { to: '/', label: 'Home', icon: Icons.Home },
+        { to: '/feed', label: 'Feed', icon: Icons.Feed },
+        { to: '/notices', label: 'Notices', icon: Icons.Notices, unreadCount: unreadNoticeCount },
+        { to: '/polls', label: 'Polls', icon: Icons.Polls },
+        { to: '/jobs', label: 'Jobs', icon: Icons.Jobs },
+        { to: '/friends', label: 'Friends', icon: Icons.Friends, isDropdown: true, unreadCount: unreadChatCount },
+        ...(currentUser?.role === 'super_admin'
+          ? [{ to: '/super-admin', label: 'Super Admin', icon: Icons.Admin }]
+          : isAdmin
+          ? [{ to: '/admin', label: 'Admin', icon: Icons.Admin }]
+          : []),
+      ]
+    : [
+        { to: '/', label: 'Home', icon: Icons.Home },
+        { to: '/notices', label: 'Notices', icon: Icons.Notices },
+        { to: '/polls', label: 'Polls', icon: Icons.Polls },
+        { to: '/jobs', label: 'Jobs', icon: Icons.Jobs },
+      ];
 
-				<div className="hidden items-center gap-3 md:flex">
-					<nav className="flex items-center gap-1 rounded-xl border border-slate-200 bg-slate-50 p-1">
-						{navItems.map((item) => (
-							<Link key={item.to} to={item.to} className={desktopLinkClass(item.to)}>
-								{renderNavLabel(item)}
-							</Link>
-						))}
-					</nav>
-					<Link to="/profile" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 text-sm font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50">
-						<UserAvatar name={currentUser?.fullName} photoUrl={currentUser?.profilePhotoUrl} size="sm" />
-						<span className="max-w-28 truncate">{currentUser?.fullName || t('Profile')}</span>
-					</Link>
-					{isAuthenticated ? (
-						<button onClick={handleLogout} className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-slate-400 hover:bg-slate-100 hover:text-slate-900">
-							{t('Logout')}
-						</button>
-					) : null}
-				</div>
+  return (
+    <header className="sticky top-0 z-50 w-full border-b border-slate-800/80 bg-slate-950/90 backdrop-blur-sm transition-all gpu-smooth py-1 sm:py-1.5">
+      <div className="mx-auto flex min-h-[84px] max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+        
+        {/* Brand Section */}
+        <Link to="/" className="flex items-center gap-3 transition hover:opacity-90 py-1.5">
+          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 p-0.5 shadow-md shadow-teal-500/20">
+            <div className="h-full w-full rounded-[10px] bg-slate-950 p-1 flex items-center justify-center">
+              <img src="/logo.png" alt="Logo" className="h-full w-full object-contain" />
+            </div>
+          </div>
+          <div>
+            <h1 className="text-sm font-bold text-white tracking-tight leading-none">
+              All Kutchi Community
+            </h1>
+            <p className="text-[10px] text-emerald-400 font-medium tracking-wide mt-0.5">
+              Official Portal
+            </p>
+          </div>
+        </Link>
 
-				<button
-					className="rounded-lg border border-slate-300 p-2 text-slate-700 transition hover:bg-slate-100 md:hidden"
-					aria-controls="mobile-menu"
-					aria-expanded={open}
-					onClick={() => setOpen((s) => !s)}
-				>
-					{open ? (
-						<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-						</svg>
-					) : (
-						<svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-							<path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-						</svg>
-					)}
-				</button>
-			</div>
+        {/* Clean Center Navigation Items (Desktop) */}
+        {navItems.length > 0 && (
+          <nav className="hidden lg:flex items-center gap-1 xl:gap-1.5">
+            {navItems.map((item) => {
+              if (item.isDropdown) {
+                const isFriendsActive = location.pathname === '/friends' || location.pathname === '/chats';
+                return (
+                  <div className="relative" key={item.to} ref={friendsDropdownRef}>
+                    <button
+                      onClick={() => setFriendsDropdownOpen((s) => !s)}
+                      className={`relative flex items-center gap-2 px-4 py-3 text-xs font-semibold rounded-xl transition-all duration-200 ${
+                        isFriendsActive
+                          ? 'text-teal-400 bg-teal-500/10'
+                          : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                      }`}
+                    >
+                      <span className={isFriendsActive ? 'text-teal-400' : 'text-slate-400'}>
+                        {item.icon}
+                      </span>
+                      <span>{item.label}</span>
+                      {unreadChatCount > 0 && (
+                        <span className="ml-0.5 inline-flex items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[9px] font-bold text-white leading-none">
+                          {unreadChatCount > 99 ? '99+' : unreadChatCount}
+                        </span>
+                      )}
+                      <svg
+                        className={`h-3.5 w-3.5 text-slate-400 transition-transform duration-200 ${
+                          friendsDropdownOpen ? 'rotate-180 text-teal-400' : ''
+                        }`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
 
-			<div id="mobile-menu" className={`border-t border-slate-200 bg-white px-4 py-3 md:hidden ${open ? 'block' : 'hidden'}`}>
-				<div className="mx-auto flex max-w-6xl flex-col gap-2">
-					<p className="px-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-slate-500">{t('Navigation')}</p>
-					{navItems.map((item) => (
-						<Link key={item.to} to={item.to} className={mobileLinkClass(item.to)} onClick={() => setOpen(false)}>
-							{renderNavLabel(item)}
-						</Link>
-					))}
-					<Link to="/profile" onClick={() => setOpen(false)} className="mt-1 flex items-center gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-3">
-						<UserAvatar name={currentUser?.fullName} photoUrl={currentUser?.profilePhotoUrl} size="sm" />
-						<div className="min-w-0">
-							<p className="truncate text-sm font-bold text-slate-900">{currentUser?.fullName || t('Profile')}</p>
-							<p className="text-xs font-semibold text-slate-500">{t('viewProfile')}</p>
-						</div>
-					</Link>
-					{isAuthenticated ? (
-						<button onClick={handleLogout} className="mt-1 w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 hover:text-slate-900">
-							{t('Logout')}
-						</button>
-					) : null}
-				</div>
-			</div>
-		</header>
-	);
+                    {friendsDropdownOpen && (
+                      <div className="absolute left-0 mt-2 w-52 overflow-hidden rounded-xl border border-slate-800 bg-slate-950/95 backdrop-blur-md p-1.5 text-xs shadow-2xl animate-in fade-in zoom-in-95 duration-150 z-50">
+                        <Link
+                          to="/friends"
+                          onClick={() => setFriendsDropdownOpen(false)}
+                          className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all font-medium"
+                        >
+                          <span className="text-slate-400">{Icons.Friends}</span>
+                          <span>Friends</span>
+                        </Link>
+                        <Link
+                          to="/chats"
+                          onClick={() => setFriendsDropdownOpen(false)}
+                          className="flex items-center justify-between rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all font-medium"
+                        >
+                          <div className="flex items-center gap-2.5">
+                            <span className="text-slate-400">{Icons.Chat}</span>
+                            <span>Chat & Messages</span>
+                          </div>
+                          {unreadChatCount > 0 && (
+                            <span className="inline-flex items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[9px] font-bold text-white leading-none">
+                              {unreadChatCount > 99 ? '99+' : unreadChatCount}
+                            </span>
+                          )}
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
+              const active = isActive(item.to);
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`relative flex items-center gap-2 px-4 py-3 text-xs font-semibold rounded-xl transition-all duration-200 ${
+                    active
+                      ? 'text-teal-400 bg-teal-500/10'
+                      : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                  }`}
+                >
+                  <span className={`${active ? 'text-teal-400' : 'text-slate-400'}`}>
+                    {item.icon}
+                  </span>
+                  <span>{item.label}</span>
+                  {item.unreadCount && item.unreadCount > 0 ? (
+                    <span className="ml-0.5 inline-flex items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[9px] font-bold text-white leading-none">
+                      {item.unreadCount > 99 ? '99+' : item.unreadCount}
+                    </span>
+                  ) : null}
+                </Link>
+              );
+            })}
+          </nav>
+        )}
+
+        {/* Right User Actions */}
+        <div className="flex items-center gap-3">
+          {isAuthenticated && !isAuthRoute ? (
+            <div className="relative" ref={dropdownRef}>
+              <button
+                onClick={() => setUserDropdownOpen((s) => !s)}
+                className="flex items-center gap-2.5 rounded-xl border border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 px-3.5 py-2 text-xs font-semibold transition-all duration-200 active:scale-95 shadow-sm shadow-teal-500/10"
+              >
+                <UserAvatar name={formattedName} photoUrl={currentUser?.profilePhotoUrl} size="sm" className="ring-1 ring-teal-500/40" />
+                
+                <div className="hidden sm:block text-left">
+                  <p className="max-w-[110px] truncate text-xs font-bold text-white leading-tight">
+                    {formattedName}
+                  </p>
+                  <p className="text-[9px] font-semibold text-teal-300 leading-tight capitalize">
+                    {currentUser?.role?.replace('_', ' ') || 'Member'}
+                  </p>
+                </div>
+
+                <svg
+                  className={`h-3.5 w-3.5 text-teal-400 transition-transform duration-200 ${userDropdownOpen ? 'rotate-180 text-emerald-300' : ''}`}
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+
+              {/* Seamless Theme Dropdown */}
+              {userDropdownOpen && (
+                <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-slate-800 bg-slate-950/95 backdrop-blur-md p-1.5 text-xs shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+                  <div className="px-3 py-2 border-b border-slate-800/80 mb-1">
+                    <p className="font-semibold text-white truncate text-xs">{formattedName}</p>
+                    <p className="text-[10px] text-slate-400 truncate mt-0.5">Jamaat: {currentUser?.jamaat || 'General'}</p>
+                  </div>
+
+                  <Link
+                    to="/profile"
+                    onClick={() => setUserDropdownOpen(false)}
+                    className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all font-medium"
+                  >
+                    <span className="text-slate-400">{Icons.Home}</span>
+                    <span>My Profile</span>
+                  </Link>
+
+                  <Link
+                    to="/help"
+                    onClick={() => setUserDropdownOpen(false)}
+                    className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all font-medium"
+                  >
+                    <span className="text-slate-400">{Icons.Help}</span>
+                    <span>Help & Guidance</span>
+                  </Link>
+
+                  {currentUser?.role === 'super_admin' ? (
+                    <Link
+                      to="/super-admin"
+                      onClick={() => setUserDropdownOpen(false)}
+                      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-amber-300 hover:bg-amber-950/40 hover:text-amber-200 transition-all font-medium my-0.5 border border-amber-500/20"
+                    >
+                      <span className="text-amber-400">{Icons.Admin}</span>
+                      <span>Super Admin</span>
+                    </Link>
+                  ) : isAdmin ? (
+                    <Link
+                      to="/admin"
+                      onClick={() => setUserDropdownOpen(false)}
+                      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-teal-300 hover:bg-teal-950/40 hover:text-teal-200 transition-all font-medium my-0.5 border border-teal-500/20"
+                    >
+                      <span className="text-teal-400">{Icons.Admin}</span>
+                      <span>Admin Control</span>
+                    </Link>
+                  ) : null}
+
+                  <button
+                    onClick={handleLogout}
+                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition-all font-medium mt-1 border-t border-slate-800/80"
+                  >
+                    <svg className="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <Link
+                to="/login"
+                className="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-slate-300 transition hover:text-white hover:bg-slate-800/80"
+              >
+                Sign In
+              </Link>
+              <Link
+                to="/register"
+                className="rounded-lg bg-teal-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm shadow-teal-600/30 transition hover:bg-teal-500"
+              >
+                Register
+              </Link>
+            </div>
+          )}
+
+          {/* Mobile Menu Trigger */}
+          {navItems.length > 0 && (
+            <button
+              onClick={() => setMobileOpen((s) => !s)}
+              className="rounded-lg border border-slate-800 bg-slate-900 p-2 text-slate-400 transition hover:bg-slate-800 hover:text-white lg:hidden"
+              aria-label="Toggle Menu"
+            >
+              {mobileOpen ? (
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+              )}
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Mobile Drawer */}
+      {mobileOpen && (
+        <div className="border-t border-slate-800 bg-slate-950 px-4 py-3 lg:hidden animate-in fade-in slide-in-from-top-2">
+          <div className="flex flex-col gap-1">
+            {navItems.map((item) => {
+              if (item.isDropdown) {
+                return (
+                  <React.Fragment key={item.to}>
+                    <Link
+                      to="/friends"
+                      onClick={() => setMobileOpen(false)}
+                      className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold transition ${
+                        location.pathname === '/friends'
+                          ? 'bg-teal-500/10 text-teal-400'
+                          : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={location.pathname === '/friends' ? 'text-teal-400' : 'text-slate-400'}>{Icons.Friends}</span>
+                        <span>Friends</span>
+                      </div>
+                    </Link>
+                    <Link
+                      to="/chats"
+                      onClick={() => setMobileOpen(false)}
+                      className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold transition ${
+                        location.pathname === '/chats'
+                          ? 'bg-teal-500/10 text-teal-400'
+                          : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className={location.pathname === '/chats' ? 'text-teal-400' : 'text-slate-400'}>{Icons.Chat}</span>
+                        <span>Chat & Messages</span>
+                      </div>
+                      {unreadChatCount > 0 && (
+                        <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[9px] font-bold text-white">
+                          {unreadChatCount > 99 ? '99+' : unreadChatCount}
+                        </span>
+                      )}
+                    </Link>
+                  </React.Fragment>
+                );
+              }
+
+              const active = isActive(item.to);
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  onClick={() => setMobileOpen(false)}
+                  className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold transition ${
+                    active
+                      ? 'bg-teal-500/10 text-teal-400'
+                      : 'text-slate-300 hover:bg-slate-900 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className={active ? 'text-teal-400' : 'text-slate-400'}>{item.icon}</span>
+                    <span>{item.label}</span>
+                  </div>
+                  {item.unreadCount && item.unreadCount > 0 ? (
+                    <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[9px] font-bold text-white">
+                      {item.unreadCount > 99 ? '99+' : item.unreadCount}
+                    </span>
+                  ) : null}
+                </Link>
+              );
+            })}
+
+            {isAuthenticated && (
+              <div className="mt-2 pt-2 border-t border-slate-800">
+                <button
+                  onClick={handleLogout}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-rose-950/30 border border-rose-900/40 py-2 text-xs font-semibold text-rose-400 hover:bg-rose-950/60 transition"
+                >
+                  Sign Out Account
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </header>
+  );
 }
-

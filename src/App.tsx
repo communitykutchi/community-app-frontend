@@ -1,12 +1,18 @@
-import { BrowserRouter as Router, Routes, Route , Navigate} from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Feed from "./pages/Feed";
 import Notices from "./pages/Notices";
-import AdminUsers from "./pages/AdminUsers";
+import Polls from "./pages/Polls";
+import Jobs from "./pages/Jobs";
+import Help from "./pages/Help";
+import Banned from "./pages/Banned";
+import SuperAdmin from "./pages/SuperAdmin";
+import Admin from "./pages/Admin";
 import PeopleProfile from "./pages/personProfile";
+import UserProfile from "./pages/UserProfile";
 import Friends from "./pages/Friends";
 import Chat from "./pages/Chat";
 import ChatHub from "./pages/ChatHub";
@@ -16,14 +22,12 @@ import PrivateRoute from "./routes/PrivateRoute";
 function App() {
   return (
     <Router>
-
       <MainLayout>
-
         <Routes>
-
           {/* Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/banned" element={<Banned />} />
 
           {/* Protected Routes */}
           <Route
@@ -54,10 +58,46 @@ function App() {
           />
 
           <Route
+            path="/polls"
+            element={
+              <PrivateRoute>
+                <Polls />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/jobs"
+            element={
+              <PrivateRoute>
+                <Jobs />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/help"
+            element={
+              <PrivateRoute>
+                <Help />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
             path="/profile"
             element={
               <PrivateRoute>
                 <PeopleProfile />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/user/:userId"
+            element={
+              <PrivateRoute>
+                <UserProfile />
               </PrivateRoute>
             }
           />
@@ -75,7 +115,16 @@ function App() {
             path="/friends/:friendId/chat"
             element={
               <PrivateRoute>
-                <Chat />
+                <ChatHub />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/chat/:friendId"
+            element={
+              <PrivateRoute>
+                <ChatHub />
               </PrivateRoute>
             }
           />
@@ -98,21 +147,31 @@ function App() {
             }
           />
 
+          {/* Dedicated Super Admin Control Center */}
           <Route
-            path="/admin/users"
+            path="/super-admin"
             element={
               <PrivateRoute>
-                <AdminUsers />
+                <SuperAdmin />
               </PrivateRoute>
             }
           />
 
+          {/* Standard Admin Panel */}
+          <Route
+            path="/admin"
+            element={
+              <PrivateRoute>
+                <Admin />
+              </PrivateRoute>
+            }
+          />
+
+          <Route path="/admin/users" element={<Navigate to="/super-admin" replace />} />
+
           <Route path="*" element={<Navigate to="/login" replace />} />
-
         </Routes>
-
       </MainLayout>
-
     </Router>
   );
 }

@@ -5,7 +5,7 @@ export type ToastType = "success" | "error" | "info";
 export interface ToastProps {
   message: string;
   type?: ToastType;
-  isVisible: boolean;
+  isVisible?: boolean;
   onClose: () => void;
   duration?: number;
 }
@@ -13,7 +13,7 @@ export interface ToastProps {
 export default function Toast({
   message,
   type = "success",
-  isVisible,
+  isVisible = true,
   onClose,
   duration = 2500,
 }: ToastProps) {

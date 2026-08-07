@@ -10,11 +10,11 @@ type MainLayoutProps = {
 export default function MainLayout({ children }: MainLayoutProps) {
   usePresence();
   const location = useLocation();
-  const isAuthVisualRoute = location.pathname === '/register' || location.pathname === '/login';
+  const isAuthVisualRoute = location.pathname === '/register' || location.pathname === '/login' || location.pathname === '/banned';
   const year = new Date().getFullYear();
 
   return (
-    <div className="app-shell flex min-h-screen w-full flex-col">
+    <div className="app-shell flex min-h-screen w-full flex-col text-slate-900 selection:bg-teal-600 selection:text-white">
       <Navbar />
 
       <main className={isAuthVisualRoute ? 'w-full flex-1 px-0 py-0' : 'w-full flex-1 px-4 py-6 sm:px-6 lg:px-8'}>
@@ -27,10 +27,17 @@ export default function MainLayout({ children }: MainLayoutProps) {
         )}
       </main>
 
-      <footer className="mt-6 w-full border-t border-slate-200/80 bg-white/90">
-        <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-2 px-4 py-4 text-sm text-slate-600 md:flex-row md:px-6">
-          <p className="font-semibold text-slate-700">© {year} All Kutchi Community Hub</p>
-          <p className="text-xs tracking-wide text-slate-500">Simple. Fast. Reliable.</p>
+      <footer className="mt-12 w-full border-t border-slate-800/80 bg-slate-950/90 text-white backdrop-blur-sm gpu-smooth">
+        <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-between gap-4 px-4 py-6 text-xs md:flex-row md:px-6">
+          <div className="flex items-center gap-3">
+            <img src="/logo.png" alt="Kutchi Community Logo" className="h-6 w-6 object-contain" />
+            <p className="font-bold text-white">© {year} All Kutchi Community Portal</p>
+          </div>
+          <div className="flex flex-wrap items-center gap-4 text-[11px] font-semibold text-slate-300">
+            <a href="mailto:info@kutchicommunity.com" className="hover:text-teal-400 transition">✉️ info@kutchicommunity.com</a>
+            <span>•</span>
+            <a href="mailto:support@kutchicommunity.com" className="hover:text-teal-400 transition">❓ support@kutchicommunity.com</a>
+          </div>
         </div>
       </footer>
     </div>

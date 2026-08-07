@@ -1,5 +1,8 @@
-import { useMemo, useState, type ChangeEvent, type FormEvent } from 'react';
+import { useMemo, useState, useEffect, type ChangeEvent, type FormEvent } from 'react';
+import { useNavigate } from 'react-router-dom';
 import API from '../api/axios';
+import { getAuthToken } from '../auth/session';
+import { PAKISTAN_CITIES } from '../utils/pakistanCities';
 
 const USERNAME_REGEX = /^[a-z0-9._-]+$/;
 
@@ -7,15 +10,27 @@ type RegisterForm = {
   fullName: string;
   username: string;
   email: string;
+  country: string;
+  city: string;
   password: string;
   confirmPassword: string;
 };
 
 export default function Register() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (getAuthToken()) {
+      navigate('/', { replace: true });
+    }
+  }, [navigate]);
+
   const [form, setForm] = useState<RegisterForm>({
     fullName: '',
     username: '',
     email: '',
+    country: 'Pakistan',
+    city: 'Karachi',
     password: '',
     confirmPassword: '',
   });
@@ -34,14 +49,30 @@ export default function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const usernameError = useMemo(() => {
-    if (!form.username) return 'Username is required.';
+    if (!form.username) return '';
     if (/\s/.test(form.username)) return 'Username cannot contain spaces.';
     if (/[A-Z]/.test(form.username)) return 'Username cannot contain capital letters.';
     if (!USERNAME_REGEX.test(form.username)) return 'Use only lowercase letters, numbers, dot, underscore, or hyphen.';
     return '';
   }, [form.username]);
 
-  function handleChange(e: ChangeEvent<HTMLInputElement>) {
+  const isPasswordMatch = useMemo(() => {
+    if (!form.confirmPassword) return null;
+    return form.password === form.confirmPassword;
+  }, [form.password, form.confirmPassword]);
+
+  useEffect(() => {
+    if (!form.username || usernameError) {
+      setUsernameAvailable(null);
+      return;
+    }
+    const timer = setTimeout(() => {
+      checkUsernameUnique();
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [form.username, usernameError]);
+
+  function handleChange(e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) {
     const { name, value: rawValue } = e.target;
     let value = rawValue;
 
@@ -61,14 +92,13 @@ export default function Register() {
   }
 
   async function checkUsernameUnique() {
-    if (usernameError) {
+    if (!form.username || usernameError) {
       setUsernameAvailable(null);
       return false;
     }
 
     try {
       setCheckingUsername(true);
-      setMessage('');
 
       let available = true;
 
@@ -91,11 +121,6 @@ export default function Register() {
       }
 
       setUsernameAvailable(available);
-
-      if (!available) {
-        setMessage('This username is already taken. Please choose another one.');
-      }
-
       return available;
     } finally {
       setCheckingUsername(false);
@@ -201,6 +226,8 @@ export default function Register() {
         fullName: form.fullName,
         username: form.username,
         email: form.email,
+        country: "Pakistan",
+        city: form.city || "Karachi",
         password: form.password,
       };
 
@@ -212,6 +239,8 @@ export default function Register() {
           fullName: '',
           username: '',
           email: '',
+          country: 'Pakistan',
+          city: 'Karachi',
           password: '',
           confirmPassword: '',
         });
@@ -240,14 +269,17 @@ export default function Register() {
     message.toLowerCase().includes('sent');
 
   return (
-    <div className="px-4 py-8 sm:px-6 lg:px-8">
-      <div className="page-card mx-auto w-full max-w-2xl p-6 sm:p-8">
-        <div className="mb-7 text-center sm:mb-8">
-          <p className="inline-flex items-center rounded-full bg-blue-50 px-4 py-1 text-xs font-semibold tracking-[0.2em] text-blue-700">
+    <div className="flex min-h-[85vh] items-center justify-center px-4 py-10">
+      <div className="w-full max-w-2xl overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 sm:p-10 shadow-xl">
+        <div className="mb-6 text-center">
+          <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-slate-900 p-2 shadow-lg shadow-teal-600/20 border border-teal-500/30">
+            <img src="/logo.png" alt="All Kutchi Community Logo" className="h-full w-full object-contain" />
+          </div>
+          <span className="inline-flex rounded-full bg-teal-50 px-3.5 py-1 text-[11px] font-extrabold uppercase tracking-widest text-teal-700 border border-teal-200">
             COMMUNITY MEMBERSHIP
-          </p>
-          <h2 className="page-title mt-3 text-3xl sm:text-4xl">Create Your Account</h2>
-          <p className="page-subtitle mt-2 text-sm sm:text-base">Register with your basic account details.</p>
+          </span>
+          <h2 className="mt-2 text-2xl sm:text-3xl font-extrabold text-slate-900">Create Your Account</h2>
+          <p className="mt-1 text-xs text-slate-500">Register to connect with friends, notices, polls, and opportunities.</p>
         </div>
 
         {message && (
@@ -262,6 +294,35 @@ export default function Register() {
             <input name="fullName" value={form.fullName} onChange={handleChange} placeholder="Your full name" className="form-input" required />
           </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="form-label">Country</label>
+              <input
+                name="country"
+                value="Pakistan"
+                readOnly
+                className="form-input bg-slate-100 cursor-not-allowed font-semibold text-slate-700"
+              />
+            </div>
+
+            <div>
+              <label className="form-label">City</label>
+              <select
+                name="city"
+                value={form.city || "Karachi"}
+                onChange={handleChange}
+                className="form-input font-medium"
+                required
+              >
+                {PAKISTAN_CITIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
           <div>
             <label className="form-label">Username</label>
             <input
@@ -270,19 +331,31 @@ export default function Register() {
               onChange={handleChange}
               onBlur={checkUsernameUnique}
               placeholder="e.g. ali_khan"
-              className="form-input"
+              className={`form-input w-full ${
+                usernameError || usernameAvailable === false
+                  ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-200'
+                  : usernameAvailable === true
+                  ? 'border-emerald-500 focus:border-emerald-500 focus:ring-emerald-200'
+                  : ''
+              }`}
               required
               autoComplete="off"
             />
-            <p className="mt-2 text-xs font-medium text-slate-500">
-              {usernameError || (checkingUsername
-                ? 'Checking username availability...'
-                : usernameAvailable === false
-                  ? 'Username already taken.'
-                  : usernameAvailable === true
-                    ? 'Username is available.'
-                    : 'Use lowercase only, no spaces.')}
-            </p>
+            {form.username && (
+              <p className="mt-1.5 text-xs font-bold">
+                {checkingUsername ? (
+                  <span className="text-slate-500 font-medium">Checking username availability...</span>
+                ) : usernameError ? (
+                  <span className="text-rose-600 font-bold">{usernameError}</span>
+                ) : usernameAvailable === false ? (
+                  <span className="text-rose-600 font-bold">Username unavailable</span>
+                ) : usernameAvailable === true ? (
+                  <span className="text-emerald-600 font-bold">✓ Username available</span>
+                ) : (
+                  <span className="text-slate-500 font-medium">Use lowercase only, no spaces.</span>
+                )}
+              </p>
+            )}
           </div>
 
           <div>
@@ -307,13 +380,22 @@ export default function Register() {
               </button>
             </div>
             <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={6}
+              autoComplete="one-time-code"
               value={otpCode}
-              onChange={(e) => setOtpCode(e.target.value)}
+              onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
               placeholder="Enter 6-digit OTP"
-              className="form-input mt-3"
+              className="form-input mt-3 font-mono font-bold tracking-widest text-center text-sm"
             />
-            <p className="mt-2 text-xs font-medium text-slate-500">
-              {otpVerified ? 'Email verified.' : 'Please verify your email before registering.'}
+            <p className="mt-2 text-xs font-bold">
+              {otpVerified ? (
+                <span className="text-emerald-600 font-bold">✓ Email verified.</span>
+              ) : (
+                <span className="text-rose-600 font-bold">Please verify your email before registering.</span>
+              )}
             </p>
           </div>
 
@@ -360,7 +442,13 @@ export default function Register() {
                 onChange={handleChange}
                 type={showConfirmPassword ? 'text' : 'password'}
                 placeholder="Confirm password"
-                className="form-input w-full pr-10"
+                className={`form-input w-full pr-10 ${
+                  isPasswordMatch === false
+                    ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-200'
+                    : isPasswordMatch === true
+                    ? 'border-emerald-500 focus:border-emerald-500 focus:ring-emerald-200'
+                    : ''
+                }`}
                 required
               />
               <button
@@ -383,6 +471,15 @@ export default function Register() {
                 )}
               </button>
             </div>
+            {form.confirmPassword ? (
+              <p className="mt-1.5 text-xs font-bold">
+                {isPasswordMatch === true ? (
+                  <span className="text-emerald-600 font-bold">✓ Password matched</span>
+                ) : (
+                  <span className="text-rose-600 font-bold">Password and confirm password must match.</span>
+                )}
+              </p>
+            ) : null}
           </div>
 
           <div className="pt-2 text-center">

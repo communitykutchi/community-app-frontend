@@ -35,9 +35,14 @@ export default function Friends() {
     [sentRequests],
   );
 
-  const hiddenIds = useMemo(
-    () => new Set([...(friends || []).map((friend) => friend._id), ...(incomingRequests || []).map((request) => request._id)]),
-    [friends, incomingRequests],
+  const friendIds = useMemo(
+    () => new Set((friends || []).map((friend) => friend._id)),
+    [friends],
+  );
+
+  const incomingRequestIds = useMemo(
+    () => new Set((incomingRequests || []).map((request) => request._id)),
+    [incomingRequests],
   );
 
   const loadFriends = async () => {
@@ -72,8 +77,7 @@ export default function Friends() {
 
     try {
       const response = await API.get<{ success: boolean; users: UserItem[] }>(`/friends/search?q=${encodeURIComponent(trimmed)}`);
-      const users = response.data.users || [];
-      setResults(users.filter((user) => !hiddenIds.has(user._id)));
+      setResults(response.data.users || []);
     } catch (err: any) {
       setMessage(err.response?.data?.message || 'Unable to search users.');
     } finally {
@@ -87,7 +91,7 @@ export default function Friends() {
     }, 250);
 
     return () => clearTimeout(timeout);
-  }, [query, hiddenIds, sentRequestIds]);
+  }, [query]);
 
   const handleSearchClick = () => {
     runSearch(query);
@@ -154,24 +158,27 @@ export default function Friends() {
 
   return (
     <section className="space-y-6">
-      <div className="overflow-hidden rounded-[1.5rem] border border-emerald-200 bg-gradient-to-br from-emerald-950 via-emerald-900 to-green-700 p-6 sm:p-8 text-white shadow-[0_24px_60px_-30px_rgba(5,150,105,0.55)]">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-100">Community Friends</p>
-          <h1 className="mt-2 text-2xl font-black sm:text-3xl text-white">Friends</h1>
-          <p className="mt-2 text-sm leading-6 text-emerald-50">Search community members, add friends, and manage requests.</p>
-        </div>
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-800 bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 px-6 py-6 text-white">
+          <div className="inline-flex items-center gap-2 mb-2 rounded-full bg-teal-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-teal-300 border border-teal-500/30">
+            <img src="/logo.png" alt="Logo" className="h-3.5 w-3.5 object-contain" />
+            <span>COMMUNITY DIRECTORY</span>
+          </div>
+          <h1 className="text-2xl font-extrabold sm:text-3xl text-white">Community Friends & Members</h1>
+          <p className="mt-1 text-xs text-slate-300 leading-relaxed">Search community members, add friends, manage pending requests, and start 1-on-1 chats.</p>
 
-        <div className="mt-6 flex flex-wrap gap-2">
-          {(["search", "requests", "friends"] as const).map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              onClick={() => setActiveTab(tab)}
-              className={`rounded-2xl px-4 py-2 text-sm font-semibold transition ${activeTab === tab ? "bg-white text-slate-900 shadow-sm" : "bg-white/15 text-white hover:bg-white/25"}`}
-            >
-              {tab === "search" ? "Search" : tab === "requests" ? "Requests" : "Friends"}
-            </button>
-          ))}
+          <div className="mt-4 flex flex-wrap gap-2">
+            {(["search", "requests", "friends"] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                onClick={() => setActiveTab(tab)}
+                className={`rounded-xl px-4 py-2 text-xs font-bold transition ${activeTab === tab ? "bg-teal-600 text-white shadow-md shadow-teal-600/30" : "bg-white/10 text-slate-300 hover:bg-white/20 hover:text-white"}`}
+              >
+                {tab === "search" ? "🔍 Search Members" : tab === "requests" ? `📥 Requests (${incomingRequests.length})` : `👥 Friends (${friends.length})`}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -210,40 +217,69 @@ export default function Friends() {
                   <div className="space-y-3">
                     {results.map((user) => (
                       <div key={user._id} className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
-                        <div className="flex items-center gap-3">
+                        <div
+                          onClick={() => navigate(`/user/${user._id}`)}
+                          className="flex items-center gap-3 cursor-pointer group"
+                        >
                           {user.profilePhotoUrl ? (
                             <img
                               src={user.profilePhotoUrl}
                               alt={user.fullName || user.username || 'User avatar'}
-                              className="h-12 w-12 rounded-full object-cover"
+                              className="h-12 w-12 rounded-full object-cover group-hover:scale-105 transition"
                             />
                           ) : (
-                            <div className="grid h-12 w-12 place-items-center rounded-full bg-slate-100 text-sm font-semibold text-slate-700">
+                            <div className="grid h-12 w-12 place-items-center rounded-full bg-slate-100 text-sm font-semibold text-slate-700 group-hover:scale-105 transition">
                               {user.fullName?.[0]?.toUpperCase() || user.username?.[0]?.toUpperCase() || '?'}
                             </div>
                           )}
                           <div>
-                            <p className="text-sm font-semibold text-slate-900">{user.fullName || user.username || 'Member'}</p>
+                            <p className="text-sm font-semibold text-slate-900 group-hover:text-teal-700 transition">{user.fullName || user.username || 'Member'}</p>
                             <p className="text-sm text-slate-600">{user.username ? `@${user.username}` : user.email || user.mobile}</p>
                           </div>
                         </div>
-                        {sentRequestIds.has(user._id) ? (
+                        <div className="flex flex-wrap items-center gap-2">
                           <button
                             type="button"
-                            onClick={() => handleCancelRequest(user._id)}
-                            className="rounded-2xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700"
+                            onClick={() => navigate(`/user/${user._id}`)}
+                            className="rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition"
                           >
-                            Cancel Request
+                            👤 Profile
                           </button>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleSendRequest(user._id)}
-                            className="rounded-2xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800"
-                          >
-                            Send Request
-                          </button>
-                        )}
+
+                          {friendIds.has(user._id) ? (
+                            <button
+                              type="button"
+                              onClick={() => navigate(`/friends/${user._id}/chat`)}
+                              className="rounded-2xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-800"
+                            >
+                              💬 Chat
+                            </button>
+                          ) : incomingRequestIds.has(user._id) ? (
+                            <button
+                              type="button"
+                              onClick={() => handleAcceptRequest(user._id)}
+                              className="rounded-2xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-800"
+                            >
+                              ✅ Accept Request
+                            </button>
+                          ) : sentRequestIds.has(user._id) ? (
+                            <button
+                              type="button"
+                              onClick={() => handleCancelRequest(user._id)}
+                              className="rounded-2xl bg-rose-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-rose-700"
+                            >
+                              Cancel Request
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => handleSendRequest(user._id)}
+                              className="rounded-2xl bg-teal-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-teal-500"
+                            >
+                              ➕ Add Friend
+                            </button>
+                          )}
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -346,13 +382,16 @@ export default function Friends() {
                 return (
                   <div key={friend._id} className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                      <div className="flex items-center gap-4">
+                      <div
+                        onClick={() => navigate(`/user/${friend._id}`)}
+                        className="flex items-center gap-4 cursor-pointer group"
+                      >
                         <div className="relative">
-                          <UserAvatar name={friend.fullName || friend.username} photoUrl={friend.profilePhotoUrl} size="md" className="ring-1 ring-slate-200" />
+                          <UserAvatar name={friend.fullName || friend.username} photoUrl={friend.profilePhotoUrl} size="md" className="ring-1 ring-slate-200 group-hover:scale-105 transition" />
                           <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-white ${friendPresence.isOnline ? 'bg-emerald-500' : 'bg-slate-300'}`} />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-slate-900">{friend.fullName || friend.username || 'Member'}</p>
+                          <p className="text-sm font-semibold text-slate-900 group-hover:text-teal-700 transition">{friend.fullName || friend.username || 'Member'}</p>
                           <p className="text-xs text-slate-600">{friend.username ? `@${friend.username}` : friend.email || friend.mobile}</p>
                           <p className={`text-xs font-medium flex items-center gap-1 mt-0.5 ${friendPresence.isOnline ? 'text-emerald-600' : 'text-slate-500'}`}>
                             <span className={`h-1.5 w-1.5 rounded-full ${friendPresence.isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import API from "../api/axios";
 import UserAvatar from "../components/UserAvatar";
 import Toast from "../components/Toast";
@@ -60,10 +60,10 @@ interface CurrentUser {
 
 function normalizeRole(role?: string) {
   const normalized = (role || "").trim().toLowerCase();
-  if (["jamaat_admin", "admin", "moderator", "super_admin"].includes(normalized)) {
-    return normalized === "super_admin" ? "super_admin" : "moderator";
+  if (["admin", "moderator", "super_admin"].includes(normalized)) {
+    return normalized;
   }
-  return normalized;
+  return "member";
 }
 
 function formatPostDate(value: string) {
@@ -132,9 +132,10 @@ export default function Feed() {
   const [replyTarget, setReplyTarget] = useState<Record<string, string>>({});
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
   const [openPostMenu, setOpenPostMenu] = useState<string | null>(null);
+  const hasScrolledToTargetRef = useRef(false);
 
   const currentRole = normalizeRole(currentUser?.role);
-  const canCreatePosts = currentRole === "super_admin" || currentRole === "moderator" || currentRole === "admin";
+  const canCreatePosts = Boolean(currentUser);
   const canModeratePosts = currentRole === "super_admin" || currentRole === "moderator" || currentRole === "admin";
   const isSuperAdmin = currentRole === "super_admin";
   const [viewMode, setViewMode] = useState<"all" | "mine">("all");
@@ -168,6 +169,29 @@ export default function Feed() {
   useEffect(() => {
     void loadPosts();
   }, []);
+
+  useEffect(() => {
+    if (!fetching && posts.length > 0 && !hasScrolledToTargetRef.current) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const targetPostId = urlParams.get("postId") || window.location.hash.replace("#post-", "");
+      if (targetPostId) {
+        hasScrolledToTargetRef.current = true;
+        setTimeout(() => {
+          const el = document.getElementById(`post-${targetPostId}`);
+          if (el) {
+            el.scrollIntoView({ behavior: "smooth", block: "center" });
+            el.classList.add("ring-4", "ring-teal-500", "ring-offset-2");
+            setTimeout(() => {
+              el.classList.remove("ring-4", "ring-teal-500", "ring-offset-2");
+            }, 3500);
+          }
+          if (window.history.replaceState) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+          }
+        }, 100);
+      }
+    }
+  }, [fetching, posts]);
 
   useEffect(() => {
     const intervalId = window.setInterval(() => {
@@ -438,26 +462,29 @@ export default function Feed() {
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">
-      <section className="overflow-hidden rounded-[1.35rem] border border-slate-200 bg-white shadow-[0_18px_55px_-38px_rgba(15,23,42,0.75)]">
-        <div className="border-b border-emerald-800 bg-gradient-to-br from-emerald-950 via-emerald-900 to-green-700 px-5 py-5 text-white sm:px-6">
+      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-800 bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 px-6 py-6 text-white">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-200">{t('feed_title')}</p>
-              <h1 className="mt-2 text-2xl font-black leading-tight sm:text-3xl">{t('feed_title')}</h1>
-              <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-300">{t('feed_subtitle')}</p>
+              <div className="inline-flex items-center gap-2 rounded-full bg-teal-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-teal-300 border border-teal-500/30">
+                <img src="/logo.png" alt="Logo" className="h-3.5 w-3.5 object-contain" />
+                <span>COMMUNITY FEED</span>
+              </div>
+              <h1 className="mt-2 text-2xl font-extrabold leading-tight sm:text-3xl">Community Feed & Updates</h1>
+              <p className="mt-1 max-w-2xl text-xs text-slate-300 leading-relaxed">Share announcements, moments, photos, videos, and discussions with community members.</p>
             </div>
-            <div className="grid grid-cols-3 gap-2 rounded-xl border border-white/10 bg-white/10 p-2 text-center backdrop-blur sm:min-w-80">
-              <div className="rounded-lg bg-white/10 px-3 py-2">
-                <p className="text-lg font-black">{posts.length}</p>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-300">{t('posts')}</p>
+            <div className="grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-white/5 p-2 text-center backdrop-blur sm:min-w-80">
+              <div className="rounded-xl bg-white/10 px-3 py-2">
+                <p className="text-base font-extrabold">{posts.length}</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Posts</p>
               </div>
-              <div className="rounded-lg bg-white/10 px-3 py-2">
-                <p className="text-lg font-black">{feedStats.likes}</p>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-300">{t('likes')}</p>
+              <div className="rounded-xl bg-white/10 px-3 py-2">
+                <p className="text-base font-extrabold">{feedStats.likes}</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Likes</p>
               </div>
-              <div className="rounded-lg bg-white/10 px-3 py-2">
-                <p className="text-lg font-black">{feedStats.comments}</p>
-                <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-slate-300">{t('comments')}</p>
+              <div className="rounded-xl bg-white/10 px-3 py-2">
+                <p className="text-base font-extrabold">{feedStats.comments}</p>
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Comments</p>
               </div>
             </div>
           </div>
@@ -468,14 +495,14 @@ export default function Feed() {
             <div className="flex gap-3">
               <UserAvatar name={currentUser?.fullName || "Me"} photoUrl={currentUser?.profilePhotoUrl} size="md" />
               <div className="min-w-0 flex-1">
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-slate-50 transition focus-within:border-blue-300 focus-within:bg-white focus-within:shadow-[0_0_0_3px_rgba(37,99,235,0.1)]">
+                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50/50 transition focus-within:border-teal-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-teal-500/20">
                   <textarea
                     value={text}
                     onChange={(event) => setText(event.target.value)}
-                    rows={4}
+                    rows={3}
                     maxLength={MAX_POST_LENGTH + 50}
                     placeholder={t('placeholder_share')}
-                    className="min-h-32 w-full resize-y border-0 bg-transparent p-4 text-sm leading-6 text-slate-900 outline-none placeholder:text-slate-400"
+                    className="min-h-24 w-full resize-y border-0 bg-transparent p-4 text-xs leading-relaxed text-slate-900 outline-none placeholder:text-slate-400"
                   />
                   <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-4 py-3">
                     <div className="flex flex-wrap items-center gap-2">
@@ -635,7 +662,7 @@ export default function Feed() {
               const totalEngagement = (post.likes ?? 0) + (post.comments ?? 0) + (post.shares ?? 0);
 
               return (
-                <article key={post._id} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_14px_35px_-30px_rgba(15,23,42,0.7)]">
+                <article key={post._id} id={`post-${post._id}`} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_14px_35px_-30px_rgba(15,23,42,0.7)] transition-all duration-300">
                   <div className="p-5">
                     <div className="flex items-start justify-between gap-4">
                       <div className="flex min-w-0 items-center gap-3">

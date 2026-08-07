@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getAuthToken, clearAuthToken } from "../auth/session";
 
-const baseURL = import.meta.env.VITE_API_URL || "https://backend.kutchicommunity.com";
+const baseURL = import.meta.env.VITE_API_URL || "https://localhost:5000";
 
 const API = axios.create({
   baseURL,

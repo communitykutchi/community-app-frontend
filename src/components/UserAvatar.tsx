@@ -1,6 +1,7 @@
 interface UserAvatarProps {
   name?: string;
   photoUrl?: string;
+  src?: string;
   size?: "sm" | "md" | "lg" | "xl";
   className?: string;
 }
@@ -22,13 +23,14 @@ export function getInitials(name?: string) {
     .join("");
 }
 
-export default function UserAvatar({ name, photoUrl, size = "md", className = "" }: UserAvatarProps) {
+export default function UserAvatar({ name, photoUrl, src, size = "md", className = "" }: UserAvatarProps) {
   const sizeClass = sizeClasses[size];
+  const resolvedPhoto = photoUrl || src;
 
-  if (photoUrl) {
+  if (resolvedPhoto) {
     return (
       <img
-        src={photoUrl}
+        src={resolvedPhoto}
         alt={name ? `${name} profile` : "Profile"}
         className={`${sizeClass} shrink-0 object-cover ring-1 ring-slate-200 ${className}`}
       />

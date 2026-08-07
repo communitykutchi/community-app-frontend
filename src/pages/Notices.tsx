@@ -125,7 +125,7 @@ interface Notice {
   hasShared?: boolean;
 }
 
-type Role = "super_admin" | "moderator" | "member" | "loading";
+type Role = "super_admin" | "admin" | "moderator" | "member" | "loading";
 type ReactionKind = "heart" | "thumbs_up" | "correct" | "wrong";
 
 interface AuthUser {
@@ -133,8 +133,9 @@ interface AuthUser {
 }
 
 function normalizeRole(role?: string): Role | undefined {
-  if (role === "jamaat_admin") return "moderator";
-  return role as Role | undefined;
+  const norm = (role || "").trim().toLowerCase();
+  if (["super_admin", "admin", "moderator"].includes(norm)) return norm as Role;
+  return "member";
 }
 
 const emptyMayyatDetails: MayyatDetails = {
@@ -419,13 +420,14 @@ function buildMayyatBody(details: Partial<MayyatDetails>, lang: "roman" | "urdu"
   return buildMayyatBodyRoman(details);
 }
 
-function renderFormattedText(text: string, langMode?: "roman" | "urdu") {
+function renderFormattedText(text: string, langMode?: "roman" | "urdu", isMayyat?: boolean) {
   if (!text) return null;
   const lines = text.split("\n");
   const isUrduMode = langMode === "urdu";
+  const isMayyatNotice = isMayyat || isUrduMode || text.includes("إِنَّا لِلَّٰهِ") || text.includes("raza-e-ilahi");
 
   return (
-    <div className={`space-y-3 text-slate-800 leading-relaxed ${isUrduMode ? "text-right" : ""}`} dir={isUrduMode ? "rtl" : "ltr"}>
+    <div className={`space-y-3.5 leading-relaxed ${isUrduMode ? "text-right" : ""}`} dir={isUrduMode ? "rtl" : "ltr"}>
       {lines.map((line, lineIndex) => {
         const trimmed = line.trim();
         if (!trimmed) return null;
@@ -440,15 +442,22 @@ function renderFormattedText(text: string, langMode?: "roman" | "urdu") {
               isArabicHeader
                 ? "text-center text-xl sm:text-2xl font-bold py-1 text-slate-950 font-serif leading-loose"
                 : isUrduMode
-                ? "text-slate-900 text-lg sm:text-xl font-medium leading-relaxed font-serif"
-                : "text-slate-800 text-base"
+                ? "text-slate-950 text-lg sm:text-xl font-bold leading-relaxed font-serif"
+                : "text-slate-900 text-base sm:text-lg font-semibold leading-relaxed tracking-wide"
             }`}
           >
             {parts.map((part, partIndex) => {
               if (part.startsWith("**") && part.endsWith("**") && part.length >= 4) {
                 const inner = part.slice(2, -2);
                 return (
-                  <strong key={partIndex} className="font-bold text-slate-950">
+                  <strong
+                    key={partIndex}
+                    className={
+                      isMayyatNotice
+                        ? "font-extrabold text-slate-950"
+                        : "font-extrabold text-slate-950 underline decoration-teal-500 decoration-2 underline-offset-4"
+                    }
+                  >
                     {inner}
                   </strong>
                 );
@@ -527,7 +536,7 @@ export default function NoticesPage() {
     }
   };
 
-  const isAdminRole = role === "super_admin" || role === "moderator";
+  const isAdminRole = role === "super_admin" || role === "admin" || role === "moderator";
   const roleResolved = role !== "loading";
 
   const dispatchNoticeActivity = () => {
@@ -565,7 +574,7 @@ export default function NoticesPage() {
         const response = await API.get<{ success: boolean; user?: AuthUser }>("/auth/me");
         if (response.data.success && response.data.user?.role) {
           const nextRole = normalizeRole(response.data.user.role);
-          setRole(nextRole === "super_admin" || nextRole === "moderator" ? nextRole : "member");
+          setRole(nextRole && ["super_admin", "admin", "moderator"].includes(nextRole) ? nextRole : "member");
         } else {
           setRole("member");
         }
@@ -937,19 +946,26 @@ export default function NoticesPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
-      <div className="overflow-hidden rounded-[1.5rem] border border-emerald-200 bg-gradient-to-br from-emerald-950 via-emerald-900 to-green-700 p-6 text-white shadow-[0_24px_60px_-30px_rgba(5,150,105,0.55)]">
-        <p className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-100">{t('notices_channel_title')}</p>
-        <h1 className="mt-2 text-2xl font-black">{t('notices_heading')}</h1>
-        <p className="mt-2 max-w-2xl text-sm leading-7 text-emerald-50">
-          {!roleResolved
-            ? t('checking_access')
-            : isAdminRole
-            ? t('admin_publish_notice')
-            : t('member_mode_msg')}
-        </p>
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+        <div className="border-b border-slate-800 bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 px-6 py-6 text-white">
+          <div className="flex items-center gap-2 mb-2">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-teal-300 border border-teal-500/30">
+              <img src="/logo.png" alt="Logo" className="h-3.5 w-3.5 object-contain" />
+              <span>COMMUNITY ALERTS & NOTICES</span>
+            </span>
+          </div>
+          <h1 className="text-2xl font-extrabold leading-tight sm:text-3xl">Notices & Mayyat Announcements</h1>
+          <p className="mt-1 max-w-2xl text-xs text-slate-300 leading-relaxed">
+            {!roleResolved
+              ? t('checking_access')
+              : isAdminRole
+              ? t('admin_publish_notice')
+              : t('member_mode_msg')}
+          </p>
 
-        <div className="mt-4 inline-flex rounded-full bg-white/15 px-3 py-2 text-sm font-semibold text-emerald-50">
-          {role === "loading" ? t('checking_access_short') : role === "moderator" ? t('moderator_access') : role === "super_admin" ? t('admin_access') : t('member_access')}
+          <div className="mt-3 inline-flex rounded-full bg-white/10 px-3 py-1 text-xs font-bold text-teal-200 border border-white/10">
+            {role === "loading" ? t('checking_access_short') : role === "moderator" ? t('moderator_access') : role === "super_admin" ? t('admin_access') : t('member_access')}
+          </div>
         </div>
       </div>
 
@@ -1197,33 +1213,71 @@ export default function NoticesPage() {
           return (
             <article
               key={notice.id}
-              className={`page-card p-5 ${
-                isMayyat ? "border-2 border-slate-800 bg-slate-50 shadow-[0_12px_35px_rgba(15,23,42,0.12)]" : ""
+              className={`rounded-3xl border bg-white p-6 shadow-sm transition-all hover:shadow-md ${
+                isMayyat
+                  ? "border-2 border-slate-900 bg-slate-50/90 shadow-xl"
+                  : notice.pinned
+                  ? "border-amber-300 border-l-4 border-l-amber-500 bg-amber-50/20 shadow-md"
+                  : "border-slate-200 border-l-4 border-l-teal-600"
               }`}
             >
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    {isMayyat ? (
-                      <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-white">
-                        {mayyatLangMode === "urdu" ? "اطلاعِ میّت" : t('mayyat_label')}
+              {/* Header Bar */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+                <div className="flex items-start sm:items-center gap-3">
+                  <div
+                    className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl font-extrabold text-base ${
+                      isMayyat ? "bg-slate-900 text-white" : notice.pinned ? "bg-amber-500 text-white" : "bg-teal-600 text-white"
+                    }`}
+                  >
+                    {isMayyat ? "🕌" : notice.pinned ? "📌" : "📢"}
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 text-[11px] font-extrabold uppercase tracking-wider ${
+                          isMayyat
+                            ? "bg-slate-900 text-white"
+                            : notice.pinned
+                            ? "bg-amber-100 text-amber-800 border border-amber-200"
+                            : "bg-teal-50 text-teal-700 border border-teal-200"
+                        }`}
+                      >
+                        {isMayyat
+                          ? (mayyatLangMode === "urdu" ? "اطلاعِ میّت" : t('mayyat_label'))
+                          : notice.pinned
+                          ? t('pinned_label')
+                          : "Official Announcement"}
                       </span>
-                    ) : (
-                      <h3 className="text-lg font-semibold text-slate-800">{notice.title}</h3>
-                    )}
-                    {notice.pinned ? <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700">{t('pinned_label')}</span> : null}
-                  </div>
-                  <div className={`mt-2 space-y-2 text-sm leading-6 ${isMayyat ? "font-medium text-slate-900" : "text-slate-700"}`}>
-                    {renderFormattedText(
-                      isMayyat && notice.mayyatDetails ? buildMayyatBody(notice.mayyatDetails, mayyatLangMode) : notice.body,
-                      isMayyat ? mayyatLangMode : undefined
+                    </div>
+                    {!isMayyat && (
+                      <h3 className="mt-1 text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight leading-snug">
+                        {notice.title}
+                      </h3>
                     )}
                   </div>
                 </div>
-                <div className="text-sm text-slate-500">
-                  <p>{notice.author}</p>
-                  <p>{new Date(notice.createdAt).toLocaleString()}</p>
+
+                {/* Author & Timestamp */}
+                <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 self-start sm:self-auto shrink-0">
+                  <span className="font-bold text-slate-700">👤 {notice.author || "Admin"}</span>
+                  <span>•</span>
+                  <span>{new Date(notice.createdAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}</span>
                 </div>
+              </div>
+
+              {/* Body Content Box */}
+              <div
+                className={`mt-4 rounded-2xl p-4 sm:p-5 ${
+                  isMayyat
+                    ? "bg-white border border-slate-200 shadow-sm"
+                    : "bg-slate-50/70 border border-slate-100 text-slate-800"
+                }`}
+              >
+                {renderFormattedText(
+                  isMayyat && notice.mayyatDetails ? buildMayyatBody(notice.mayyatDetails, mayyatLangMode) : notice.body,
+                  isMayyat ? mayyatLangMode : undefined,
+                  isMayyat
+                )}
               </div>
 
               <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-slate-200 pt-3">
