@@ -5,6 +5,33 @@ import UserAvatar from "../components/UserAvatar";
 import Loader from "../components/Loader";
 import Toast from "../components/Toast";
 
+const configuredApiBase = import.meta.env.VITE_API_URL || "https://backend.kutchicommunity.com";
+const apiOrigin = (() => {
+  try {
+    const fallbackOrigin = typeof window !== "undefined" ? window.location.origin : "http://localhost";
+    return new URL(configuredApiBase, fallbackOrigin).origin;
+  } catch {
+    return "https://backend.kutchicommunity.com";
+  }
+})();
+
+const getMediaUrl = (url?: string) => {
+  if (!url) return "/cover.png";
+  if (url.startsWith("blob:") || url.startsWith("data:")) return url;
+  if (url.startsWith("http")) {
+    try {
+      const mediaUrl = new URL(url);
+      if (mediaUrl.hostname === "localhost" || mediaUrl.hostname === "127.0.0.1") {
+        return `${apiOrigin}${mediaUrl.pathname}${mediaUrl.search}`;
+      }
+      return mediaUrl.toString();
+    } catch {
+      return url;
+    }
+  }
+  return url.startsWith("/") ? `${apiOrigin}${url}` : `${apiOrigin}/${url}`;
+};
+
 interface UserProfileData {
   _id: string;
   fullName: string;
@@ -212,44 +239,49 @@ export default function UserProfile() {
       ? "👑 Super Admin"
       : profile.role === "admin"
       ? "🛡️ Admin"
-      : profile.role === "moderator"
-      ? "🛡️ Moderator"
       : "👤 Community Member";
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-6 md:px-6 space-y-6">
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      {toast && <Toast message={toast.message} type={toast.type} isVisible={true} onClose={() => setToast(null)} />}
 
       {/* Top Banner & Profile Header Card */}
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg">
+      <div className="overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 text-slate-900 dark:text-white shadow-xl">
         {/* Cover Background */}
-        <div className="h-36 sm:h-48 bg-gradient-to-r from-slate-900 via-teal-900 to-slate-900 relative overflow-hidden">
-          <img src={profile.coverPhotoUrl || "/cover.png"} alt="Cover Banner" className="w-full h-full object-cover" />
-          <div className="absolute inset-0 bg-slate-900/20" />
+        <div className="cover-banner relative h-36 sm:h-52 md:h-64 bg-slate-900 overflow-hidden">
+          <img
+            src={getMediaUrl(profile.coverPhotoUrl)}
+            alt="Cover Banner"
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = "/cover.png";
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-black/30 pointer-events-none" />
           <button
             onClick={() => navigate(-1)}
-            className="absolute top-4 left-4 z-10 inline-flex items-center gap-1.5 rounded-full bg-slate-900/60 px-3.5 py-1.5 text-xs font-bold text-white backdrop-blur-md hover:bg-slate-900/80 transition"
+            className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10 inline-flex items-center gap-1.5 rounded-full bg-slate-950/60 px-3 py-1.5 sm:px-3.5 text-[11px] sm:text-xs font-bold text-white backdrop-blur-md hover:bg-slate-900/80 transition"
           >
             ← Back
           </button>
-          <span className="absolute top-4 right-4 z-10 rounded-full bg-teal-500/20 px-3 py-1 text-xs font-extrabold uppercase tracking-wider text-teal-300 border border-teal-500/30 backdrop-blur-md">
+          <span className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 rounded-full bg-teal-500/20 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-extrabold uppercase tracking-wider text-teal-300 border border-teal-500/30 backdrop-blur-md">
             ALL KUTCHI COMMUNITY
           </span>
         </div>
 
         {/* Profile Identity Bar */}
-        <div className="px-6 pb-6 pt-0 relative">
-          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 -mt-16 sm:-mt-20">
+        <div className="relative px-4 py-4 sm:px-6 sm:pb-6 sm:pt-0 bg-gradient-to-b from-slate-100/90 via-white to-white dark:from-slate-900/90 dark:via-slate-950 dark:to-slate-950 border-t border-slate-200/50 dark:border-slate-800/50">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 -mt-12 sm:-mt-16 relative z-10">
             {/* Avatar with Online Ring */}
-            <div className="relative inline-block">
+            <div className="relative inline-block shrink-0">
               <UserAvatar
                 src={profile.profilePhotoUrl}
                 name={profile.fullName}
                 size="xl"
-                className="rounded-3xl border-4 border-white shadow-xl bg-white object-cover"
+                className="rounded-3xl border-4 border-white dark:border-slate-900 shadow-2xl bg-white dark:bg-slate-950 object-cover"
               />
               <span
-                className={`absolute bottom-2 right-2 h-5 w-5 rounded-full border-2 border-white shadow-md ${
+                className={`absolute bottom-2 right-2 h-4 w-4 sm:h-5 sm:w-5 rounded-full border-2 border-white shadow-md ${
                   profile.isOnline ? "bg-emerald-500 ring-2 ring-emerald-300" : "bg-slate-300"
                 }`}
                 title={profile.isOnline ? "Active Now" : "Offline"}
@@ -257,11 +289,11 @@ export default function UserProfile() {
             </div>
 
             {/* Action Buttons Toolbar */}
-            <div className="flex flex-wrap items-center gap-2 pt-2 sm:pt-0">
+            <div className="flex flex-wrap items-center gap-2 pt-1 sm:pt-0">
               {friendStatus === "self" ? (
                 <Link
                   to="/profile"
-                  className="rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-slate-800 transition"
+                  className="rounded-xl bg-slate-900 dark:bg-white dark:text-slate-900 px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs font-bold text-white shadow-sm transition"
                 >
                   ✏️ Edit Profile
                 </Link>
@@ -271,7 +303,7 @@ export default function UserProfile() {
                     <button
                       onClick={handleUnfriend}
                       disabled={actionLoading}
-                      className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2.5 text-xs font-extrabold text-emerald-800 shadow-sm hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300 transition"
+                      className="rounded-xl border border-emerald-300 bg-emerald-50 px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs font-extrabold text-emerald-800 shadow-sm hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300 transition"
                     >
                       ✓ Friends (Unfriend)
                     </button>
@@ -281,7 +313,7 @@ export default function UserProfile() {
                     <button
                       onClick={handleCancelRequest}
                       disabled={actionLoading}
-                      className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-2.5 text-xs font-bold text-amber-800 hover:bg-amber-100 transition"
+                      className="rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs font-bold text-amber-800 hover:bg-amber-100 transition"
                     >
                       ⏳ Request Sent (Cancel)
                     </button>
@@ -291,7 +323,7 @@ export default function UserProfile() {
                     <button
                       onClick={handleAcceptRequest}
                       disabled={actionLoading}
-                      className="rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-emerald-500 transition"
+                      className="rounded-xl bg-emerald-600 px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs font-bold text-white shadow-sm hover:bg-emerald-500 transition"
                     >
                       ✅ Accept Request
                     </button>
@@ -301,7 +333,7 @@ export default function UserProfile() {
                     <button
                       onClick={handleSendFriendRequest}
                       disabled={actionLoading}
-                      className="rounded-xl bg-teal-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-600/20 hover:bg-teal-500 transition"
+                      className="rounded-xl bg-teal-600 px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs font-bold text-white shadow-md shadow-teal-600/20 hover:bg-teal-500 transition"
                     >
                       ➕ Add Friend
                     </button>
@@ -309,14 +341,14 @@ export default function UserProfile() {
 
                   <button
                     onClick={() => navigate(`/friends/${profile._id}/chat`)}
-                    className="rounded-xl bg-slate-900 px-4 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-slate-800 transition flex items-center gap-1.5"
+                    className="rounded-xl bg-slate-900 dark:bg-white dark:text-slate-900 px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs font-bold text-white shadow-sm transition flex items-center gap-1.5"
                   >
                     💬 Message
                   </button>
 
                   <button
                     onClick={() => setShowReportModal(true)}
-                    className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs font-bold text-slate-600 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 transition"
+                    className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 sm:py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 transition"
                     title="Report Profile"
                   >
                     🚩
@@ -327,17 +359,17 @@ export default function UserProfile() {
           </div>
 
           {/* Name & Details Header */}
-          <div className="mt-4 space-y-1.5">
+          <div className="mt-3 sm:mt-4 space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-950 dark:text-white tracking-tight break-words max-w-full">
                 {profile.fullName}
               </h1>
-              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-extrabold text-slate-700 border border-slate-200">
+              <span className="inline-block shrink-0 rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-0.5 text-[11px] font-extrabold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
                 {roleLabel}
               </span>
             </div>
 
-            <p className="text-xs font-semibold text-slate-500">
+            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 break-words">
               @{profile.username} • {profile.friendsCount || 0} Friends • {profile.mutualFriendsCount || 0} Mutual Friends
             </p>
 
@@ -351,7 +383,6 @@ export default function UserProfile() {
             </p>
           </div>
         </div>
-
       </div>
 
       {/* Section 1: Overview Details */}

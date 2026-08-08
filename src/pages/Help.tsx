@@ -131,7 +131,7 @@ export default function Help() {
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       {/* Hero Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-slate-900 p-6 text-white shadow-xl md:p-8">
+      <div className="page-hero-banner relative overflow-hidden rounded-3xl bg-slate-900 p-6 text-white shadow-xl md:p-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -173,7 +173,7 @@ export default function Help() {
             placeholder="Search help topics, FAQs, questions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-2xl border border-slate-200 bg-white py-3 pl-11 pr-4 text-sm shadow-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+            className="w-full rounded-2xl border border-slate-700/80 bg-slate-950 py-3 pl-11 pr-4 text-sm text-white placeholder-slate-400 shadow-inner outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-500/20 transition"
           />
         </div>
 
@@ -192,8 +192,8 @@ export default function Help() {
               onClick={() => setSelectedCategory(cat.id as FaqCategory)}
               className={`rounded-xl px-4 py-2 text-xs font-bold transition whitespace-nowrap ${
                 selectedCategory === cat.id
-                  ? "bg-teal-600 text-white shadow-md shadow-teal-600/20"
-                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                  ? "bg-teal-500 text-slate-950 font-black shadow-md shadow-teal-500/20"
+                  : "bg-slate-900 text-slate-300 border border-slate-800 hover:bg-slate-800 hover:text-white"
               }`}
             >
               {cat.label}
@@ -205,7 +205,7 @@ export default function Help() {
       {/* FAQ Accordions */}
       <div className="mt-6 space-y-3">
         {filteredFaqs.length === 0 ? (
-          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-10 text-center shadow-sm text-white">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-10 text-center shadow-sm text-white">
             <span className="text-3xl">🔍</span>
             <p className="mt-2 text-xs font-bold text-slate-300">No help items match your search.</p>
           </div>
@@ -213,10 +213,10 @@ export default function Help() {
           filteredFaqs.map((faq) => {
             const isExpanded = expandedFaqId === faq.id;
             return (
-              <div key={faq.id} className="overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 text-white shadow-lg transition duration-200">
+              <div key={faq.id} className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/90 text-white shadow-lg transition duration-200">
                 <button
                   onClick={() => setExpandedFaqId(isExpanded ? null : faq.id)}
-                  className="flex w-full items-center justify-between p-5 text-left transition hover:bg-white/5"
+                  className="flex w-full items-center justify-between p-5 text-left transition hover:bg-slate-800/60"
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-xl">{faq.icon}</span>
@@ -228,7 +228,7 @@ export default function Help() {
                 </button>
 
                 {isExpanded && (
-                  <div className="border-t border-slate-800 bg-white/5 p-5 text-xs text-slate-200 leading-relaxed font-medium">
+                  <div className="border-t border-slate-800 bg-slate-950/90 p-5 text-xs text-slate-300 leading-relaxed font-medium">
                     {faq.answer}
                   </div>
                 )}
@@ -277,54 +277,54 @@ export default function Help() {
 
       {/* Report Issue Modal */}
       {showReportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl md:p-8">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <h3 className="text-lg font-bold text-slate-900">Report an Issue / Feedback</h3>
-              <button onClick={() => setShowReportModal(false)} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
+          <div className="relative overflow-hidden w-full max-w-lg rounded-3xl border border-teal-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-teal-950/95 p-6 text-white shadow-2xl md:p-8 space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <h3 className="text-lg font-bold text-white">Report an Issue / Feedback</h3>
+              <button onClick={() => setShowReportModal(false)} className="rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-slate-800">
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleSubmitReport} className="mt-4 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Issue Category</label>
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Issue Category</label>
                 <select
                   value={issueType}
                   onChange={(e) => setIssueType(e.target.value as any)}
-                  className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm font-semibold text-slate-700 focus:border-teal-500"
+                  className="mt-1 w-full rounded-xl border border-slate-700/80 bg-slate-950 px-3.5 py-2.5 text-sm font-semibold text-white focus:border-teal-400 outline-none transition"
                 >
-                  <option value="bug">Technical Bug / App Error</option>
-                  <option value="account">Account / Login Issue</option>
-                  <option value="moderation">Content / Rules Violation</option>
-                  <option value="other">General Feedback</option>
+                  <option value="bug" className="bg-slate-900 text-white">Technical Bug / App Error</option>
+                  <option value="account" className="bg-slate-900 text-white">Account / Login Issue</option>
+                  <option value="moderation" className="bg-slate-900 text-white">Content / Rules Violation</option>
+                  <option value="other" className="bg-slate-900 text-white">General Feedback</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Description *</label>
+                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Description *</label>
                 <textarea
                   rows={4}
                   required
                   placeholder="Please describe the issue or feedback in detail..."
                   value={issueDescription}
                   onChange={(e) => setIssueDescription(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-300 px-3.5 py-2.5 text-sm focus:border-teal-500"
+                  className="mt-1 w-full rounded-xl border border-slate-700/80 bg-slate-950 px-3.5 py-2.5 text-sm text-white placeholder-slate-400 focus:border-teal-400 outline-none transition"
                 />
               </div>
 
-              <div className="mt-6 flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+              <div className="mt-6 flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
                 <button
                   type="button"
                   onClick={() => setShowReportModal(false)}
-                  className="rounded-xl px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100"
+                  className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:text-white transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submittingReport}
-                  className="rounded-xl bg-teal-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-600/30 hover:bg-teal-500 disabled:opacity-50"
+                  className="rounded-xl bg-teal-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-900/40 hover:bg-teal-500 disabled:opacity-50 transition"
                 >
                   {submittingReport ? "Submitting..." : "Submit Report"}
                 </button>

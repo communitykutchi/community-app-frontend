@@ -188,16 +188,24 @@ export default function Polls() {
     }
   };
 
-  const handleDeletePoll = async (pollId: string) => {
-    if (!window.confirm("Are you sure you want to delete this poll?")) return;
+  // Delete Poll Modal State
+  const [pollToDelete, setPollToDelete] = useState<PollItem | null>(null);
+  const [deletingPoll, setDeletingPoll] = useState(false);
+
+  const confirmDeletePoll = async () => {
+    if (!pollToDelete) return;
+    setDeletingPoll(true);
     try {
-      const res = await API.delete<{ success: boolean }>(`/polls/${pollId}`);
+      const res = await API.delete<{ success: boolean }>(`/polls/${pollToDelete._id}`);
       if (res.data?.success) {
         setToast({ message: "Poll deleted successfully.", type: "success" });
-        setPolls((prev) => prev.filter((p) => p._id !== pollId));
+        setPolls((prev) => prev.filter((p) => p._id !== pollToDelete._id));
+        setPollToDelete(null);
       }
     } catch (err: any) {
       setToast({ message: err.response?.data?.message || "Failed to delete poll.", type: "error" });
+    } finally {
+      setDeletingPoll(false);
     }
   };
 
@@ -210,11 +218,13 @@ export default function Polls() {
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-slate-900 p-6 text-white shadow-xl md:p-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      <div className="page-hero-banner relative overflow-hidden rounded-3xl border border-teal-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-teal-950/90 p-6 text-white shadow-2xl md:p-8">
+        <div className="absolute -right-10 -bottom-10 h-40 w-40 rounded-full bg-teal-500/10 blur-3xl pointer-events-none" />
+
+        <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="rounded-full bg-teal-500/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-teal-400 border border-teal-500/30">
+              <span className="rounded-full bg-teal-500/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-teal-300 border border-teal-400/30 shadow-sm">
                 🗳️ COMMUNITY VOICE
               </span>
             </div>
@@ -227,7 +237,7 @@ export default function Polls() {
           {isManager && (
             <button
               onClick={() => setShowCreateModal(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-teal-600/30 hover:bg-teal-500 transition active:scale-95"
+              className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 px-5 py-3 text-sm font-black uppercase tracking-wider text-white shadow-lg shadow-teal-500/25 hover:from-teal-400 hover:to-emerald-500 active:scale-95 transition cursor-pointer"
             >
               <span>➕</span> Create New Poll
             </button>
@@ -243,8 +253,8 @@ export default function Polls() {
             onClick={() => setActiveCategory(cat)}
             className={`rounded-xl px-4 py-2.5 text-xs font-bold transition whitespace-nowrap ${
               activeCategory === cat
-                ? "bg-teal-600 text-white shadow-md shadow-teal-600/20"
-                : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
+                ? "bg-teal-600 text-white shadow-lg shadow-teal-950/50 border border-teal-400/40"
+                : "bg-slate-900/80 text-slate-300 border border-slate-800 hover:border-slate-700 hover:bg-slate-800/60 hover:text-white"
             }`}
           >
             {cat}
@@ -258,10 +268,10 @@ export default function Polls() {
           <Loader />
         </div>
       ) : filteredPolls.length === 0 ? (
-        <div className="mt-8 rounded-2xl border border-slate-200 bg-white p-12 text-center shadow-sm">
+        <div className="mt-8 rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 p-12 text-center text-white shadow-xl">
           <span className="text-4xl">📊</span>
-          <h3 className="mt-4 text-lg font-bold text-slate-900">No Polls Available</h3>
-          <p className="mt-1 text-xs text-slate-500">There are no active polls in this category right now.</p>
+          <h3 className="mt-4 text-lg font-extrabold text-white">No Polls Available</h3>
+          <p className="mt-1 text-xs text-slate-400">There are no active polls in this category right now.</p>
         </div>
       ) : (
         <div className="mt-6 space-y-6">
@@ -302,7 +312,7 @@ export default function Polls() {
 
                     {isManager && (
                       <button
-                        onClick={() => handleDeletePoll(poll._id)}
+                        onClick={() => setPollToDelete(poll)}
                         className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-950/60 hover:text-rose-300 transition"
                         title="Delete Poll"
                       >
@@ -375,49 +385,57 @@ export default function Polls() {
 
       {/* Create Poll Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl md:p-8 animate-in fade-in zoom-in">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-              <h3 className="text-lg font-bold text-slate-900">Create Community Poll</h3>
-              <button onClick={() => setShowCreateModal(false)} className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
+          <div className="relative overflow-hidden w-full max-w-lg rounded-3xl border border-teal-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-teal-950/95 p-6 sm:p-8 text-white shadow-2xl">
+            <div className="absolute -right-10 -bottom-10 h-32 w-32 rounded-full bg-teal-500/10 blur-2xl pointer-events-none" />
+
+            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
+              <h3 className="text-lg font-black text-white flex items-center gap-2">
+                <span>🗳️</span>
+                <span>Create Community Poll</span>
+              </h3>
+              <button
+                onClick={() => setShowCreateModal(false)}
+                className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition"
+              >
                 ✕
               </button>
             </div>
 
-            <form onSubmit={handleCreatePoll} className="mt-4 space-y-4">
+            <form onSubmit={handleCreatePoll} className="mt-5 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Poll Question</label>
+                <label className="block text-xs font-black uppercase tracking-wider text-teal-300 mb-1">Poll Question</label>
                 <input
                   type="text"
                   required
                   placeholder="e.g. Should we organize a Jamaat Sports Day next month?"
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-300 px-4 py-2.5 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+                  className="w-full rounded-xl border border-slate-700/80 bg-slate-950/90 px-4 py-2.5 text-sm font-semibold text-white placeholder-slate-400 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Description (Optional)</label>
+                <label className="block text-xs font-black uppercase tracking-wider text-teal-300 mb-1">Description (Optional)</label>
                 <textarea
                   rows={2}
                   placeholder="Add additional details or guidelines..."
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-300 px-4 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+                  className="w-full rounded-xl border border-slate-700/80 bg-slate-950/90 px-4 py-2 text-sm font-semibold text-white placeholder-slate-400 focus:border-teal-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Category</label>
+                  <label className="block text-xs font-black uppercase tracking-wider text-teal-300 mb-1">Category</label>
                   <select
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold text-slate-700 focus:border-teal-500"
+                    className="w-full rounded-xl border border-slate-700/80 bg-slate-950 px-3.5 py-2.5 text-sm font-semibold text-white focus:border-teal-400 focus:outline-none transition"
                   >
                     {CATEGORIES.filter((c) => c !== "All").map((c) => (
-                      <option key={c} value={c}>
+                      <option key={c} value={c} className="bg-slate-900 text-white">
                         {c}
                       </option>
                     ))}
@@ -425,17 +443,17 @@ export default function Polls() {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Duration</label>
+                  <label className="block text-xs font-black uppercase tracking-wider text-teal-300 mb-1">Duration</label>
                   <select
                     value={durationDays}
                     onChange={(e) => setDurationDays(Number(e.target.value))}
-                    className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm font-semibold text-slate-700 focus:border-teal-500"
+                    className="w-full rounded-xl border border-slate-700/80 bg-slate-950 px-3.5 py-2.5 text-sm font-semibold text-white focus:border-teal-400 focus:outline-none transition"
                   >
-                    <option value={1}>1 Day</option>
-                    <option value={3}>3 Days</option>
-                    <option value={7}>1 Week</option>
-                    <option value={14}>2 Weeks</option>
-                    <option value={30}>1 Month</option>
+                    <option value={1} className="bg-slate-900 text-white">1 Day</option>
+                    <option value={3} className="bg-slate-900 text-white">3 Days</option>
+                    <option value={7} className="bg-slate-900 text-white">1 Week</option>
+                    <option value={14} className="bg-slate-900 text-white">2 Weeks</option>
+                    <option value={30} className="bg-slate-900 text-white">1 Month</option>
                   </select>
                 </div>
               </div>
@@ -443,12 +461,12 @@ export default function Polls() {
               {/* Poll Options Inputs */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">Poll Options</label>
+                  <label className="text-xs font-black uppercase tracking-wider text-teal-300">Poll Options</label>
                   {options.length < 6 && (
                     <button
                       type="button"
                       onClick={() => setOptions([...options, ""])}
-                      className="text-xs font-bold text-teal-600 hover:text-teal-700"
+                      className="text-xs font-black text-teal-300 hover:text-teal-200 transition"
                     >
                       + Add Option
                     </button>
@@ -468,13 +486,13 @@ export default function Polls() {
                           updated[idx] = e.target.value;
                           setOptions(updated);
                         }}
-                        className="w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm focus:border-teal-500"
+                        className="w-full rounded-xl border border-slate-700/80 bg-slate-950/90 px-3.5 py-2 text-sm font-semibold text-white placeholder-slate-400 focus:border-teal-400 focus:outline-none transition"
                       />
                       {options.length > 2 && (
                         <button
                           type="button"
                           onClick={() => setOptions(options.filter((_, i) => i !== idx))}
-                          className="rounded-lg p-2 text-red-500 hover:bg-red-50"
+                          className="rounded-lg p-2 text-rose-400 hover:bg-rose-950/60 hover:text-rose-300 transition"
                         >
                           ✕
                         </button>
@@ -484,23 +502,71 @@ export default function Polls() {
                 </div>
               </div>
 
-              <div className="mt-6 flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+              <div className="mt-6 flex items-center justify-end gap-3 pt-4 border-t border-slate-800">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="rounded-xl px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100"
+                  className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:text-white transition"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submitting}
-                  className="rounded-xl bg-teal-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-600/30 hover:bg-teal-500 disabled:opacity-50"
+                  className="rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 px-6 py-2.5 text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-teal-500/25 hover:from-teal-400 hover:to-emerald-500 active:scale-95 disabled:opacity-50 transition"
                 >
                   {submitting ? "Publishing..." : "Publish Poll"}
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Poll Confirmation Modal */}
+      {pollToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
+          <div className="relative overflow-hidden w-full max-w-md rounded-3xl border border-rose-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-rose-950/95 p-6 sm:p-7 text-white shadow-2xl space-y-4">
+            <div className="absolute -right-10 -bottom-10 h-32 w-32 rounded-full bg-rose-500/10 blur-2xl pointer-events-none" />
+
+            <div className="flex items-center gap-3 text-rose-400">
+              <span className="text-3xl">🗑️</span>
+              <div>
+                <h3 className="text-lg font-black text-white">Delete Community Poll</h3>
+                <p className="text-xs text-rose-300">This action cannot be undone.</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Are you sure you want to permanently delete this poll? All votes and statistics will be removed.
+            </p>
+
+            <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 text-xs font-bold text-white space-y-1">
+              <p className="text-amber-300">Question:</p>
+              <p className="text-slate-200 line-clamp-2">"{pollToDelete.question}"</p>
+              <p className="text-[11px] text-slate-400 font-normal pt-1">
+                Category: {pollToDelete.category || "General"} • {pollToDelete.totalVotes} total votes
+              </p>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+              <button
+                type="button"
+                onClick={() => setPollToDelete(null)}
+                disabled={deletingPoll}
+                className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:text-white transition"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeletePoll}
+                disabled={deletingPoll}
+                className="rounded-xl bg-rose-600 px-5 py-2.5 text-xs font-extrabold text-white shadow-lg shadow-rose-600/30 hover:bg-rose-500 active:scale-95 disabled:opacity-50 transition cursor-pointer"
+              >
+                {deletingPoll ? "Deleting..." : "Delete Poll"}
+              </button>
+            </div>
           </div>
         </div>
       )}

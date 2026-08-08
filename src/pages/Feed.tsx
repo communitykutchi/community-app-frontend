@@ -462,77 +462,91 @@ export default function Feed() {
 
   return (
     <div className="mx-auto w-full max-w-6xl space-y-6">
-      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-800 bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 px-6 py-6 text-white">
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-teal-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-teal-300 border border-teal-500/30">
-                <img src="/logo.png" alt="Logo" className="h-3.5 w-3.5 object-contain" />
-                <span>COMMUNITY FEED</span>
-              </div>
-              <h1 className="mt-2 text-2xl font-extrabold leading-tight sm:text-3xl">Community Feed & Updates</h1>
-              <p className="mt-1 max-w-2xl text-xs text-slate-300 leading-relaxed">Share announcements, moments, photos, videos, and discussions with community members.</p>
+      {/* 1. Main Top Hero Header Banner (Colorful Green & Black Gradient) */}
+      <section className="page-hero-banner relative overflow-hidden rounded-3xl border border-teal-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-teal-950/90 text-white shadow-2xl p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <div className="inline-flex items-center gap-2 rounded-full bg-teal-500/20 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-teal-300 border border-teal-500/30">
+              <img src="/logo.png" alt="Logo" className="h-3.5 w-3.5 object-contain" />
+              <span>COMMUNITY FEED</span>
             </div>
-            <div className="grid grid-cols-3 gap-2 rounded-2xl border border-white/10 bg-white/5 p-2 text-center backdrop-blur sm:min-w-80">
-              <div className="rounded-xl bg-white/10 px-3 py-2">
-                <p className="text-base font-extrabold">{posts.length}</p>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Posts</p>
-              </div>
-              <div className="rounded-xl bg-white/10 px-3 py-2">
-                <p className="text-base font-extrabold">{feedStats.likes}</p>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Likes</p>
-              </div>
-              <div className="rounded-xl bg-white/10 px-3 py-2">
-                <p className="text-base font-extrabold">{feedStats.comments}</p>
-                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-300">Comments</p>
-              </div>
+            <h1 className="mt-2 text-2xl font-extrabold leading-tight sm:text-3xl">Community Feed & Updates</h1>
+            <p className="mt-1 max-w-2xl text-xs text-slate-300 leading-relaxed">Share announcements, moments, photos, videos, and discussions with community members.</p>
+          </div>
+          <div className="grid grid-cols-3 gap-2 rounded-2xl border border-slate-800 bg-slate-950/80 p-2 text-center backdrop-blur sm:min-w-80">
+            <div className="rounded-xl bg-slate-900 px-3 py-2">
+              <p className="text-base font-extrabold text-white">{posts.length}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Posts</p>
+            </div>
+            <div className="rounded-xl bg-slate-900 px-3 py-2">
+              <p className="text-base font-extrabold text-teal-400">{feedStats.likes}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Likes</p>
+            </div>
+            <div className="rounded-xl bg-slate-900 px-3 py-2">
+              <p className="text-base font-extrabold text-amber-400">{feedStats.comments}</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">Comments</p>
             </div>
           </div>
         </div>
+      </section>
 
-        {canCreatePosts ? (
-          <form onSubmit={handleSubmit} className="p-5 sm:p-6">
+      {/* 2. Distinct Create Post Section (Solid White Card) */}
+      {canCreatePosts ? (
+        <section className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-5 sm:p-6 shadow-xl space-y-4">
+          <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">✨</span>
+              <h2 className="text-sm font-extrabold text-slate-900 dark:text-white">Create a New Post</h2>
+              <span className="text-xs text-slate-500 font-medium">(Nayi Post Likhein)</span>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit}>
             <div className="flex gap-3">
               <UserAvatar name={currentUser?.fullName || "Me"} photoUrl={currentUser?.profilePhotoUrl} size="md" />
               <div className="min-w-0 flex-1">
-                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50/50 transition focus-within:border-teal-500 focus-within:bg-white focus-within:ring-2 focus-within:ring-teal-500/20">
+                <div className="overflow-hidden rounded-2xl border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-950/90 transition focus-within:border-teal-500 focus-within:ring-2 focus-within:ring-teal-500/20">
                   <textarea
                     value={text}
                     onChange={(event) => setText(event.target.value)}
                     rows={3}
                     maxLength={MAX_POST_LENGTH + 50}
                     placeholder={t('placeholder_share')}
-                    className="min-h-24 w-full resize-y border-0 bg-transparent p-4 text-xs leading-relaxed text-slate-900 outline-none placeholder:text-slate-400"
+                    className="min-h-24 w-full resize-y border-0 bg-transparent p-4 text-xs leading-relaxed text-slate-900 dark:text-white outline-none placeholder:text-slate-400"
                   />
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 px-4 py-3">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <label className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 border-t border-slate-200 dark:border-slate-800 px-3 py-2.5 sm:px-4 sm:py-3 bg-slate-50 dark:bg-slate-900/50">
+                    <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
+                      <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 px-3 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 transition hover:border-teal-500 hover:bg-teal-50 dark:hover:bg-slate-800 shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-teal-600 dark:text-teal-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                           <path strokeLinecap="round" strokeLinejoin="round" d="M4 16l4.6-4.6a2 2 0 0 1 2.8 0L16 16m-2-2 1.6-1.6a2 2 0 0 1 2.8 0L20 14m-2-8h.01M5 20h14a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1Z" />
                         </svg>
-                        Media
+                        <span>Media</span>
                         <input type="file" accept="image/*,video/*" multiple onChange={handleFileChange} className="hidden" />
                       </label>
                       {selectedFiles.length > 0 ? (
                         <button
                           type="button"
                           onClick={handleClearFiles}
-                          className="rounded-lg px-3 py-2 text-sm font-semibold text-slate-500 transition hover:bg-slate-200 hover:text-slate-800"
+                          className="rounded-xl px-2.5 py-1.5 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition"
                         >
-                          Clear media
+                          Clear ({selectedFiles.length})
                         </button>
                       ) : null}
+                      <span className={`text-[11px] font-bold sm:hidden ml-auto ${postTextLength > MAX_POST_LENGTH ? "text-rose-600" : "text-slate-500"}`}>
+                        {postTextLength}/{MAX_POST_LENGTH}
+                      </span>
                     </div>
-                    <div className="flex items-center gap-3">
-                      <span className={`text-xs font-semibold ${postTextLength > MAX_POST_LENGTH ? "text-red-600" : "text-slate-400"}`}>
+
+                    <div className="flex items-center justify-end gap-2.5 w-full sm:w-auto pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-200/60 dark:border-slate-800/60">
+                      <span className={`hidden sm:inline text-xs font-bold ${postTextLength > MAX_POST_LENGTH ? "text-rose-600" : "text-slate-500"}`}>
                         {postTextLength}/{MAX_POST_LENGTH}
                       </span>
                       <button
                         type="submit"
                         disabled={loading}
-                        className="btn-primary inline-flex min-w-24 items-center justify-center rounded-lg px-4 py-2.5 text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-60"
+                        className="bg-teal-600 hover:bg-teal-500 !text-white inline-flex w-full sm:w-auto min-w-20 items-center justify-center rounded-xl px-4 py-2 sm:py-2.5 text-xs font-extrabold transition shadow-md shadow-teal-600/30 disabled:cursor-not-allowed disabled:opacity-60 cursor-pointer"
                       >
-                        {loading ? "Posting..." : "Post"}
+                        <span className="!text-white font-extrabold">{loading ? "Posting..." : "Post"}</span>
                       </button>
                     </div>
                   </div>
@@ -552,11 +566,11 @@ export default function Feed() {
                         const isVideo = file?.type?.startsWith("video/");
 
                         return (
-                          <div key={previewUrl} className="relative overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+                          <div key={previewUrl} className="relative overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950">
                             <button
                               type="button"
                               onClick={() => handleRemoveFile(index)}
-                              className="absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-lg bg-slate-950/80 text-lg font-semibold leading-none text-white transition hover:bg-slate-950"
+                              className="absolute right-2 top-2 z-10 grid h-8 w-8 place-items-center rounded-lg bg-slate-900/90 text-lg font-semibold leading-none text-white transition hover:bg-slate-900 border border-slate-700"
                               aria-label={`Remove selected media ${index + 1}`}
                             >
                               x
@@ -566,8 +580,8 @@ export default function Feed() {
                             ) : (
                               <img src={previewUrl} alt="Selected preview" className="aspect-video w-full object-cover" />
                             )}
-                            <div className="border-t border-slate-200 bg-white px-3 py-2">
-                              <p className="truncate text-xs font-semibold text-slate-600">{file?.name || "Selected media"}</p>
+                            <div className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2">
+                              <p className="truncate text-xs font-semibold text-slate-800 dark:text-slate-300">{file?.name || "Selected media"}</p>
                             </div>
                           </div>
                         );
@@ -577,53 +591,59 @@ export default function Feed() {
                 ) : null}
 
                 {error ? (
-                  <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
+                  <div className="mt-4 rounded-xl border border-rose-200 dark:border-rose-500/30 bg-rose-50 dark:bg-rose-950/40 px-4 py-3 text-xs font-bold text-rose-700 dark:text-rose-300">
                     {error}
                   </div>
                 ) : null}
               </div>
             </div>
           </form>
-        ) : (
-          <div className="p-5 sm:p-6">
-            <div className="relative overflow-hidden rounded-3xl border border-amber-500/40 bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950/50 p-6 text-white shadow-xl">
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/20 text-2xl border border-amber-400/30 shrink-0">
-                  📢
-                </div>
-                <div>
-                  <h3 className="text-base font-black text-amber-300">
-                    Posting will be available soon for members
-                  </h3>
-                  <p className="mt-1 text-xs text-slate-300 font-serif leading-relaxed">
-                    تمام ممبران کے لیے پوسٹ کرنے کا آپشن جلد دستیاب ہو گا۔ فی الحال آپ ایڈمن پوسٹس دیکھ سکتے ہیں، کمنٹ اور لائک کر سکتے ہیں۔
-                  </p>
-                </div>
-              </div>
+        </section>
+      ) : (
+        <section className="rounded-3xl border border-amber-200 dark:border-amber-500/40 bg-amber-50 dark:bg-slate-900/90 p-5 sm:p-6 shadow-md">
+          <div className="flex items-center gap-4">
+            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/20 text-2xl border border-amber-400/30 shrink-0">
+              📢
+            </div>
+            <div>
+              <h3 className="text-base font-black text-amber-800 dark:text-amber-300">
+                Posting will be available soon for members
+              </h3>
+              <p className="mt-1 text-xs text-amber-900 dark:text-slate-300 font-serif leading-relaxed">
+                تمام ممبران کے لیے پوسٹ کرنے کا آپشن جلد دستیاب ہو گا۔ فی الحال آپ ایڈمن پوسٹس دیکھ سکتے ہیں، کمنٹ اور لائک کر سکتے ہیں۔
+              </p>
             </div>
           </div>
-        )}
-      </section>
+        </section>
+      )}
 
       <section className="space-y-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <h2 className="page-title text-xl">Latest Posts</h2>
-            <p className="page-subtitle mt-1 text-sm">Recent activity from members and admins.</p>
+            <h2 className="text-xl font-extrabold text-slate-900 dark:text-white">Latest Posts</h2>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Recent activity from members and admins.</p>
           </div>
           {canModeratePosts ? (
-            <div className="inline-flex rounded-lg border border-slate-200 bg-white p-1 shadow-sm">
+            <div className="inline-flex rounded-xl border border-slate-300 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 p-1 shadow-sm">
               <button
                 type="button"
                 onClick={() => setViewMode("all")}
-                className={`rounded-md px-3 py-2 text-sm font-semibold transition ${viewMode === "all" ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"}`}
+                className={`rounded-lg px-3.5 py-2 text-xs sm:text-sm font-extrabold transition ${
+                  viewMode === "all"
+                    ? "bg-teal-600 !text-white shadow-md shadow-teal-600/20"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                }`}
               >
                 All posts
               </button>
               <button
                 type="button"
                 onClick={() => setViewMode("mine")}
-                className={`rounded-md px-3 py-2 text-sm font-semibold transition ${viewMode === "mine" ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"}`}
+                className={`rounded-lg px-3.5 py-2 text-xs sm:text-sm font-extrabold transition ${
+                  viewMode === "mine"
+                    ? "bg-teal-600 !text-white shadow-md shadow-teal-600/20"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                }`}
               >
                 My posts
               </button>
@@ -633,9 +653,9 @@ export default function Feed() {
             type="button"
             onClick={() => void loadPosts()}
             disabled={fetching}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-700 shadow-sm transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-2.5 text-sm font-bold text-slate-700 dark:text-slate-200 shadow-sm transition hover:border-teal-500 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 ${fetching ? "animate-spin" : ""}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 ${fetching ? "animate-spin text-teal-500" : "text-slate-400"}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
               <path strokeLinecap="round" strokeLinejoin="round" d="M20 11a8 8 0 1 0-2.34 5.66M20 11V5m0 6h-6" />
             </svg>
             {fetching ? "Refreshing" : "Refresh"}
@@ -645,27 +665,27 @@ export default function Feed() {
         {fetching && posts.length === 0 ? (
           <div className="space-y-3">
             {[0, 1, 2].map((item) => (
-              <div key={item} className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
+              <div key={item} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-5 shadow-sm">
                 <div className="flex animate-pulse gap-3">
-                  <div className="h-11 w-11 rounded-xl bg-slate-200" />
+                  <div className="h-11 w-11 rounded-xl bg-slate-200 dark:bg-slate-800" />
                   <div className="flex-1 space-y-3">
-                    <div className="h-3 w-36 rounded bg-slate-200" />
-                    <div className="h-3 w-full rounded bg-slate-100" />
-                    <div className="h-3 w-2/3 rounded bg-slate-100" />
+                    <div className="h-3 w-36 rounded bg-slate-200 dark:bg-slate-800" />
+                    <div className="h-3 w-full rounded bg-slate-200 dark:bg-slate-800" />
+                    <div className="h-3 w-2/3 rounded bg-slate-200 dark:bg-slate-800" />
                   </div>
                 </div>
               </div>
             ))}
           </div>
         ) : visiblePosts.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-300 bg-white px-6 py-12 text-center shadow-sm">
-            <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-blue-50 text-blue-700">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 px-6 py-12 text-center shadow-xl">
+            <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-teal-500/20 text-teal-600 dark:text-teal-300 border border-teal-500/30">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14M12 5v14" />
               </svg>
             </div>
-            <h3 className="mt-4 text-lg font-black text-slate-900">No posts yet</h3>
-            <p className="mt-1 text-sm text-slate-500">Be the first to start the community conversation.</p>
+            <h3 className="mt-4 text-lg font-black text-slate-900 dark:text-white">No posts yet</h3>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">Be the first to start the community conversation.</p>
           </div>
         ) : (
           <div className="space-y-4">
@@ -674,26 +694,29 @@ export default function Feed() {
               const totalEngagement = (post.likes ?? 0) + (post.comments ?? 0) + (post.shares ?? 0);
 
               return (
-                <article key={post._id} id={`post-${post._id}`} className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-[0_14px_35px_-30px_rgba(15,23,42,0.7)] transition-all duration-300">
+                <article key={post._id} id={`post-${post._id}`} className="overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 text-slate-900 dark:text-white shadow-xl transition-all duration-300">
                   <div className="p-5">
-                    <div className="flex items-start justify-between gap-4">
-                      <div className="flex min-w-0 items-center gap-3">
-                        <UserAvatar name={post.authorName} photoUrl={post.authorPhotoUrl} size="md" />
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-black text-slate-900">{post.authorName || "Community member"}</p>
-                          <p className="text-xs font-medium text-slate-500">{formatPostDate(post.createdAt)}</p>
+                    <div className="flex items-center justify-between gap-2.5">
+                      <div className="flex min-w-0 items-center gap-2.5 flex-1">
+                        <UserAvatar name={post.authorName} photoUrl={post.authorPhotoUrl} size="md" className="shrink-0" />
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-sm font-extrabold text-slate-950 dark:text-white leading-snug">{post.authorName || "Community member"}</p>
+                          <p className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 leading-tight truncate">
+                            {formatPostDate(post.createdAt)}
+                          </p>
                         </div>
                       </div>
-                      <div className="flex items-start gap-2">
-                        <div className="rounded-full bg-slate-50 px-3 py-1 text-xs font-bold text-slate-500">
-                          {totalEngagement} interactions
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <div className="rounded-full bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-bold text-slate-700 dark:text-slate-400">
+                          {totalEngagement} <span className="hidden sm:inline">interactions</span>
                         </div>
                         {post.canDelete && (isSuperAdmin || (canModeratePosts && post.authorName === currentUser?.fullName)) ? (
                           <div className="relative">
                             <button
                               type="button"
                               onClick={() => setOpenPostMenu((current) => (current === post._id ? null : post._id))}
-                              className="grid h-8 w-8 place-items-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900"
+                              className="grid h-8 w-8 place-items-center rounded-lg text-slate-600 dark:text-slate-400 transition hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white cursor-pointer"
                               aria-label="Post actions"
                               aria-haspopup="menu"
                               aria-expanded={openPostMenu === post._id}
@@ -705,11 +728,11 @@ export default function Feed() {
                               </svg>
                             </button>
                             {openPostMenu === post._id ? (
-                              <div className="absolute right-0 top-9 z-20 w-40 overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg" role="menu">
+                              <div className="absolute right-0 top-9 z-20 w-40 overflow-hidden rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 py-1 shadow-2xl" role="menu">
                                 <button
                                   type="button"
                                   onClick={() => handleDeletePost(post._id)}
-                                  className="block w-full px-3 py-2 text-left text-sm font-semibold text-red-700 transition hover:bg-red-50"
+                                  className="block w-full px-3 py-2 text-left text-sm font-semibold text-rose-600 dark:text-rose-400 transition hover:bg-rose-50 dark:hover:bg-rose-950/40 cursor-pointer"
                                   role="menuitem"
                                 >
                                   Delete post
@@ -721,7 +744,7 @@ export default function Feed() {
                       </div>
                     </div>
 
-                    {post.text ? <p className="mt-4 whitespace-pre-line text-[15px] leading-7 text-slate-800 break-words [overflow-wrap:anywhere]">{post.text}</p> : null}
+                    {post.text ? <p className="mt-4 whitespace-pre-line text-[15px] leading-7 text-slate-800 dark:text-slate-200 break-words [overflow-wrap:anywhere]">{post.text}</p> : null}
 
                     {post.media && post.media.length > 0 ? (
                       <div className={`mt-4 grid gap-3 ${post.media.length === 1 ? "grid-cols-1" : "sm:grid-cols-2"}`}>
@@ -730,7 +753,7 @@ export default function Feed() {
                           const mediaUrl = getMediaUrl(item.url);
 
                           return (
-                            <div key={`${post._id}-${index}`} className="overflow-hidden rounded-xl border border-slate-200 bg-slate-100">
+                            <div key={`${post._id}-${index}`} className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-900">
                               {isVideo ? (
                                 <video controls src={mediaUrl} className="max-h-[420px] w-full bg-black object-contain" />
                               ) : (
@@ -742,87 +765,102 @@ export default function Feed() {
                       </div>
                     ) : null}
 
-                    <div className="mt-5 flex flex-wrap items-center justify-between gap-3 border-t border-slate-100 pt-4">
-                      <div className="flex flex-wrap items-center gap-2 text-sm">
+                    <div className="mt-4 border-t border-slate-200 dark:border-slate-800 pt-3 sm:pt-4">
+                      <div className="grid grid-cols-3 gap-1.5 sm:flex sm:items-center sm:gap-2 w-full sm:w-auto">
                         <button
                           type="button"
                           onClick={() => handleLike(post._id)}
-                          className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 font-bold transition ${
-                            post.liked ? "bg-blue-50 text-blue-700" : "bg-slate-50 text-slate-600 hover:bg-blue-50 hover:text-blue-700"
+                          className={`inline-flex items-center justify-center gap-1 sm:gap-2 rounded-xl px-2 py-2 sm:px-3.5 font-extrabold text-xs transition cursor-pointer border ${
+                            post.liked
+                              ? "active-green-btn bg-teal-600 !text-white border-teal-600 shadow-md shadow-teal-600/30"
+                              : "bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-800"
                           }`}
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill={post.liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill={post.liked ? "currentColor" : "none"} stroke="currentColor" strokeWidth="1.8">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 21s-6.4-4.35-8.2-8.16C2.5 10.14 3.5 7 6.3 6.1c1.7-.5 3.5.2 4.7 1.8 1.2-1.6 3-2.3 4.7-1.8 2.8.9 3.8 4.04 2.5 6.74C18.4 16.65 12 21 12 21Z" />
                           </svg>
-                          Like
-                          <span className="rounded-full bg-white px-1.5 py-0.5 text-xs">{post.likes ?? 0}</span>
+                          <span className="hidden sm:inline">Like</span>
+                          <span className={`rounded-full px-1.5 py-0.5 text-[10px] sm:text-xs font-black shrink-0 ${
+                            post.liked ? "bg-white/20 !text-white" : "bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200"
+                          }`}>
+                            {post.likes ?? 0}
+                          </span>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => handleCommentToggle(post._id)}
-                          className={`inline-flex items-center gap-2 rounded-lg px-3 py-2 font-bold transition ${
-                            commentOpenForPost[post._id] ? "bg-slate-900 text-white" : "bg-slate-50 text-slate-600 hover:bg-slate-100"
+                          className={`inline-flex items-center justify-center gap-1 sm:gap-2 rounded-xl px-2 py-2 sm:px-3.5 font-extrabold text-xs transition cursor-pointer border ${
+                            commentOpenForPost[post._id]
+                              ? "active-green-btn bg-teal-600 !text-white border-teal-600 shadow-md shadow-teal-600/30"
+                              : "bg-slate-100 dark:bg-slate-950 text-slate-800 dark:text-slate-300 border-slate-300 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-800"
                           }`}
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
                             <path strokeLinecap="round" strokeLinejoin="round" d="M8 10h8M8 14h5m-7 4h10a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2Z" />
                           </svg>
-                          Comment
-                          <span className="rounded-full bg-white/90 px-1.5 py-0.5 text-xs text-slate-700">{post.comments ?? 0}</span>
+                          <span className="hidden sm:inline">Comment</span>
+                          <span className={`rounded-full px-1.5 py-0.5 text-[10px] sm:text-xs font-black shrink-0 ${
+                            commentOpenForPost[post._id] ? "bg-white/20 !text-white" : "bg-slate-200 dark:bg-slate-800 text-slate-800 dark:text-slate-200"
+                          }`}>
+                            {post.comments ?? 0}
+                          </span>
                         </button>
 
                         <button
                           type="button"
                           onClick={() => handleShare(post._id)}
-                          className="inline-flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 font-bold text-slate-600 transition hover:bg-slate-100"
+                          className="inline-flex items-center justify-center gap-1 sm:gap-2 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-800 px-2 py-2 sm:px-3.5 font-extrabold text-xs text-slate-800 dark:text-slate-300 transition hover:bg-slate-200 dark:hover:bg-slate-800 cursor-pointer"
                         >
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M7 14v3a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-3M12 4v10m0 0 3-3m-3 3-3-3" />
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 shrink-0 text-teal-600 dark:text-teal-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 100-5.999 3 3 0 000 5.999zm0 11.998a3 3 0 100-5.999 3 3 0 000 5.999z" />
                           </svg>
-                          Share
-                          <span className="rounded-full bg-white px-1.5 py-0.5 text-xs">{post.shares ?? 0}</span>
+                          <span className="hidden sm:inline">Share</span>
+                          <span className="rounded-full bg-slate-200 dark:bg-slate-800 px-1.5 py-0.5 text-[10px] sm:text-xs font-black text-slate-800 dark:text-slate-200 shrink-0">
+                            {post.shares ?? 0}
+                          </span>
                         </button>
                       </div>
                     </div>
                   </div>
 
                   {commentOpenForPost[post._id] ? (
-                    <div className="border-t border-slate-100 bg-slate-50 p-5">
+                    <div className="border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-950/90 p-5">
                       {comments.length > 0 ? (
                         <div className="space-y-3">
-                          {comments.map((comment) => {
-                            const replyKey = `${post._id}-${comment.id}`;
+                          {comments.map((comment, cIndex) => {
+                            const commentId = comment.id || (comment as any)._id || `comment-${cIndex}`;
+                            const replyKey = `${post._id}-${commentId}`;
 
                             return (
-                              <div key={comment.id} className="rounded-xl border border-slate-200 bg-white p-3">
+                              <div key={commentId} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3.5 shadow-sm">
                                 <div className="flex items-start gap-3">
                                   <UserAvatar name={comment.author} photoUrl={comment.authorPhotoUrl} size="sm" />
                                   <div className="min-w-0 flex-1">
                                     <div className="flex flex-wrap items-center justify-between gap-2">
-                                      <span className="text-sm font-black text-slate-900">{comment.author}</span>
+                                      <span className="text-sm font-black text-slate-900 dark:text-white">{comment.author}</span>
                                       <button
                                         type="button"
                                         onClick={() => {
                                           setReplyOpenForComment((current) => ({ ...current, [replyKey]: !current[replyKey] }));
                                           setReplyTarget((current) => ({ ...current, [replyKey]: comment.author }));
                                         }}
-                                        className="rounded-md px-2 py-1 text-xs font-bold text-blue-700 transition hover:bg-blue-50"
+                                        className="rounded-md px-2 py-1 text-xs font-bold text-teal-700 dark:text-teal-400 transition hover:bg-teal-50 dark:hover:bg-teal-950/40 cursor-pointer"
                                       >
                                         Reply
                                       </button>
                                     </div>
-                                    <p className="mt-1 text-sm leading-6 text-slate-700">{comment.text}</p>
+                                    <p className="mt-1 text-sm leading-6 text-slate-800 dark:text-slate-300">{comment.text}</p>
 
                                     {(comment.replies || []).length > 0 ? (
-                                      <div className="mt-3 space-y-2 border-l-2 border-blue-100 pl-3">
-                                        {comment.replies?.map((reply) => (
-                                          <div key={reply.id} className="flex gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700">
+                                      <div className="mt-3 space-y-2 border-l-2 border-teal-500/30 pl-3">
+                                        {comment.replies?.map((reply, rIndex) => (
+                                          <div key={reply.id || (reply as any)._id || `reply-${rIndex}`} className="flex gap-2 rounded-lg bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 px-3 py-2 text-sm text-slate-800 dark:text-slate-300">
                                             <UserAvatar name={reply.author} photoUrl={reply.authorPhotoUrl} size="sm" />
                                             <div className="min-w-0">
-                                              <span className="font-black text-slate-900">{reply.author}</span>
-                                              {reply.replyTo ? <span className="ml-1 text-slate-500">replying to {reply.replyTo}</span> : null}
-                                              <p className="mt-1 leading-6">{reply.text}</p>
+                                              <span className="font-black text-slate-900 dark:text-white">{reply.author}</span>
+                                              {reply.replyTo ? <span className="ml-1 text-slate-500 dark:text-slate-400">replying to {reply.replyTo}</span> : null}
+                                              <p className="mt-1 leading-6 text-slate-800 dark:text-slate-300">{reply.text}</p>
                                             </div>
                                           </div>
                                         ))}
@@ -840,9 +878,9 @@ export default function Feed() {
                                             }))
                                           }
                                           placeholder={`Reply to ${replyTarget[replyKey] || comment.author}...`}
-                                          className="form-input rounded-lg px-4 py-2 text-sm"
+                                          className="form-input rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-2 text-sm text-slate-900 dark:text-white placeholder-slate-400 focus:border-teal-500 transition"
                                         />
-                                        <button type="submit" className="btn-primary rounded-lg px-4 py-2 text-sm font-bold transition">
+                                        <button type="submit" className="btn-primary rounded-xl px-4 py-2 text-sm font-bold transition cursor-pointer">
                                           Reply
                                         </button>
                                       </form>
@@ -854,7 +892,7 @@ export default function Feed() {
                           })}
                         </div>
                       ) : (
-                        <p className="rounded-xl border border-dashed border-slate-200 bg-white px-4 py-5 text-center text-sm text-slate-500">
+                        <p className="rounded-xl border border-dashed border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 px-4 py-5 text-center text-sm font-bold text-slate-600 dark:text-slate-400">
                           No comments yet. Add the first one.
                         </p>
                       )}
@@ -864,9 +902,9 @@ export default function Feed() {
                           value={commentDrafts[post._id] || ""}
                           onChange={(event) => setCommentDrafts((current) => ({ ...current, [post._id]: event.target.value }))}
                           placeholder="Write a thoughtful comment..."
-                          className="form-input rounded-lg px-4 py-3 text-sm"
+                          className="form-input rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:border-teal-500 transition"
                         />
-                        <button type="submit" className="btn-primary rounded-lg px-5 py-3 text-sm font-bold transition">
+                        <button type="submit" className="btn-primary rounded-xl px-5 py-3 text-sm font-bold transition cursor-pointer">
                           Comment
                         </button>
                       </form>

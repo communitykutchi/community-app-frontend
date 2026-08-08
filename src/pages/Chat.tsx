@@ -458,9 +458,9 @@ export default function Chat() {
   }
 
   return (
-    <div className="fixed bottom-0 right-3 sm:right-6 z-50 w-[94vw] sm:w-[380px] h-[520px] max-h-[85vh] bg-white rounded-t-3xl shadow-2xl border border-slate-300 flex flex-col overflow-hidden">
+    <div className="fixed bottom-0 right-3 sm:right-6 z-50 w-[94vw] sm:w-[380px] h-[520px] max-h-[85vh] bg-slate-900 rounded-t-3xl shadow-2xl border border-slate-800 flex flex-col overflow-hidden text-white">
       {/* Facebook Style Chat Header */}
-      <header className="flex items-center justify-between border-b border-slate-100 bg-slate-950 px-4 py-3 text-white shrink-0">
+      <header className="flex items-center justify-between border-b border-slate-800 bg-slate-950 px-4 py-3 text-white shrink-0">
         <div
           onClick={() => partner && navigate(`/user/${partner._id}`)}
           className="flex items-center gap-2.5 cursor-pointer group min-w-0"
@@ -472,7 +472,7 @@ export default function Chat() {
               size="sm"
               className={`${partnerPresence.isOnline ? "ring-2 ring-emerald-400" : "ring-2 ring-slate-600"} group-hover:scale-105 transition`}
             />
-            <span className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full ring-2 ring-slate-950 ${partnerPresence.isOnline ? 'bg-emerald-500' : 'bg-slate-500'}`} />
+            <span className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full ring-2 ring-slate-950 ${partnerPresence.isOnline ? 'bg-emerald-400' : 'bg-slate-500'}`} />
           </div>
 
           <div className="min-w-0">
@@ -489,7 +489,7 @@ export default function Chat() {
           <button
             type="button"
             onClick={() => setIsMinimized(true)}
-            className="rounded-lg bg-white/10 p-1.5 text-slate-300 hover:bg-white/20 hover:text-white transition"
+            className="rounded-lg bg-slate-800 p-1.5 text-slate-300 hover:bg-slate-700 hover:text-white transition"
             title="Minimize Chat"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -500,7 +500,7 @@ export default function Chat() {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="rounded-lg bg-white/10 p-1.5 text-slate-300 hover:bg-rose-600 hover:text-white transition"
+            className="rounded-lg bg-slate-800 p-1.5 text-slate-300 hover:bg-rose-600 hover:text-white transition"
             title="Close Chat"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -512,16 +512,16 @@ export default function Chat() {
 
       {/* Status Error Alert */}
         {status ? (
-          <div className="bg-rose-50 px-5 py-2.5 text-xs font-semibold text-rose-700 border-b border-rose-200 flex justify-between items-center">
+          <div className="bg-rose-950/60 px-5 py-2.5 text-xs font-semibold text-rose-300 border-b border-rose-800/80 flex justify-between items-center">
             <span>{status}</span>
-            <button onClick={() => setStatus(null)} className="text-rose-500 hover:text-rose-800">✕</button>
+            <button onClick={() => setStatus(null)} className="text-rose-400 hover:text-white">✕</button>
           </div>
         ) : null}
 
         {/* Chat Messages Body */}
         <main
           id="chat-messages-container-full"
-          className="flex-1 overflow-y-auto bg-gradient-to-b from-slate-100 via-slate-50 to-emerald-50/20 p-4 sm:p-6 space-y-1.5"
+          className="flex-1 overflow-y-auto bg-gradient-to-b from-slate-950 via-slate-900 to-teal-950/40 p-4 sm:p-6 space-y-1.5"
         >
           {chat?.messages?.length ? (
             chat.messages.map((item, index) => {
@@ -550,11 +550,11 @@ export default function Chat() {
                 <React.Fragment key={(item._id || item.createdAt) + "-" + index}>
                   {showDateDivider && (
                     <div className="w-full flex items-center justify-center my-4 py-1 select-none pointer-events-none">
-                      <div className="h-[1px] flex-1 bg-slate-300/60 max-w-[60px] sm:max-w-[100px]" />
-                      <span className="mx-2.5 rounded-full bg-slate-200/90 border border-slate-300/80 px-3.5 py-0.5 text-[10px] font-black text-slate-700 uppercase tracking-wider shadow-2xs">
+                      <div className="h-[1px] flex-1 bg-slate-800 max-w-[60px] sm:max-w-[100px]" />
+                      <span className="mx-2.5 rounded-full bg-slate-950 border border-slate-800 px-3.5 py-0.5 text-[10px] font-black text-teal-300 uppercase tracking-wider shadow-2xs">
                         {dateLabel}
                       </span>
-                      <div className="h-[1px] flex-1 bg-slate-300/60 max-w-[60px] sm:max-w-[100px]" />
+                      <div className="h-[1px] flex-1 bg-slate-800 max-w-[60px] sm:max-w-[100px]" />
                     </div>
                   )}
                   <div className={`flex items-end gap-2 my-1 ${isOutgoing ? 'justify-end' : 'justify-start'}`}>
@@ -563,16 +563,16 @@ export default function Chat() {
                         name={senderName}
                         photoUrl={senderPhoto || partner?.profilePhotoUrl || partner?.photoUrl}
                         size="sm"
-                        className="ring-1 ring-slate-300 mb-0.5 shrink-0"
+                        className="ring-1 ring-slate-700 mb-0.5 shrink-0"
                       />
                     )}
 
                     <div className={`max-w-[85%] sm:max-w-[75%] rounded-2xl ${
                       isOutgoing 
-                        ? 'bg-emerald-600 text-white rounded-br-xs shadow-sm px-3.5 py-2' 
-                        : 'bg-white text-slate-900 border border-slate-200/90 rounded-bl-xs shadow-sm px-3.5 py-2'
+                        ? 'bg-teal-600 text-white rounded-br-xs shadow-sm px-3.5 py-2' 
+                        : 'bg-slate-800/90 text-white border border-slate-700/80 rounded-bl-xs shadow-sm px-3.5 py-2'
                     }`}>
-                      <p className={`text-[11px] font-bold mb-1 ${isOutgoing ? 'text-emerald-100' : 'text-emerald-700'}`}>
+                      <p className={`text-[11px] font-bold mb-1 ${isOutgoing ? 'text-teal-100' : 'text-teal-300'}`}>
                         {senderName}
                       </p>
 
@@ -580,13 +580,13 @@ export default function Chat() {
                         <AudioPlayer url={item.audioUrl} duration={item.audioDuration} isOutgoing={isOutgoing} />
                       ) : (
                         <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                          <span className="text-xs sm:text-sm leading-snug whitespace-pre-wrap break-words font-normal">
+                          <span className="text-xs sm:text-sm leading-snug whitespace-pre-wrap break-words font-normal text-white">
                             {item.text}
                           </span>
                         </div>
                       )}
 
-                      <div className={`text-[10px] ml-auto shrink-0 flex items-center justify-end gap-1 mt-1 ${isOutgoing ? 'text-emerald-100' : 'text-slate-400'}`}>
+                      <div className={`text-[10px] ml-auto shrink-0 flex items-center justify-end gap-1 mt-1 ${isOutgoing ? 'text-teal-100' : 'text-slate-400'}`}>
                         <span>{new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                         {isOutgoing && renderMessageTicks(item)}
                       </div>
@@ -597,7 +597,7 @@ export default function Chat() {
                         name={currentUser?.fullName || currentUser?.username || 'You'}
                         photoUrl={currentUser?.profilePhotoUrl || currentUser?.photoUrl || senderPhoto}
                         size="sm"
-                        className="ring-1 ring-emerald-500/40 mb-0.5 shrink-0"
+                        className="ring-1 ring-teal-500/40 mb-0.5 shrink-0"
                       />
                     )}
                   </div>
@@ -606,11 +606,11 @@ export default function Chat() {
             })
           ) : (
             <div className="flex h-full flex-col items-center justify-center p-8 text-center">
-              <div className="w-20 h-20 rounded-full bg-emerald-100 text-emerald-600 grid place-items-center text-3xl shadow-inner mb-4">
+              <div className="w-20 h-20 rounded-full bg-teal-500/20 text-teal-300 grid place-items-center text-3xl shadow-inner mb-4 border border-teal-500/30">
                 💬
               </div>
-              <h3 className="text-base font-bold text-slate-800">No messages yet</h3>
-              <p className="mt-1 text-xs text-slate-500 max-w-xs">
+              <h3 className="text-base font-bold text-white">No messages yet</h3>
+              <p className="mt-1 text-xs text-slate-400 max-w-xs">
                 Start the conversation or send a voice message to {partner?.fullName || partner?.username || 'your friend'}!
               </p>
             </div>
@@ -619,7 +619,7 @@ export default function Chat() {
 
         {/* Emoji Quick Drawer */}
         {showEmojiPicker && (
-          <div className="bg-white border-t border-slate-200 px-6 py-2 flex flex-wrap gap-2 shadow-inner">
+          <div className="bg-slate-900 border-t border-slate-800 px-6 py-2 flex flex-wrap gap-2 shadow-inner">
             {emojis.map((e) => (
               <button
                 key={e}
@@ -634,12 +634,12 @@ export default function Chat() {
         )}
 
         {/* Footer Input & Voice Controls */}
-        <footer className="border-t border-slate-200 bg-white p-4">
+        <footer className="border-t border-slate-800 bg-slate-950 p-4">
           {isRecording ? (
-            <div className="flex items-center justify-between gap-3 bg-rose-50 border border-rose-200 p-3 rounded-2xl animate-pulse">
+            <div className="flex items-center justify-between gap-3 bg-rose-950/80 border border-rose-800/80 p-3 rounded-2xl animate-pulse">
               <div className="flex items-center gap-3">
-                <span className="h-3 w-3 rounded-full bg-rose-600 animate-ping" />
-                <span className="text-xs font-extrabold text-rose-800 uppercase tracking-wider">
+                <span className="h-3 w-3 rounded-full bg-rose-500 animate-ping" />
+                <span className="text-xs font-extrabold text-rose-200 uppercase tracking-wider">
                   Recording Voice Note ({formatRecordingTime(recordingTime)})
                 </span>
               </div>
@@ -648,7 +648,7 @@ export default function Chat() {
                 <button
                   type="button"
                   onClick={cancelRecording}
-                  className="rounded-xl border border-rose-300 bg-white px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-100 transition"
+                  className="rounded-xl border border-rose-700 bg-slate-900 px-3 py-1.5 text-xs font-bold text-rose-300 hover:bg-rose-950/60 transition"
                 >
                   🗑️ Cancel
                 </button>
@@ -656,7 +656,7 @@ export default function Chat() {
                   type="button"
                   onClick={sendVoiceNote}
                   disabled={uploadingVoice}
-                  className="rounded-xl bg-emerald-600 px-4 py-1.5 text-xs font-extrabold text-white shadow-md hover:bg-emerald-500 transition"
+                  className="rounded-xl bg-teal-600 px-4 py-1.5 text-xs font-extrabold text-white shadow-md hover:bg-teal-500 transition"
                 >
                   {uploadingVoice ? "Uploading..." : "⬆️ Send Voice Note"}
                 </button>
@@ -667,7 +667,7 @@ export default function Chat() {
               <button
                 type="button"
                 onClick={() => setShowEmojiPicker((v) => !v)}
-                className="p-2.5 rounded-2xl text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition"
+                className="p-2.5 rounded-2xl text-slate-400 hover:text-teal-400 hover:bg-slate-900 transition"
                 title="Add Emoji"
               >
                 😊
@@ -676,7 +676,7 @@ export default function Chat() {
               <button
                 type="button"
                 onClick={startRecording}
-                className="p-2.5 rounded-2xl text-slate-500 hover:text-rose-600 hover:bg-rose-50 transition"
+                className="p-2.5 rounded-2xl text-slate-400 hover:text-rose-400 hover:bg-slate-900 transition"
                 title="Record Voice Note"
               >
                 🎙️
@@ -688,14 +688,14 @@ export default function Chat() {
                 onKeyDown={handleKeyDown}
                 rows={1}
                 placeholder="Type your message... (Press Enter to send)"
-                className="flex-1 resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs sm:text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 min-h-[44px] max-h-[120px]"
+                className="flex-1 resize-none rounded-2xl border border-slate-700/80 bg-slate-900 px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-400 outline-none transition focus:border-teal-400 focus:ring-2 focus:ring-teal-500/20 min-h-[44px] max-h-[120px]"
               />
 
               <button
                 type="button"
                 onClick={sendMessage}
                 disabled={sending || !message.trim()}
-                className="inline-flex items-center justify-center rounded-2xl bg-emerald-700 px-6 py-3 text-xs sm:text-sm font-bold text-white shadow-lg transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center justify-center rounded-2xl bg-teal-600 px-6 py-3 text-xs sm:text-sm font-bold text-white shadow-lg shadow-teal-900/40 transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {sending ? 'Sending...' : 'Send'}
               </button>

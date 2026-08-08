@@ -4,6 +4,18 @@ import Toast from "../components/Toast";
 
 const NOTICE_ACTIVITY_EVENT = "community-notice-activity";
 
+function formatNoticeTime(value: string) {
+  const date = new Date(value);
+  if (!Number.isFinite(date.getTime())) return "";
+
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
+
 const noticesTranslations: Record<string, string> = {
   mayyat_closing: "Inna lillahi wa inna ilayhi raji'un.",
   reaction_heart: 'Love',
@@ -440,10 +452,10 @@ function renderFormattedText(text: string, langMode?: "roman" | "urdu", isMayyat
             key={lineIndex}
             className={`${
               isArabicHeader
-                ? "text-center text-xl sm:text-2xl font-bold py-1 text-amber-300 font-serif leading-loose"
+                ? "text-center text-xl sm:text-2xl font-black py-1 text-slate-950 dark:text-amber-300 font-serif leading-loose"
                 : isUrduMode
-                ? "text-white text-lg sm:text-xl font-bold leading-relaxed font-serif"
-                : "text-slate-100 text-base sm:text-lg font-semibold leading-relaxed tracking-wide"
+                ? "text-slate-900 dark:text-white text-lg sm:text-xl font-extrabold leading-relaxed font-serif"
+                : "text-slate-900 dark:text-slate-100 text-base sm:text-lg font-bold leading-relaxed tracking-wide"
             }`}
           >
             {parts.map((part, partIndex) => {
@@ -454,8 +466,8 @@ function renderFormattedText(text: string, langMode?: "roman" | "urdu", isMayyat
                     key={partIndex}
                     className={
                       isMayyatNotice
-                        ? "font-black text-amber-300"
-                        : "font-black text-teal-300 underline decoration-teal-400 decoration-2 underline-offset-4"
+                        ? "font-black text-slate-950 dark:text-amber-300"
+                        : "font-black text-teal-700 dark:text-teal-300 underline decoration-teal-500/50 dark:decoration-teal-400 decoration-2 underline-offset-4"
                     }
                   >
                     {inner}
@@ -500,6 +512,7 @@ export default function NoticesPage() {
   const [role, setRole] = useState<Role>("loading");
   const [notices, setNotices] = useState<Notice[]>([]);
   const [isLoadingNotices, setIsLoadingNotices] = useState(true);
+  const [filterType, setFilterType] = useState<"all" | "notice" | "mayyat">("all");
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [noticeType, setNoticeType] = useState<"notice" | "mayyat">("notice");
@@ -942,12 +955,26 @@ export default function NoticesPage() {
       .catch(() => {});
   };
 
-  const noticeList = useMemo(() => notices, [notices]);
+  const isMayyatNotice = (n: Notice) => {
+    return (
+      n.type === "mayyat" ||
+      Boolean(n.mayyatDetails?.deceasedName) ||
+      Boolean((n as any).isMayyat) ||
+      (n as any).category === "mayyat" ||
+      Boolean(n.title && (n.title.toLowerCase().includes("mayyat") || n.title.includes("میّت")))
+    );
+  };
+
+  const noticeList = useMemo(() => {
+    if (filterType === "all") return notices;
+    if (filterType === "mayyat") return notices.filter(isMayyatNotice);
+    return notices.filter((n) => !isMayyatNotice(n));
+  }, [notices, filterType]);
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6">
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-800 bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 px-6 py-6 text-white">
+        <div className="page-hero-banner border-b border-slate-800 bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 px-6 py-6 text-white">
           <div className="flex items-center gap-2 mb-2">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-teal-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-teal-300 border border-teal-500/30">
               <img src="/logo.png" alt="Logo" className="h-3.5 w-3.5 object-contain" />
@@ -970,54 +997,72 @@ export default function NoticesPage() {
       </div>
 
       {!roleResolved ? (
-        <div className="page-card p-4 text-sm text-slate-600">{t('checking_access_short')}</div>
+        <div className="rounded-2xl border border-teal-500/30 bg-slate-900/90 p-4 text-sm font-medium text-slate-300 shadow-md">{t('checking_access_short')}</div>
       ) : isAdminRole ? (
-        <div className="page-card p-6">
-          <div className="flex items-center justify-between gap-3">
+        <div className="relative overflow-hidden rounded-3xl border border-slate-200 dark:border-teal-500/40 bg-white dark:bg-slate-900/90 p-6 sm:p-7 text-slate-900 dark:text-white shadow-2xl transition-all duration-300">
+          <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-slate-800">
             <div>
-              <h2 className="page-title text-xl">{t('post_notice_title')}</h2>
-              <p className="page-subtitle text-sm">{t('post_notice_subtitle')}</p>
+              <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
+                <span>📝</span>
+                <span>{t('post_notice_title')}</span>
+              </h2>
+              <p className="mt-1 text-xs sm:text-sm text-slate-600 dark:text-slate-300">{t('post_notice_subtitle')}</p>
             </div>
-            <span className="rounded-full bg-emerald-100 px-3 py-1 text-sm font-medium text-emerald-700">{t('admin_only')}</span>
+            <span className="rounded-full bg-teal-100 dark:bg-teal-500/20 border border-teal-300 dark:border-teal-400/30 px-3.5 py-1 text-xs font-bold text-teal-900 dark:text-teal-300 shadow-sm">
+              {t('admin_only')}
+            </span>
           </div>
 
-          <form onSubmit={handlePost} className="mt-4 space-y-3">
-            <div className="grid gap-2 sm:grid-cols-2">
+          <form onSubmit={handlePost} className="mt-5 space-y-4">
+            <div className="grid gap-3 sm:grid-cols-2">
               <button
                 type="button"
                 onClick={() => setNoticeType("notice")}
-                className={`rounded-lg border px-4 py-3 text-left text-sm font-semibold transition ${
+                className={`rounded-xl border px-4 py-3 text-left text-sm font-extrabold transition flex items-center justify-between cursor-pointer ${
                   noticeType === "notice"
-                    ? "border-blue-600 bg-blue-50 text-blue-800"
-                    : "border-slate-200 bg-white text-slate-600 hover:border-blue-200"
+                    ? "active-green-btn bg-teal-600 !text-white border-teal-600 shadow-md shadow-teal-600/30"
+                    : "border-slate-300 dark:border-slate-800 bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-400 hover:border-teal-500 hover:text-slate-900 dark:hover:text-slate-200"
                 }`}
               >
-                {t('regular_notice')}
+                <div className="flex items-center gap-2">
+                  <span>📢</span>
+                  <span className={noticeType === "notice" ? "!text-white font-extrabold" : ""}>{t('regular_notice')}</span>
+                </div>
+                {noticeType === "notice" && <span className="h-2.5 w-2.5 rounded-full bg-white animate-pulse"></span>}
               </button>
               <button
                 type="button"
                 onClick={() => setNoticeType("mayyat")}
-                className={`rounded-lg border px-4 py-3 text-left text-sm font-semibold transition ${
+                className={`rounded-xl border px-4 py-3 text-left text-sm font-extrabold transition flex items-center justify-between cursor-pointer ${
                   noticeType === "mayyat"
-                    ? "border-slate-800 bg-slate-900 text-white"
-                    : "border-slate-200 bg-white text-slate-600 hover:border-slate-400"
+                    ? "active-green-btn bg-teal-600 !text-white border-teal-600 shadow-md shadow-teal-600/30"
+                    : "border-slate-300 dark:border-slate-800 bg-slate-100 dark:bg-slate-900/60 text-slate-700 dark:text-slate-400 hover:border-teal-500 hover:text-slate-900 dark:hover:text-slate-200"
                 }`}
               >
-                {t('mayyat_notification')}
+                <div className="flex items-center gap-2">
+                  <span>🕌</span>
+                  <span className={noticeType === "mayyat" ? "!text-white font-extrabold" : ""}>{t('mayyat_notification')}</span>
+                </div>
+                {noticeType === "mayyat" && <span className="h-2.5 w-2.5 rounded-full bg-white animate-pulse"></span>}
               </button>
             </div>
+
             {noticeType === "mayyat" ? (
-              <div className="space-y-3">
-                <div className="flex items-center justify-between gap-2 border-b border-slate-200 pb-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Mayyat Details / تفصیلات:</span>
-                  <div className="flex items-center gap-1 rounded-md bg-slate-100 p-1 border border-slate-200">
+              <div className="space-y-4 rounded-2xl border border-amber-300 dark:border-amber-500/30 bg-amber-50/50 dark:bg-slate-900/80 p-4 sm:p-5">
+                <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-200 dark:border-slate-800 pb-3">
+                  <span className="text-xs font-black uppercase tracking-wider text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
+                    <span>✨</span>
+                    <span>Mayyat Details / تفصیلات:</span>
+                  </span>
+
+                  <div className="flex items-center gap-1 rounded-xl bg-white dark:bg-slate-950 p-1 border border-amber-200 dark:border-slate-800">
                     <button
                       type="button"
                       onClick={() => setCreateFormLangTab("roman")}
-                      className={`rounded-md px-3 py-1 text-xs font-semibold transition ${
+                      className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
                         createFormLangTab === "roman"
-                          ? "bg-slate-900 text-white shadow-sm"
-                          : "text-slate-600 hover:text-slate-900"
+                          ? "active-green-btn bg-teal-600 !text-white shadow-md"
+                          : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                       }`}
                     >
                       Roman Urdu Fields
@@ -1025,10 +1070,10 @@ export default function NoticesPage() {
                     <button
                       type="button"
                       onClick={() => setCreateFormLangTab("urdu")}
-                      className={`rounded-md px-3 py-1 text-xs font-semibold transition ${
+                      className={`rounded-lg px-3 py-1.5 text-xs font-bold transition ${
                         createFormLangTab === "urdu"
-                          ? "bg-emerald-700 text-white shadow-sm font-serif"
-                          : "text-slate-600 hover:text-slate-900"
+                          ? "active-green-btn bg-teal-600 !text-white shadow-md font-serif"
+                          : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
                       }`}
                     >
                       اردو فیلڈز
@@ -1042,43 +1087,43 @@ export default function NoticesPage() {
                       value={mayyatDetails.deceasedNameRoman ?? mayyatDetails.deceasedName ?? ""}
                       onChange={(event) => updateMayyatDetails("deceasedNameRoman", event.target.value)}
                       placeholder="Marhoom Ka Naam *"
-                      className="form-input px-4 py-3"
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-950/90 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition"
                     />
                     <input
                       value={mayyatDetails.fatherNameRoman ?? mayyatDetails.fatherName ?? ""}
                       onChange={(event) => updateMayyatDetails("fatherNameRoman", event.target.value)}
                       placeholder="Walid Ka Naam"
-                      className="form-input px-4 py-3"
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-950/90 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition"
                     />
                     <input
                       value={mayyatDetails.relationRoman ?? mayyatDetails.relation ?? ""}
                       onChange={(event) => updateMayyatDetails("relationRoman", event.target.value)}
                       placeholder="Rishta (e.g. walad / beta / beti / shohar)"
-                      className="form-input px-4 py-3"
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-950/90 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition"
                     />
                     <input
                       value={mayyatDetails.funeralPrayerDayPartRoman ?? mayyatDetails.funeralPrayerDayPart ?? ""}
                       onChange={(event) => updateMayyatDetails("funeralPrayerDayPartRoman", event.target.value)}
                       placeholder="Subah / Raat / Din Part (e.g. Subah / Raat)"
-                      className="form-input px-4 py-3"
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-950/90 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition"
                     />
                     <input
                       value={mayyatDetails.funeralPrayerTimeRoman ?? mayyatDetails.funeralPrayerTime ?? ""}
                       onChange={(event) => updateMayyatDetails("funeralPrayerTimeRoman", event.target.value)}
                       placeholder="Waqt (e.g. 10:00 / 5:00)"
-                      className="form-input px-4 py-3"
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-950/90 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition"
                     />
                     <input
                       value={mayyatDetails.funeralPrayerPlaceRoman ?? mayyatDetails.funeralPrayerPlace ?? ""}
                       onChange={(event) => updateMayyatDetails("funeralPrayerPlaceRoman", event.target.value)}
                       placeholder="Namaz-e-Janaza Ka Muqam (Masjid + Address) *"
-                      className="form-input px-4 py-3"
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-950/90 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition"
                     />
                     <input
                       value={mayyatDetails.notesRoman ?? mayyatDetails.notes ?? ""}
                       onChange={(event) => updateMayyatDetails("notesRoman", event.target.value)}
                       placeholder="Extra Notes / Dua Request (Optional)"
-                      className="form-input px-4 py-3 sm:col-span-2"
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-950/90 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition sm:col-span-2"
                     />
                   </div>
                 ) : (
@@ -1087,98 +1132,147 @@ export default function NoticesPage() {
                       value={mayyatDetails.deceasedNameUrdu || ""}
                       onChange={(event) => updateMayyatDetails("deceasedNameUrdu", event.target.value)}
                       placeholder="مرحوم کا نام *"
-                      className="form-input px-4 py-3 font-serif"
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-950/90 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition font-serif"
                     />
                     <input
                       value={mayyatDetails.fatherNameUrdu || ""}
                       onChange={(event) => updateMayyatDetails("fatherNameUrdu", event.target.value)}
                       placeholder="والد کا نام"
-                      className="form-input px-4 py-3 font-serif"
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-950/90 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition font-serif"
                     />
                     <input
                       value={mayyatDetails.relationUrdu || ""}
                       onChange={(event) => updateMayyatDetails("relationUrdu", event.target.value)}
                       placeholder="رشتہ (مثلاً ولد / بیٹا / شوہر)"
-                      className="form-input px-4 py-3 font-serif"
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-950/90 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition font-serif"
                     />
                     <input
                       value={mayyatDetails.funeralPrayerDayPartUrdu || ""}
                       onChange={(event) => updateMayyatDetails("funeralPrayerDayPartUrdu", event.target.value)}
                       placeholder="صبح / رات / ظہر (مثلاً صبح / رات)"
-                      className="form-input px-4 py-3 font-serif"
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-950/90 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition font-serif"
                     />
                     <input
                       value={mayyatDetails.funeralPrayerTimeUrdu || ""}
                       onChange={(event) => updateMayyatDetails("funeralPrayerTimeUrdu", event.target.value)}
                       placeholder="وقت (مثلاً 10:00 / 5:00)"
-                      className="form-input px-4 py-3 font-serif"
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-950/90 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition font-serif"
                     />
                     <input
                       value={mayyatDetails.funeralPrayerPlaceUrdu || ""}
                       onChange={(event) => updateMayyatDetails("funeralPrayerPlaceUrdu", event.target.value)}
                       placeholder="نمازِ جنازہ کا مقام (مسجد + ایڈریس) *"
-                      className="form-input px-4 py-3 font-serif"
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-950/90 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition font-serif"
                     />
                     <input
                       value={mayyatDetails.notesUrdu || ""}
                       onChange={(event) => updateMayyatDetails("notesUrdu", event.target.value)}
                       placeholder="اضافی نوٹ / دعا کی التجا"
-                      className="form-input px-4 py-3 sm:col-span-2 font-serif"
+                      className="w-full rounded-xl border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-950/90 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:border-amber-500 focus:outline-none focus:ring-2 focus:ring-amber-500/20 transition sm:col-span-2 font-serif"
                     />
                   </div>
                 )}
               </div>
             ) : (
-              <>
+              <div className="space-y-3">
                 <input
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
                   placeholder={t('placeholder_notice_title')}
-                  className="form-input px-4 py-3"
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-950/90 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition"
                 />
                 <textarea
                   value={body}
                   onChange={(event) => setBody(event.target.value)}
                   rows={4}
                   placeholder={t('placeholder_notice_body')}
-                  className="form-input px-4 py-3"
+                  className="w-full rounded-xl border border-slate-300 dark:border-slate-700/80 bg-white dark:bg-slate-950/90 px-4 py-3 text-sm font-semibold text-slate-900 dark:text-white placeholder-slate-400 focus:border-teal-500 focus:outline-none focus:ring-2 focus:ring-teal-500/20 transition"
                 />
-              </>
+              </div>
             )}
-            <label className="flex items-center gap-2 text-sm text-gray-600">
-              <input type="checkbox" checked={pinned} onChange={() => setPinned((current) => !current)} />
-              {t('pin_this_notice')}
-            </label>
-            <button type="submit" className="btn-primary rounded-lg px-4 py-2 font-semibold transition">
-              {noticeType === "mayyat" ? t('publish_mayyat_action') : t('publish_notice_action')}
-            </button>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+              <label className="flex items-center gap-2.5 text-xs sm:text-sm font-bold text-slate-800 dark:text-slate-200 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={pinned}
+                  onChange={() => setPinned((current) => !current)}
+                  className="h-4 w-4 rounded border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-teal-600 focus:ring-teal-500 accent-teal-600"
+                />
+                <span className="text-slate-800 dark:text-slate-200 font-bold">{t('pin_this_notice')}</span>
+              </label>
+
+              <button
+                type="submit"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl active-green-btn btn-primary bg-teal-600 !text-white px-6 py-3 text-xs sm:text-sm font-black uppercase tracking-wider shadow-lg shadow-teal-600/30 hover:bg-teal-700 active:scale-95 transition cursor-pointer"
+              >
+                <span className="!text-white font-black">🚀</span>
+                <span className="!text-white font-black">{noticeType === "mayyat" ? t('publish_mayyat_action') : t('publish_notice_action')}</span>
+              </button>
+            </div>
           </form>
 
-          {status ? <p className="mt-3 text-sm text-emerald-600">{status}</p> : null}
+          {status ? (
+            <div className="mt-4 rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs sm:text-sm font-bold text-emerald-300 flex items-center gap-2">
+              <span>✅</span>
+              <span>{status}</span>
+            </div>
+          ) : null}
         </div>
       ) : (
-        <div className="page-card p-4 text-sm text-slate-600">
-          You are viewing in member mode. You can read updates, react to them, and share them with others.
+        <div className="rounded-2xl border border-teal-500/30 bg-slate-900/90 p-5 text-sm font-medium text-slate-300 shadow-md">
+          {t('member_mode_msg')}
         </div>
       )}
 
       <div className="space-y-3">
-        {/* Mayyat Language Selection Controls */}
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="flex items-center gap-2">
-            <span className="inline-block h-2.5 w-2.5 rounded-full bg-slate-900"></span>
-            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">
-              Mayyat Notice Language / میّت نوٹسز کی زبان:
-            </h3>
+        {/* Notice Category View Filter Bar */}
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-md">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => setFilterType("all")}
+              className={`rounded-xl px-4 py-2.5 text-xs font-extrabold transition cursor-pointer ${
+                filterType === "all"
+                  ? "active-green-btn bg-teal-600 !text-white shadow-md shadow-teal-600/30"
+                  : "bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-800 hover:bg-teal-50 dark:hover:bg-slate-800"
+              }`}
+            >
+              <span className={filterType === "all" ? "!text-white font-extrabold" : ""}>📋 All Notices ({notices.length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterType("notice")}
+              className={`rounded-xl px-4 py-2.5 text-xs font-extrabold transition cursor-pointer ${
+                filterType === "notice"
+                  ? "active-green-btn bg-teal-600 !text-white shadow-md shadow-teal-600/30"
+                  : "bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-800 hover:bg-teal-50 dark:hover:bg-slate-800"
+              }`}
+            >
+              <span className={filterType === "notice" ? "!text-white font-extrabold" : ""}>📢 Regular Notices ({notices.filter((n) => !isMayyatNotice(n)).length})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setFilterType("mayyat")}
+              className={`rounded-xl px-4 py-2.5 text-xs font-extrabold transition cursor-pointer ${
+                filterType === "mayyat"
+                  ? "active-green-btn bg-teal-600 !text-white shadow-md shadow-teal-600/30"
+                  : "bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 border border-slate-300 dark:border-slate-800 hover:bg-teal-50 dark:hover:bg-slate-800"
+              }`}
+            >
+              <span className={filterType === "mayyat" ? "!text-white font-extrabold" : ""}>🕌 Mayyat Notices ({notices.filter(isMayyatNotice).length})</span>
+            </button>
           </div>
-          <div className="flex items-center gap-1.5 rounded-lg bg-slate-100 p-1 border border-slate-200">
+
+          {/* Mayyat Language Selection Controls */}
+          <div className="flex items-center gap-1.5 rounded-xl bg-slate-100 dark:bg-slate-950 p-1 border border-slate-300 dark:border-slate-800">
             <button
               type="button"
               onClick={() => handleLangModeChange("roman")}
-              className={`rounded-md px-3.5 py-1.5 text-xs sm:text-sm font-semibold transition ${
+              className={`rounded-lg px-3.5 py-1.5 text-xs font-bold transition ${
                 mayyatLangMode === "roman"
-                  ? "bg-slate-900 text-white shadow-sm"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                  ? "bg-teal-600 !text-white shadow-sm"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               Roman Urdu
@@ -1186,10 +1280,10 @@ export default function NoticesPage() {
             <button
               type="button"
               onClick={() => handleLangModeChange("urdu")}
-              className={`rounded-md px-3.5 py-1.5 text-xs sm:text-sm font-semibold transition ${
+              className={`rounded-lg px-3.5 py-1.5 text-xs font-bold transition ${
                 mayyatLangMode === "urdu"
-                  ? "bg-emerald-700 text-white shadow-sm font-serif"
-                  : "text-slate-600 hover:text-slate-900 hover:bg-slate-200/60"
+                  ? "bg-emerald-600 !text-white shadow-sm font-serif"
+                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
               اردو
@@ -1198,13 +1292,13 @@ export default function NoticesPage() {
         </div>
 
         {isLoadingNotices ? (
-          <div className="page-card p-4 text-sm text-slate-600">{t('loading_notices')}</div>
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-4 text-sm font-medium text-slate-300 shadow-md">{t('loading_notices')}</div>
         ) : noticeList.length === 0 ? (
-          <div className="page-card p-4 text-sm text-slate-600">{t('no_notices')}</div>
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-4 text-sm font-medium text-slate-300 shadow-md">{t('no_notices')}</div>
         ) : null}
 
         {noticeList.map((notice) => {
-          const isMayyat = notice.type === "mayyat";
+          const isMayyat = isMayyatNotice(notice);
           const selectedReaction = notice.userReaction;
           const hasShared = Boolean(notice.hasShared);
           const reactionCounts = getNormalizedReactionCounts(notice);
@@ -1215,20 +1309,20 @@ export default function NoticesPage() {
               key={notice.id}
               className={`relative overflow-hidden rounded-3xl border p-6 shadow-xl transition-all duration-300 ${
                 isMayyat
-                  ? "border-amber-500/60 bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950/60 text-white"
+                  ? "border-amber-500/60 bg-white dark:bg-gradient-to-br dark:from-slate-950 dark:via-slate-900 dark:to-amber-950/60 text-slate-900 dark:text-white"
                   : notice.pinned
-                  ? "border-amber-400/60 bg-gradient-to-br from-slate-900 via-amber-950/50 to-slate-950 text-white"
-                  : "border-teal-500/30 bg-gradient-to-br from-slate-900 via-teal-950/40 to-slate-950 text-white"
+                  ? "border-amber-400/60 bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-amber-950/50 dark:to-slate-950 text-slate-900 dark:text-white"
+                  : "border-slate-200 dark:border-teal-500/30 bg-white dark:bg-gradient-to-br dark:from-slate-900 dark:via-teal-950/40 dark:to-slate-950 text-slate-900 dark:text-white"
               }`}
             >
-              <div className="absolute -right-10 -bottom-10 h-32 w-32 rounded-full bg-white/5 blur-2xl pointer-events-none" />
+              <div className="absolute -right-10 -bottom-10 h-32 w-32 rounded-full bg-slate-100 dark:bg-white/5 blur-2xl pointer-events-none" />
 
               {/* Header Bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/15">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200 dark:border-white/15">
                 <div className="flex items-start sm:items-center gap-3">
                   <div
                     className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl font-extrabold text-base shadow-inner ${
-                      notice.pinned ? "bg-amber-500/30 border border-amber-400/50 text-amber-300" : isMayyat ? "bg-amber-500/20 border border-amber-400/40 text-amber-300" : "bg-teal-500/20 border border-teal-400/40 text-teal-300"
+                      notice.pinned ? "bg-amber-100 dark:bg-amber-500/30 border border-amber-300 dark:border-amber-400/50 text-slate-900 dark:text-amber-300" : isMayyat ? "bg-amber-100 dark:bg-amber-500/20 border border-amber-300 dark:border-amber-400/40 text-slate-900 dark:text-amber-300" : "bg-teal-100 dark:bg-teal-500/20 border border-teal-300 dark:border-teal-400/40 text-teal-800 dark:text-teal-300"
                     }`}
                   >
                     {notice.pinned ? "📌" : isMayyat ? "🕌" : "📢"}
@@ -1238,8 +1332,8 @@ export default function NoticesPage() {
                       <span
                         className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider ${
                           isMayyat
-                            ? "bg-amber-500/20 text-amber-300 border border-amber-400/30"
-                            : "bg-teal-500/20 text-teal-300 border border-teal-400/30"
+                            ? "bg-amber-100 dark:bg-amber-500/20 text-slate-900 dark:text-amber-300 border border-amber-300 dark:border-amber-400/30"
+                            : "bg-teal-100 dark:bg-teal-500/20 text-teal-900 dark:text-teal-300 border border-teal-300 dark:border-teal-400/30"
                         }`}
                       >
                         {isMayyat
@@ -1255,7 +1349,7 @@ export default function NoticesPage() {
                       )}
                     </div>
                     {!isMayyat && (
-                      <h3 className="mt-1.5 text-lg sm:text-xl font-black text-white tracking-tight leading-snug">
+                      <h3 className="mt-1.5 text-lg sm:text-xl font-extrabold text-slate-900 dark:text-white tracking-tight leading-snug">
                         {notice.title}
                       </h3>
                     )}
@@ -1263,10 +1357,10 @@ export default function NoticesPage() {
                 </div>
 
                 {/* Author & Timestamp */}
-                <div className="flex items-center gap-2 text-xs text-slate-300 bg-white/10 px-3.5 py-1.5 rounded-xl border border-white/15 backdrop-blur-md self-start sm:self-auto shrink-0">
-                  <span className="font-bold text-white">👤 {notice.author || "Admin"}</span>
-                  <span>•</span>
-                  <span className="text-slate-300">{new Date(notice.createdAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}</span>
+                <div className="flex items-center justify-between sm:justify-end gap-2 text-xs text-slate-800 dark:text-slate-200 bg-slate-100 dark:bg-slate-900/90 px-3 py-1.5 rounded-xl border border-slate-300 dark:border-slate-800 backdrop-blur-md w-full sm:w-auto shrink-0 shadow-sm">
+                  <span className="font-extrabold text-slate-950 dark:text-white truncate max-w-[180px] sm:max-w-none">👤 {notice.author || "Admin"}</span>
+                  <span className="text-slate-400 dark:text-slate-500">•</span>
+                  <span className="font-medium text-slate-700 dark:text-slate-300 shrink-0">{formatNoticeTime(notice.createdAt)}</span>
                 </div>
               </div>
 
@@ -1274,8 +1368,8 @@ export default function NoticesPage() {
               <div
                 className={`mt-4 rounded-2xl p-4 sm:p-6 backdrop-blur-md break-words [overflow-wrap:anywhere] ${
                   isMayyat
-                    ? "bg-slate-950/80 border border-amber-500/30 shadow-inner"
-                    : "bg-white/5 border border-white/10 text-slate-100"
+                    ? "bg-amber-50/80 dark:bg-slate-950/80 border border-amber-200 dark:border-amber-500/30 text-slate-950 dark:text-amber-100 shadow-inner"
+                    : "bg-slate-50 dark:bg-slate-950/80 border border-slate-200 dark:border-slate-800 text-slate-900 dark:text-slate-100"
                 }`}
               >
                 {renderFormattedText(

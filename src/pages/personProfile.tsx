@@ -4,6 +4,33 @@ import UserAvatar from "../components/UserAvatar";
 import Toast from "../components/Toast";
 import { PAKISTAN_CITIES } from "../utils/pakistanCities";
 
+const configuredApiBase = import.meta.env.VITE_API_URL || "https://backend.kutchicommunity.com";
+const apiOrigin = (() => {
+  try {
+    const fallbackOrigin = typeof window !== "undefined" ? window.location.origin : "http://localhost";
+    return new URL(configuredApiBase, fallbackOrigin).origin;
+  } catch {
+    return "https://backend.kutchicommunity.com";
+  }
+})();
+
+const getMediaUrl = (url?: string) => {
+  if (!url) return "/cover.png";
+  if (url.startsWith("blob:") || url.startsWith("data:")) return url;
+  if (url.startsWith("http")) {
+    try {
+      const mediaUrl = new URL(url);
+      if (mediaUrl.hostname === "localhost" || mediaUrl.hostname === "127.0.0.1") {
+        return `${apiOrigin}${mediaUrl.pathname}${mediaUrl.search}`;
+      }
+      return mediaUrl.toString();
+    } catch {
+      return url;
+    }
+  }
+  return url.startsWith("/") ? `${apiOrigin}${url}` : `${apiOrigin}/${url}`;
+};
+
 interface UserProfile {
   _id: string;
   fullName: string;
@@ -397,63 +424,73 @@ export default function PeopleProfile() {
       <Toast message={toast.message} type={toast.type} isVisible={toast.isVisible} onClose={() => setToast((t) => ({ ...t, isVisible: false }))} />
 
       {/* Profile Banner Card */}
-      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
+      <section className="overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 text-slate-900 dark:text-white shadow-xl">
         {/* Cover Photo Header */}
-        <div className="relative h-40 sm:h-48 bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 overflow-hidden">
+        <div className="cover-banner relative h-36 sm:h-52 md:h-64 overflow-hidden bg-slate-900">
           <img
-            src={coverPreviewUrl || user?.coverPhotoUrl || "/cover.png"}
+            src={getMediaUrl(coverPreviewUrl || user?.coverPhotoUrl)}
             alt="Cover Banner"
             className="w-full h-full object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = "/cover.png";
+            }}
           />
-          <div className="absolute inset-0 bg-slate-950/30" />
-
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-black/30 pointer-events-none" />
           {/* Upload Cover Photo Button */}
-          <label className="absolute top-4 right-4 z-10 flex cursor-pointer items-center gap-1.5 rounded-xl border border-white/20 bg-slate-900/60 px-3.5 py-1.5 text-xs font-bold text-white backdrop-blur-md hover:bg-slate-900/80 transition shadow-lg">
+          <label className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 flex cursor-pointer items-center gap-1 sm:gap-1.5 rounded-xl border border-white/30 bg-slate-950/80 px-2.5 py-1.5 sm:px-3.5 sm:py-2 text-[11px] sm:text-xs font-extrabold text-white backdrop-blur-md hover:bg-slate-900 transition shadow-lg">
             <span>📷</span>
-            <span>{uploadingCover ? "Uploading Cover..." : "Change Cover"}</span>
+            <span>{uploadingCover ? "Uploading..." : "Change Cover"}</span>
             <input type="file" accept="image/*" onChange={handleCoverPhotoChange} className="hidden" />
           </label>
         </div>
 
-        {/* Profile Info Bar */}
-        <div className="px-6 pb-6 pt-0 relative">
-          <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between -mt-12 sm:-mt-16 relative z-10">
-            <div className="flex flex-wrap items-end gap-4">
-              <div className="relative shrink-0">
-                <UserAvatar name={user?.fullName} photoUrl={photoUrl} size="xl" className="ring-4 ring-white bg-white shadow-xl" />
-                <label className="absolute -bottom-1 -right-1 grid h-9 w-9 cursor-pointer place-items-center rounded-xl border border-slate-200 bg-white text-slate-800 shadow-md transition hover:bg-slate-100 hover:scale-105 active:scale-95">
-                  <span className="sr-only">Upload profile photo</span>
-                  {uploadingPhoto ? (
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-teal-600 border-t-transparent" />
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-slate-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 0 1 2-2h.93a2 2 0 0 0 1.664-.89l.812-1.22A2 2 0 0 1 10.07 4h3.86a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 18.07 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z" />
-                      <circle cx="12" cy="13" r="3" />
-                    </svg>
-                  )}
-                  <input type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
-                </label>
-              </div>
-
-              <div className="min-w-0 pb-1">
-                <span className="inline-block rounded-full bg-teal-50 px-3 py-0.5 text-[11px] font-bold uppercase tracking-wider text-teal-800 border border-teal-200">
-                  {labelRole(user?.role)}
-                </span>
-                <h1 className="mt-1 truncate text-2xl sm:text-3xl font-extrabold text-slate-900">{user?.fullName || "Personal Details"}</h1>
-                <p className="mt-0.5 truncate text-xs text-slate-500">@{user?.username || "member"} • {user?.mobile || user?.email || "No contact info"}</p>
-              </div>
+        {/* Profile Info Bar with Dynamic Ambient Gradient */}
+        <div className="relative px-4 py-4 sm:px-6 sm:pb-6 sm:pt-0 bg-gradient-to-b from-slate-100/90 via-white to-white dark:from-slate-900/90 dark:via-slate-950 dark:to-slate-950 border-t border-slate-200/50 dark:border-slate-800/50">
+          <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 -mt-12 sm:-mt-16 relative z-10">
+            {/* Avatar Row */}
+            <div className="relative inline-block shrink-0">
+              <UserAvatar name={user?.fullName} photoUrl={photoUrl} size="xl" className="ring-4 ring-white dark:ring-slate-900 bg-white dark:bg-slate-950 shadow-2xl" />
+              <label className="absolute -bottom-1 -right-1 grid h-8 w-8 sm:h-9 sm:w-9 cursor-pointer place-items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-md transition hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-105 active:scale-95">
+                <span className="sr-only">Upload profile photo</span>
+                {uploadingPhoto ? (
+                  <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin rounded-full border-2 border-teal-500 border-t-transparent" />
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-700 dark:text-slate-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 0 1 2-2h.93a2 2 0 0 0 1.664-.89l.812-1.22A2 2 0 0 1 10.07 4h3.86a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 18.07 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z" />
+                    <circle cx="12" cy="13" r="3" />
+                  </svg>
+                )}
+                <input type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
+              </label>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 sm:min-w-56 shrink-0 shadow-sm">
-              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-700">
+            {/* Profile Completion Box */}
+            <div className="w-full sm:w-auto sm:min-w-64 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-3.5 sm:p-4 shrink-0 shadow-lg space-y-2">
+              <div className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">
                 <span>Profile Completion</span>
-                <span className="text-teal-700 font-extrabold">{profileCompletion}%</span>
+                <span className="rounded-full bg-teal-500/20 px-2.5 py-0.5 text-xs font-black text-teal-700 dark:text-teal-300 border border-teal-500/30">
+                  {profileCompletion}%
+                </span>
               </div>
-              <div className="mt-2.5 h-2 overflow-hidden rounded-full bg-slate-200">
-                <div className="h-full rounded-full bg-teal-600 transition-all duration-500" style={{ width: `${profileCompletion}%` }} />
+              <div className="progress-bar-track h-3 sm:h-3.5 overflow-hidden rounded-full p-0.5 shadow-inner">
+                <div
+                  className="progress-bar-fill h-full rounded-full transition-all duration-500"
+                  style={{ width: `${Math.max(profileCompletion, 5)}%` }}
+                />
               </div>
-              <p className="mt-2 text-[11px] text-slate-500">Fill all community fields to complete your profile.</p>
+              <p className="text-[11px] font-bold text-slate-600 dark:text-slate-400">Fill all community fields to complete profile.</p>
             </div>
+          </div>
+
+          {/* Name & Details Header (Positioned 100% cleanly below cover photo) */}
+          <div className="mt-3 sm:mt-4 space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-950 dark:text-white tracking-tight break-words max-w-full">{user?.fullName || "Personal Details"}</h1>
+              <span className="inline-block shrink-0 rounded-full bg-teal-500/20 px-3 py-0.5 text-[11px] font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300 border border-teal-500/30">
+                {labelRole(user?.role)}
+              </span>
+            </div>
+            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 break-words">@{user?.username || "member"} • {user?.mobile || user?.email || "No contact info"}</p>
           </div>
         </div>
       </section>
@@ -461,20 +498,20 @@ export default function PeopleProfile() {
       {/* Main Profile Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Section 1: Basic Identity Information */}
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
-          <div className="border-b border-slate-100 pb-3 flex items-center gap-3">
-            <div className="grid h-9 w-9 place-items-center rounded-xl bg-teal-50 text-teal-700 font-extrabold text-base">
+        <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 text-white shadow-xl space-y-5">
+          <div className="border-b border-slate-800 pb-3 flex items-center gap-3">
+            <div className="grid h-9 w-9 place-items-center rounded-xl bg-teal-500/20 text-teal-300 font-extrabold text-base border border-teal-500/30">
               👤
             </div>
             <div>
-              <h2 className="text-base font-extrabold text-slate-900">Basic Account & Identity</h2>
-              <p className="text-xs text-slate-500">Your core login, name, and contact details.</p>
+              <h2 className="text-base font-extrabold text-white">Basic Account & Identity</h2>
+              <p className="text-xs text-slate-400">Your core login, name, and contact details.</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="form-label">Full Name <span className="text-rose-500">*</span></label>
+              <label className="form-label">Full Name <span className="text-rose-400">*</span></label>
               <input
                 name="fullName"
                 value={form.fullName}
@@ -496,19 +533,19 @@ export default function PeopleProfile() {
                   className="form-input pr-10"
                 />
                 {usernameStatus === "checking" && (
-                  <div className="absolute right-3 top-3.5 h-4 w-4 animate-spin rounded-full border-2 border-teal-600 border-t-transparent" />
+                  <div className="absolute right-3 top-3.5 h-4 w-4 animate-spin rounded-full border-2 border-teal-400 border-t-transparent" />
                 )}
                 {usernameStatus === "available" && (
-                  <span className="absolute right-3 top-3 text-emerald-600 font-bold text-sm">✓</span>
+                  <span className="absolute right-3 top-3 text-emerald-400 font-bold text-sm">✓</span>
                 )}
               </div>
               {form.username && (
                 <p className={`mt-1.5 text-[11px] font-bold ${
                   usernameStatus === "available"
-                    ? "text-emerald-600"
+                    ? "text-emerald-400"
                     : usernameStatus === "taken" || usernameStatus === "invalid"
-                    ? "text-rose-600"
-                    : "text-slate-500"
+                    ? "text-rose-400"
+                    : "text-slate-400"
                 }`}>
                   {usernameMessage}
                 </p>
@@ -517,25 +554,25 @@ export default function PeopleProfile() {
 
             <div>
               <label className="form-label">Email Address</label>
-              <div className="relative flex items-center w-full">
+              <div className="flex flex-col sm:flex-row gap-2 sm:items-center w-full">
                 <input
                   name="email"
                   type="email"
                   value={form.email || ""}
                   readOnly
                   placeholder="name@example.com"
-                  className="form-input pr-28 sm:pr-36 text-xs sm:text-sm bg-slate-100/90 cursor-not-allowed font-semibold text-slate-800 truncate border-slate-200"
+                  className="form-input flex-1 min-w-0 text-xs sm:text-sm bg-slate-950/80 cursor-not-allowed font-semibold text-slate-300 truncate border-slate-800"
                 />
                 <button
                   type="button"
                   onClick={handleOpenEmailModal}
-                  className="absolute right-1.5 top-1.5 bottom-1.5 inline-flex items-center justify-center gap-1 sm:gap-1.5 rounded-xl bg-teal-600 px-3 sm:px-4 text-xs font-extrabold text-white shadow-md shadow-teal-600/20 hover:bg-teal-500 transition active:scale-95 shrink-0"
+                  className="w-full sm:w-auto inline-flex items-center justify-center gap-1.5 rounded-xl bg-teal-600 px-4 py-2.5 sm:py-2.5 text-xs font-extrabold text-white shadow-md shadow-teal-900/40 hover:bg-teal-500 transition active:scale-95 shrink-0 whitespace-nowrap"
                 >
                   <span>✏️</span>
                   <span>Change Email</span>
                 </button>
               </div>
-              <p className="mt-1.5 text-[11px] text-slate-500">Email is locked for security. Click 'Change Email' to verify a new email via OTP.</p>
+              <p className="mt-1.5 text-[11px] text-slate-400">Email is locked for security. Click 'Change Email' to verify a new email via OTP.</p>
             </div>
 
             <div>
@@ -577,7 +614,7 @@ export default function PeopleProfile() {
                 name="country"
                 value="Pakistan"
                 readOnly
-                className="form-input bg-slate-100 cursor-not-allowed font-semibold text-slate-700"
+                className="form-input bg-slate-950/80 cursor-not-allowed font-semibold text-slate-400 border-slate-800"
               />
             </div>
 
@@ -590,15 +627,15 @@ export default function PeopleProfile() {
                 className="form-input font-medium"
               >
                 {PAKISTAN_CITIES.map((c) => (
-                  <option key={c} value={c}>
+                  <option key={c} value={c} className="bg-slate-950 text-white">
                     {c}
                   </option>
                 ))}
               </select>
             </div>
           </div>
-          <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs font-semibold text-slate-500">
+          <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-xs font-semibold text-slate-400">
               Ensure all details are correct before saving.
             </p>
 
@@ -622,19 +659,19 @@ export default function PeopleProfile() {
 
       {/* Email Change & OTP Modal */}
       {showEmailModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <div className="relative overflow-hidden w-full max-w-md rounded-3xl border border-teal-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-teal-950/95 p-6 text-white shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
                 <span className="text-xl">✉️</span>
-                <h3 className="text-base font-extrabold text-slate-900">
+                <h3 className="text-base font-extrabold text-white">
                   {emailStep === 1 ? "Verify New Email Address" : "Enter Verification Code"}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowEmailModal(false)}
-                className="rounded-full bg-slate-100 p-1.5 text-slate-500 hover:bg-slate-200 transition"
+                className="rounded-full bg-slate-900 p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition"
               >
                 ✕
               </button>
@@ -642,7 +679,7 @@ export default function PeopleProfile() {
 
             {emailStep === 1 ? (
               <form onSubmit={handleSendEmailOtp} className="space-y-4">
-                <p className="text-xs text-slate-600 leading-relaxed">
+                <p className="text-xs text-slate-300 leading-relaxed">
                   Enter your new email address below. We will send a 6-digit OTP code to verify ownership before updating your account.
                 </p>
 
@@ -652,19 +689,19 @@ export default function PeopleProfile() {
                     type="email"
                     value={user?.email || "Not specified"}
                     disabled
-                    className="form-input bg-slate-100 text-slate-500 text-xs font-medium cursor-not-allowed"
+                    className="form-input bg-slate-950 text-slate-400 text-xs font-medium cursor-not-allowed border-slate-800"
                   />
                 </div>
 
                 <div>
-                  <label className="form-label">New Email Address <span className="text-rose-500">*</span></label>
+                  <label className="form-label">New Email Address <span className="text-rose-400">*</span></label>
                   <input
                     type="email"
                     value={newEmailInput}
                     onChange={(e) => setNewEmailInput(e.target.value)}
                     placeholder="e.g. newemail@example.com"
                     required
-                    className="form-input text-xs font-medium focus:border-teal-500"
+                    className="form-input text-xs font-medium focus:border-teal-400"
                   />
                 </div>
 
@@ -672,7 +709,7 @@ export default function PeopleProfile() {
                   <button
                     type="button"
                     onClick={() => setShowEmailModal(false)}
-                    className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+                    className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-800 transition"
                   >
                     Cancel
                   </button>
@@ -687,12 +724,12 @@ export default function PeopleProfile() {
               </form>
             ) : (
               <form onSubmit={handleVerifyAndUpdateEmail} className="space-y-4">
-                <div className="rounded-2xl bg-teal-50/70 border border-teal-200 p-3.5 text-xs text-teal-900 leading-relaxed">
-                  🔐 We sent a 6-digit OTP code to <strong className="font-extrabold text-teal-950">{newEmailInput}</strong>. Please check your inbox or spam folder.
+                <div className="rounded-2xl bg-teal-500/20 border border-teal-500/30 p-3.5 text-xs text-teal-200 leading-relaxed">
+                  🔐 We sent a 6-digit OTP code to <strong className="font-extrabold text-white">{newEmailInput}</strong>. Please check your inbox or spam folder.
                 </div>
 
                 <div>
-                  <label className="form-label">6-Digit Verification OTP Code <span className="text-rose-500">*</span></label>
+                  <label className="form-label">6-Digit Verification OTP Code <span className="text-rose-400">*</span></label>
                   <input
                     type="text"
                     maxLength={6}
@@ -700,7 +737,7 @@ export default function PeopleProfile() {
                     onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, ""))}
                     placeholder="123456"
                     required
-                    className="form-input text-center text-lg font-mono font-bold tracking-widest text-slate-900 focus:border-teal-500"
+                    className="form-input text-center text-lg font-mono font-bold tracking-widest text-white focus:border-teal-400 bg-slate-950"
                   />
                 </div>
 
@@ -708,7 +745,7 @@ export default function PeopleProfile() {
                   <button
                     type="button"
                     onClick={() => setEmailStep(1)}
-                    className="font-bold text-slate-500 hover:text-slate-800 transition"
+                    className="font-bold text-slate-400 hover:text-white transition"
                   >
                     ← Change Email Address
                   </button>
@@ -716,7 +753,7 @@ export default function PeopleProfile() {
                     type="button"
                     onClick={handleSendEmailOtp}
                     disabled={sendingOtp}
-                    className="font-extrabold text-teal-600 hover:text-teal-700 transition"
+                    className="font-extrabold text-teal-400 hover:text-teal-300 transition"
                   >
                     Resend OTP Code
                   </button>
@@ -726,7 +763,7 @@ export default function PeopleProfile() {
                   <button
                     type="button"
                     onClick={() => setShowEmailModal(false)}
-                    className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+                    className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-800 transition"
                   >
                     Cancel
                   </button>

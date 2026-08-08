@@ -159,7 +159,7 @@ export default function Friends() {
   return (
     <section className="space-y-6">
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-800 bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 px-6 py-6 text-white">
+        <div className="page-hero-banner border-b border-slate-800 bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 px-6 py-6 text-white">
           <div className="inline-flex items-center gap-2 mb-2 rounded-full bg-teal-500/10 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-teal-300 border border-teal-500/30">
             <img src="/logo.png" alt="Logo" className="h-3.5 w-3.5 object-contain" />
             <span>COMMUNITY DIRECTORY</span>
@@ -197,7 +197,7 @@ export default function Friends() {
                 type="button"
                 onClick={handleSearchClick}
                 disabled={searching}
-                className="rounded-2xl bg-teal-500 hover:bg-teal-400 px-5 py-3 text-sm font-black text-slate-950 transition shadow-md disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-2xl bg-teal-600 hover:bg-teal-500 px-5 py-3 text-sm font-extrabold text-white transition shadow-md shadow-teal-600/20 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {searching ? 'Searching...' : 'Search'}
               </button>
@@ -250,7 +250,7 @@ export default function Friends() {
                             <button
                               type="button"
                               onClick={() => navigate(`/friends/${user._id}/chat`)}
-                              className="rounded-2xl bg-emerald-500 hover:bg-emerald-400 px-4 py-2 text-xs font-black text-slate-950 transition"
+                              className="rounded-2xl bg-teal-600 hover:bg-teal-500 px-4 py-2 text-xs font-extrabold text-white transition shadow-sm"
                             >
                               💬 Chat
                             </button>
@@ -258,7 +258,7 @@ export default function Friends() {
                             <button
                               type="button"
                               onClick={() => handleAcceptRequest(user._id)}
-                              className="rounded-2xl bg-emerald-500 hover:bg-emerald-400 px-4 py-2 text-xs font-black text-slate-950 transition"
+                              className="rounded-2xl bg-teal-600 hover:bg-teal-500 px-4 py-2 text-xs font-extrabold text-white transition shadow-sm"
                             >
                               ✅ Accept Request
                             </button>
@@ -274,7 +274,7 @@ export default function Friends() {
                             <button
                               type="button"
                               onClick={() => handleSendRequest(user._id)}
-                              className="rounded-2xl bg-teal-500 hover:bg-teal-400 px-4 py-2 text-xs font-black text-slate-950 transition"
+                              className="rounded-2xl bg-teal-600 hover:bg-teal-500 px-4 py-2 text-xs font-extrabold text-white transition shadow-sm"
                             >
                               ➕ Add Friend
                             </button>

@@ -145,11 +145,12 @@ export default function Admin() {
       <Toast message={toast.message} type={toast.type} isVisible={toast.isVisible} onClose={() => setToast((t) => ({ ...t, isVisible: false }))} />
 
       {/* Admin Panel Header */}
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-800 bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 px-6 py-6 text-white">
+      <div className="page-hero-banner relative overflow-hidden rounded-3xl border border-teal-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-teal-950/90 shadow-2xl">
+        <div className="absolute -right-10 -bottom-10 h-40 w-40 rounded-full bg-teal-500/10 blur-3xl pointer-events-none" />
+        <div className="relative border-b border-slate-800 px-6 py-6 text-white">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-teal-500/10 px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-teal-300 border border-teal-500/30">
+              <div className="inline-flex items-center gap-2 rounded-full bg-teal-500/20 px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-teal-300 border border-teal-400/30 shadow-sm">
                 <img src="/logo.png" alt="Logo" className="h-4 w-4 object-contain" />
                 <span>JAMAAT ADMIN PANEL</span>
               </div>
@@ -171,25 +172,25 @@ export default function Admin() {
 
       {/* Statistics Row */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-5 text-slate-900 dark:text-white shadow-md">
           <span className="text-2xl">👥</span>
-          <p className="mt-2 text-2xl font-extrabold text-slate-900">{stats.members}</p>
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Jamaat Members</p>
+          <p className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white">{stats.members}</p>
+          <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Jamaat Members</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-5 text-slate-900 dark:text-white shadow-md">
           <span className="text-2xl">🛡️</span>
-          <p className="mt-2 text-2xl font-extrabold text-teal-600">{stats.moderators}</p>
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Active Moderators</p>
+          <p className="mt-2 text-2xl font-extrabold text-teal-600 dark:text-teal-400">{stats.moderators}</p>
+          <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Active Moderators</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-5 text-slate-900 dark:text-white shadow-md">
           <span className="text-2xl">📢</span>
-          <p className="mt-2 text-2xl font-extrabold text-indigo-600">{stats.posts}</p>
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Feed Posts</p>
+          <p className="mt-2 text-2xl font-extrabold text-indigo-600 dark:text-indigo-400">{stats.posts}</p>
+          <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Feed Posts</p>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-5 text-slate-900 dark:text-white shadow-md">
           <span className="text-2xl">🏰</span>
-          <p className="mt-2 text-2xl font-extrabold text-emerald-600">{stats.jamaats}</p>
-          <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Jamaat Areas</p>
+          <p className="mt-2 text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">{stats.jamaats}</p>
+          <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Jamaat Areas</p>
         </div>
       </div>
 
@@ -197,42 +198,42 @@ export default function Admin() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Link
           to="/notices"
-          className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:border-teal-500 transition flex items-center justify-between"
+          className="admin-nav-card rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-5 text-slate-900 dark:text-white shadow-md flex items-center justify-between transition-all duration-200 hover:border-teal-500 hover:shadow-lg hover:-translate-y-0.5"
         >
           <div>
-            <h4 className="text-sm font-extrabold text-slate-900">Post Notice & Mayyat</h4>
-            <p className="text-xs text-slate-500">Publish alerts and Janaza announcements</p>
+            <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">Post Notice & Mayyat</h4>
+            <p className="text-xs text-slate-600 dark:text-slate-400">Publish alerts and Janaza announcements</p>
           </div>
           <span className="text-2xl">📢</span>
         </Link>
         <Link
           to="/polls"
-          className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:border-teal-500 transition flex items-center justify-between"
+          className="admin-nav-card rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-5 text-slate-900 dark:text-white shadow-md flex items-center justify-between transition-all duration-200 hover:border-teal-500 hover:shadow-lg hover:-translate-y-0.5"
         >
           <div>
-            <h4 className="text-sm font-extrabold text-slate-900">Create Community Poll</h4>
-            <p className="text-xs text-slate-500">Start new decision voting</p>
+            <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">Create Community Poll</h4>
+            <p className="text-xs text-slate-600 dark:text-slate-400">Start new decision voting</p>
           </div>
           <span className="text-2xl">🗳️</span>
         </Link>
         <Link
-          to="/jobs"
-          className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:border-teal-500 transition flex items-center justify-between"
+          to="/workers"
+          className="admin-nav-card rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-5 text-slate-900 dark:text-white shadow-md flex items-center justify-between transition-all duration-200 hover:border-teal-500 hover:shadow-lg hover:-translate-y-0.5"
         >
           <div>
-            <h4 className="text-sm font-extrabold text-slate-900">Post Job Vacancies</h4>
-            <p className="text-xs text-slate-500">Create career opportunities</p>
+            <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">Local Workers (کاریگر)</h4>
+            <p className="text-xs text-slate-600 dark:text-slate-400">Manage local skilled workers</p>
           </div>
-          <span className="text-2xl">💼</span>
+          <span className="text-2xl">🛠️</span>
         </Link>
       </div>
 
       {/* Member Management Section */}
-      <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+      <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-6 text-slate-900 dark:text-white shadow-xl space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h3 className="text-base font-extrabold text-slate-900">Jamaat Members Directory</h3>
-            <p className="text-xs text-slate-500">Promote active members to Moderator or manage accounts.</p>
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">Jamaat Members Directory</h3>
+            <p className="text-xs text-slate-600 dark:text-slate-400">Promote active members to Moderator or manage accounts.</p>
           </div>
 
           <div className="flex flex-wrap gap-2">
@@ -241,25 +242,27 @@ export default function Admin() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search member..."
-              className="rounded-xl border border-slate-300 px-4 py-2 text-xs text-slate-900 outline-none focus:border-teal-500"
+              className="rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-2 text-xs text-slate-900 dark:text-white placeholder-slate-400 outline-none focus:border-teal-500 transition"
             />
             {(["all", "member", "moderator"] as const).map((r) => (
               <button
                 key={r}
                 onClick={() => setRoleFilter(r)}
-                className={`rounded-lg px-3 py-1.5 text-xs font-bold capitalize transition ${
-                  roleFilter === r ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                className={`rounded-lg px-3.5 py-1.5 text-xs font-extrabold capitalize transition cursor-pointer ${
+                  roleFilter === r
+                    ? "active-green-btn bg-teal-600 !text-white shadow-md"
+                    : "bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-400 border border-slate-300 dark:border-slate-800 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-800"
                 }`}
               >
-                {r}
+                <span className={roleFilter === r ? "!text-white font-extrabold" : ""}>{r}</span>
               </button>
             ))}
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-2xl border border-slate-200">
-          <table className="w-full text-left text-xs text-slate-700">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-extrabold">
+        <div className="overflow-x-auto rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950">
+          <table className="w-full text-left text-xs text-slate-700 dark:text-slate-300">
+            <thead className="bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-400 uppercase tracking-wider font-extrabold">
               <tr>
                 <th className="p-3.5">Member Name</th>
                 <th className="p-3.5">Jamaat Area</th>
@@ -267,38 +270,44 @@ export default function Admin() {
                 <th className="p-3.5 text-right">Moderation Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-800/60">
               {visibleUsers.map((u) => (
-                <tr key={u._id} className="hover:bg-slate-50/50">
+                <tr key={u._id} className="hover:bg-slate-50 dark:hover:bg-slate-900/50 transition">
                   <td className="p-3.5">
                     <div className="flex items-center gap-3">
                       <UserAvatar name={u.fullName} photoUrl={u.profilePhotoUrl} size="sm" />
                       <div>
-                        <p className="font-extrabold text-slate-900">{u.fullName}</p>
-                        <p className="text-[11px] text-slate-400">@{u.username || "member"} • {u.mobile || u.email}</p>
+                        <p className="font-extrabold text-slate-900 dark:text-white">{u.fullName}</p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400">@{u.username || "member"} • {u.mobile || u.email}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="p-3.5 font-bold text-slate-600">{u.jamaat || "General"}</td>
+                  <td className="p-3.5 font-bold text-slate-700 dark:text-slate-300">{u.jamaat || "General"}</td>
                   <td className="p-3.5">
-                    <span className={`inline-block rounded-md px-2 py-0.5 text-[10px] font-extrabold uppercase border ${
-                      u.role === "moderator" ? "bg-indigo-50 text-indigo-700 border-indigo-300" : "bg-slate-100 text-slate-700 border-slate-200"
+                    <span className={`inline-block rounded-lg px-3 py-1 text-[11px] font-black uppercase border shadow-sm ${
+                      u.role === "super_admin"
+                        ? "bg-white dark:bg-amber-500/20 !text-black dark:!text-amber-300 border-amber-400 dark:border-amber-500/30"
+                        : u.role === "admin"
+                        ? "bg-white dark:bg-teal-500/20 !text-black dark:!text-teal-300 border-teal-400 dark:border-teal-500/30"
+                        : u.role === "moderator"
+                        ? "bg-white dark:bg-indigo-500/20 !text-black dark:!text-indigo-300 border-indigo-400 dark:border-indigo-500/30"
+                        : "bg-white dark:bg-slate-800 !text-black dark:!text-slate-300 border-slate-300 dark:border-slate-700"
                     }`}>
-                      {u.role}
+                      <span className="!text-black dark:!text-white font-black">{u.role.replace("_", " ")}</span>
                     </span>
                   </td>
                   <td className="p-3.5 text-right space-x-2">
                     {u.role === "member" ? (
                       <button
                         onClick={() => handleRoleChange(u._id, "moderator")}
-                        className="rounded-lg bg-teal-50 px-3 py-1.5 text-xs font-bold text-teal-700 hover:bg-teal-100"
+                        className="rounded-lg active-green-btn bg-teal-600 !text-white px-3 py-1.5 text-xs font-extrabold shadow-sm hover:bg-teal-700 transition cursor-pointer"
                       >
                         Promote to Moderator
                       </button>
                     ) : (
                       <button
                         onClick={() => handleRoleChange(u._id, "member")}
-                        className="rounded-lg bg-slate-100 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-200"
+                        className="rounded-lg bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-3 py-1.5 text-xs font-bold text-slate-800 dark:text-slate-300 hover:bg-slate-300 dark:hover:bg-slate-700 transition cursor-pointer"
                       >
                         Demote to Member
                       </button>

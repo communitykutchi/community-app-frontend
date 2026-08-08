@@ -433,7 +433,7 @@ export default function Workers() {
   });
 
   return (
-    <div className="w-full space-y-6 sm:space-y-8 py-2 text-slate-100">
+    <div className="w-full space-y-6 sm:space-y-8 py-2 text-slate-900 dark:text-slate-100">
       {toast.isVisible && (
         <Toast
           message={toast.message}
@@ -444,17 +444,17 @@ export default function Workers() {
 
       <div className="mx-auto w-full max-w-7xl space-y-6 sm:space-y-8">
         {/* Sleek Hero Header */}
-        <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-teal-950/60 p-5 sm:p-8 shadow-2xl">
+        <div className="page-hero-banner relative overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-teal-950/60 p-5 sm:p-8 shadow-2xl">
           <div className="flex flex-col items-start justify-between gap-5 md:flex-row md:items-center">
             <div className="space-y-2.5">
               <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-3 py-1 text-[11px] sm:text-xs font-black tracking-widest text-teal-400 uppercase">
                 🛠️ LOCAL WORKERS & SERVICES DIRECTORY
               </div>
               <h1 className="text-xl font-black text-white sm:text-3xl lg:text-4xl leading-tight">
-                مقامی کاریگر اور خدمات (Local Workers Directory)
+                Maqami Karigar Aur Khidmat (Local Workers Directory)
               </h1>
               <p className="max-w-2xl text-xs font-medium text-slate-300 sm:text-base leading-relaxed">
-                اپنے علاقے کے بااعتماد الیکٹریشن، پلمبر، مستری، پینٹر اور مکانک سے 1 کلک میں رابطہ کریں۔ واٹس ایپ چیکنگ اور کسٹمر ریٹنگ کے ساتھ۔
+                Apnay ilaqay kay ba-aitmad electrician, plumber, mistri, painter aur mechanic se 1-click mein rabta karein. WhatsApp checking aur customer rating kay sath.
               </p>
             </div>
 
@@ -463,26 +463,26 @@ export default function Workers() {
               className="inline-flex w-full sm:w-auto shrink-0 items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-3.5 text-xs sm:text-sm font-black text-slate-950 shadow-lg transition hover:scale-[1.02] hover:from-emerald-400 hover:to-teal-500 active:scale-95"
             >
               <span className="text-base sm:text-lg">➕</span>
-              List a Worker / کاریگر درج کریں
+              List a Worker / Karigar Darj Karein
             </button>
           </div>
         </div>
 
         {/* Search Input & Category Wrap Grid */}
-        <div className="space-y-4 rounded-2xl sm:rounded-3xl border border-slate-800 bg-slate-900/60 p-4 backdrop-blur sm:p-6">
+        <div className="space-y-4 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4 backdrop-blur sm:p-6 shadow-lg">
           <div className="relative">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search by worker name, electrician, plumber, mistri, area... (کاریگر کا نام یا شعبہ تلاش کریں)"
-              className="w-full rounded-2xl border border-slate-700 bg-slate-950 py-3 pr-4 pl-11 text-xs sm:text-sm text-white placeholder-slate-400 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+              placeholder="Search by worker name, electrician, plumber, mistri, area... (Karigar ka naam ya shuba talash karein)"
+              className="w-full rounded-2xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 py-3 pr-4 pl-11 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
             />
             <span className="absolute top-1/2 left-4 -translate-y-1/2 text-base sm:text-lg text-slate-400">🔍</span>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-wider text-slate-400">
+            <label className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-400">
               🛠️ Select Profession Category (شعبہ منتخب کریں):
             </label>
             <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
@@ -492,10 +492,10 @@ export default function Workers() {
                   <button
                     key={cat.id}
                     onClick={() => setSelectedCategory(cat.id)}
-                    className={`flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 min-w-0 rounded-xl border px-2.5 py-2 sm:py-2.5 text-xs font-bold transition ${
+                    className={`flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 min-w-0 rounded-xl border px-2.5 py-2 sm:py-2.5 text-xs font-bold transition cursor-pointer ${
                       isSelected
-                        ? "border-teal-500 bg-teal-500/20 text-teal-300 shadow-md"
-                        : "border-slate-800 bg-slate-950 text-slate-300 hover:border-slate-700 hover:bg-slate-900"
+                        ? "border-teal-500 bg-teal-50 dark:bg-teal-500/20 text-teal-800 dark:text-teal-300 font-extrabold shadow-sm"
+                        : "border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-900"
                     }`}
                   >
                     <span className="text-sm sm:text-base shrink-0">{cat.icon}</span>
@@ -533,74 +533,81 @@ export default function Workers() {
               return (
                 <div
                   key={worker._id}
-                  className="flex flex-col justify-between min-w-0 w-full overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-800 bg-gradient-to-b from-slate-900 via-slate-900/90 to-slate-950 p-4 sm:p-5 shadow-xl transition hover:border-slate-700 hover:shadow-2xl"
+                  className="flex flex-col justify-between min-w-0 w-full overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-gradient-to-b dark:from-slate-900 dark:via-slate-900/90 dark:to-slate-950 p-4 sm:p-5 shadow-xl transition text-slate-900 dark:text-white"
                 >
                   <div className="space-y-3.5 sm:space-y-4">
-                    {/* Header: Photo & Name */}
-                    <div className="flex items-start gap-3 sm:gap-4 min-w-0">
-                      {workerPhoto ? (
-                        <img
-                          src={workerPhoto}
-                          alt={worker.company || worker.title}
-                          className="h-16 w-14 sm:h-20 sm:w-16 shrink-0 rounded-2xl border-2 border-teal-500/40 object-cover shadow-md"
-                        />
-                      ) : (
-                        <div className="shrink-0">
-                          <UserAvatar name={worker.company || worker.title} size="lg" />
+                    {/* Header: Photo, Name & Delete Button */}
+                    <div className="flex items-start justify-between gap-3 min-w-0">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        {workerPhoto ? (
+                          <img
+                            src={workerPhoto}
+                            alt={worker.company || worker.title}
+                            className="h-14 w-14 sm:h-16 sm:w-16 shrink-0 rounded-2xl border-2 border-teal-500/40 object-cover shadow-md"
+                          />
+                        ) : (
+                          <div className="shrink-0">
+                            <UserAvatar name={worker.company || worker.title} size="md" />
+                          </div>
+                        )}
+
+                        <div className="min-w-0 flex-1">
+                          <h3 className="text-base sm:text-lg font-extrabold text-slate-950 dark:text-white leading-snug break-words">
+                            {worker.company || worker.title}
+                          </h3>
+                          {worker.title && (worker.company || worker.title) !== worker.title ? (
+                            <p className="text-xs font-bold text-teal-700 dark:text-teal-400 leading-tight break-words mt-0.5">
+                              {worker.title}
+                            </p>
+                          ) : null}
                         </div>
-                      )}
-
-                      <div className="min-w-0 flex-1 space-y-1">
-                        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap min-w-0">
-                          <span className="inline-block rounded-full border border-teal-500/30 bg-teal-500/10 px-2 sm:px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider text-teal-400 truncate max-w-[130px] sm:max-w-none">
-                            {worker.category || "Service Worker"}
-                          </span>
-
-                          {/* Star Rating Badge */}
-                          <button
-                            onClick={() => setReviewTargetWorker(worker)}
-                            className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-500/20 px-2 sm:px-2.5 py-0.5 text-[10px] sm:text-[11px] font-black text-amber-300 hover:scale-105 transition shrink-0"
-                          >
-                            ⭐ {avgRating} ({totalRevs})
-                          </button>
-                        </div>
-
-                        <h3 className="text-base sm:text-lg font-black text-white leading-snug break-words line-clamp-2">
-                          {worker.company || worker.title}
-                        </h3>
-                        <p className="text-xs font-bold text-teal-400 leading-tight break-words line-clamp-2">
-                          {worker.title}
-                        </p>
-                        <p className="text-xs font-semibold text-slate-400 leading-tight break-words line-clamp-1">
-                          📍 Area: {worker.location}
-                        </p>
                       </div>
 
                       <button
                         onClick={() => setDeleteTargetWorker(worker)}
-                        className="shrink-0 rounded-xl border border-red-500/30 bg-red-500/10 p-2 text-xs text-red-400 transition hover:bg-red-500/20 active:scale-95"
+                        className="shrink-0 rounded-xl border border-red-500/30 bg-red-50 dark:bg-red-500/10 p-2 text-xs text-red-600 dark:text-red-400 transition hover:bg-red-100 dark:hover:bg-red-500/20 active:scale-95 cursor-pointer"
                         title="Delete listing"
                       >
                         🗑️
                       </button>
                     </div>
 
+                    {/* Category, Rating & Location Badges */}
+                    <div className="flex flex-wrap items-center gap-2 pt-0.5">
+                      <span className="inline-block rounded-full border border-teal-500/30 bg-teal-50 dark:bg-teal-500/10 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-teal-800 dark:text-teal-400">
+                        {worker.category || "Service Worker"}
+                      </span>
+
+                      <button
+                        onClick={() => setReviewTargetWorker(worker)}
+                        className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-50 dark:bg-amber-500/20 px-2.5 py-0.5 text-[10px] sm:text-[11px] font-extrabold text-amber-800 dark:text-amber-300 hover:scale-105 transition shrink-0 cursor-pointer"
+                      >
+                        ⭐ {avgRating} ({totalRevs})
+                      </button>
+
+                      {worker.location ? (
+                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 leading-tight">
+                          📍 Area: {worker.location}
+                        </span>
+                      ) : null}
+                    </div>
+
                     {/* Work Description */}
-                    <div className="rounded-2xl border border-slate-800 bg-slate-950/60 p-3 sm:p-3.5 text-xs text-slate-300 font-sans leading-relaxed break-words [overflow-wrap:anywhere] line-clamp-3 sm:line-clamp-4 hover:line-clamp-none transition-all">
+                    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-3 sm:p-3.5 text-xs text-slate-800 dark:text-slate-300 font-sans leading-relaxed break-words [overflow-wrap:anywhere]">
                       {worker.description}
                     </div>
 
                     {/* Reviews Strip */}
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 rounded-xl border border-slate-800 bg-slate-950/40 p-2.5 text-xs text-slate-300">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-2.5 text-xs text-slate-800 dark:text-slate-300">
                       <div className="flex items-center gap-1.5 min-w-0">
                         <span className="shrink-0">💬</span>
-                        <span className="font-semibold text-slate-400 truncate text-[11px] sm:text-xs">
+                        <span className="font-semibold text-slate-700 dark:text-slate-400 truncate text-[11px] sm:text-xs">
                           {totalRevs > 0 ? `${totalRevs} Customer Reviews` : "No reviews yet"}
                         </span>
                       </div>
                       <button
                         onClick={() => setReviewTargetWorker(worker)}
-                        className="w-full sm:w-auto shrink-0 text-center rounded-lg border border-amber-500/40 bg-amber-500/10 px-2.5 py-1 text-[11px] font-black text-amber-300 transition hover:bg-amber-500/20 active:scale-95"
+                        className="w-full sm:w-auto shrink-0 text-center rounded-lg border border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 px-2.5 py-1 text-[11px] font-extrabold text-amber-800 dark:text-amber-300 transition hover:bg-amber-100 dark:hover:bg-amber-500/20 active:scale-95 cursor-pointer"
                       >
                         ⭐ Rate & Review
                       </button>
@@ -608,12 +615,12 @@ export default function Workers() {
                   </div>
 
                   {/* Contact Buttons: Real-Time WhatsApp Verification */}
-                  <div className="mt-4 sm:mt-5 pt-3 border-t border-slate-800/80">
+                  <div className="mt-4 sm:mt-5 pt-3 border-t border-slate-200 dark:border-slate-800/80">
                     {isWhatsApp ? (
                       <div className="grid grid-cols-2 gap-2 sm:gap-3">
                         <a
                           href={callLink}
-                          className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl bg-emerald-500 py-2.5 sm:py-3 px-2 sm:px-3 text-xs font-black text-slate-950 shadow-md transition hover:bg-emerald-400 active:scale-95 text-center min-w-0"
+                          className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl bg-teal-600 hover:bg-teal-500 py-2.5 sm:py-3 px-2 sm:px-3 text-xs font-extrabold !text-white shadow-md shadow-teal-600/20 transition active:scale-95 text-center min-w-0"
                         >
                           <span>📞</span> <span className="truncate">Call Now</span>
                         </a>
@@ -621,7 +628,7 @@ export default function Workers() {
                           href={whatsappLink}
                           target="_blank"
                           rel="noreferrer"
-                          className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl border border-teal-500/40 bg-teal-600/30 py-2.5 sm:py-3 px-2 sm:px-3 text-xs font-black text-white shadow-md transition hover:bg-teal-600/50 active:scale-95 text-center min-w-0"
+                          className="flex items-center justify-center gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl bg-emerald-600 hover:bg-emerald-500 py-2.5 sm:py-3 px-2 sm:px-3 text-xs font-extrabold !text-white shadow-md shadow-emerald-600/20 transition active:scale-95 text-center min-w-0"
                         >
                           <span>💬</span> <span className="truncate">WhatsApp</span>
                         </a>
@@ -629,7 +636,7 @@ export default function Workers() {
                     ) : (
                       <a
                         href={callLink}
-                        className="flex w-full items-center justify-center gap-2 rounded-xl sm:rounded-2xl bg-emerald-500 py-2.5 sm:py-3.5 px-3 text-xs font-black text-slate-950 shadow-md transition hover:bg-emerald-400 active:scale-95 text-center"
+                        className="flex w-full items-center justify-center gap-2 rounded-xl sm:rounded-2xl bg-teal-600 hover:bg-teal-500 py-2.5 sm:py-3.5 px-3 text-xs font-extrabold !text-white shadow-md shadow-teal-600/20 transition active:scale-95 text-center"
                       >
                         <span>📞</span> Call Now
                       </a>

@@ -396,11 +396,12 @@ export default function SuperAdmin() {
       <Toast message={toast.message} type={toast.type} isVisible={toast.isVisible} onClose={() => setToast((t) => ({ ...t, isVisible: false }))} />
 
       {/* Super Admin Control Center Header */}
-      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-        <div className="border-b border-slate-800 bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 px-6 py-6 text-white">
+      <div className="page-hero-banner relative overflow-hidden rounded-3xl border border-amber-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950/90 shadow-2xl">
+        <div className="absolute -right-10 -bottom-10 h-40 w-40 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
+        <div className="relative border-b border-slate-800 px-6 py-6 text-white">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/10 px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-300 border border-amber-500/30">
+              <div className="inline-flex items-center gap-2 rounded-full bg-amber-500/20 px-3.5 py-1 text-[11px] font-bold uppercase tracking-wider text-amber-300 border border-amber-400/30 shadow-sm">
                 <img src="/logo.png" alt="Logo" className="h-4 w-4 object-contain" />
                 <span>ROOT SUPER ADMIN ACCESS</span>
               </div>
@@ -429,15 +430,15 @@ export default function SuperAdmin() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id as any)}
-                className={`rounded-xl px-4 py-2 text-xs font-extrabold transition flex items-center gap-1.5 ${
+                className={`rounded-xl px-4 py-2 text-xs font-extrabold transition flex items-center gap-1.5 cursor-pointer ${
                   activeTab === tab.id
-                    ? "bg-teal-600 text-white shadow-md shadow-teal-600/30"
-                    : "bg-white/10 text-slate-300 hover:bg-white/20 hover:text-white"
+                    ? "active-green-btn bg-teal-600 !text-white shadow-md shadow-teal-600/30"
+                    : "bg-white/10 text-white border border-white/20 hover:bg-white/25 hover:text-white"
                 }`}
               >
-                <span>{tab.label}</span>
+                <span className="!text-white font-extrabold">{tab.label}</span>
                 {tab.badge !== null && (
-                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${activeTab === tab.id ? "bg-white text-teal-800" : "bg-white/20 text-white"}`}>
+                  <span className={`rounded-full px-1.5 py-0.5 text-[10px] font-black ${activeTab === tab.id ? "bg-white text-teal-900" : "bg-white/20 text-white"}`}>
                     {tab.badge}
                   </span>
                 )}
@@ -451,32 +452,66 @@ export default function SuperAdmin() {
       {activeTab === "overview" && (
         <div className="space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-5 text-slate-900 dark:text-white shadow-md">
               <span className="text-2xl">👥</span>
-              <p className="mt-2 text-2xl font-extrabold text-slate-900">{stats.total}</p>
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Members</p>
+              <p className="mt-2 text-2xl font-extrabold text-slate-900 dark:text-white">{stats.total}</p>
+              <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Total Members</p>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-5 text-slate-900 dark:text-white shadow-md">
               <span className="text-2xl">👑</span>
-              <p className="mt-2 text-2xl font-extrabold text-amber-600">{stats.superAdmins}</p>
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Super Admins</p>
+              <p className="mt-2 text-2xl font-extrabold text-amber-500 dark:text-amber-400">{stats.superAdmins}</p>
+              <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Super Admins</p>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-5 text-slate-900 dark:text-white shadow-md">
               <span className="text-2xl">🛡️</span>
-              <p className="mt-2 text-2xl font-extrabold text-teal-600">{stats.admins + stats.mods}</p>
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Admins & Mods</p>
+              <p className="mt-2 text-2xl font-extrabold text-teal-600 dark:text-teal-400">{stats.admins + stats.mods}</p>
+              <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Admins & Mods</p>
             </div>
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-5 text-slate-900 dark:text-white shadow-md">
               <span className="text-2xl">🚫</span>
-              <p className="mt-2 text-2xl font-extrabold text-rose-600">{stats.banned}</p>
-              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Banned Accounts</p>
+              <p className="mt-2 text-2xl font-extrabold text-rose-600 dark:text-rose-400">{stats.banned}</p>
+              <p className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Banned Accounts</p>
             </div>
           </div>
 
+          {/* Quick Action Shortcuts */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <Link
+              to="/notices"
+              className="admin-nav-card rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-5 text-slate-900 dark:text-white shadow-md flex items-center justify-between transition-all duration-200 hover:border-teal-500 hover:shadow-lg hover:-translate-y-0.5"
+            >
+              <div>
+                <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">Post Notice & Mayyat</h4>
+                <p className="text-xs text-slate-600 dark:text-slate-400">Publish alerts & Janaza announcements</p>
+              </div>
+              <span className="text-2xl">📢</span>
+            </Link>
+            <Link
+              to="/polls"
+              className="admin-nav-card rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-5 text-slate-900 dark:text-white shadow-md flex items-center justify-between transition-all duration-200 hover:border-teal-500 hover:shadow-lg hover:-translate-y-0.5"
+            >
+              <div>
+                <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">Create Community Poll</h4>
+                <p className="text-xs text-slate-600 dark:text-slate-400">Start new decision voting</p>
+              </div>
+              <span className="text-2xl">🗳️</span>
+            </Link>
+            <Link
+              to="/workers"
+              className="admin-nav-card rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 p-5 text-slate-900 dark:text-white shadow-md flex items-center justify-between transition-all duration-200 hover:border-teal-500 hover:shadow-lg hover:-translate-y-0.5"
+            >
+              <div>
+                <h4 className="text-sm font-extrabold text-slate-900 dark:text-white">Local Workers (کاریگر)</h4>
+                <p className="text-xs text-slate-600 dark:text-slate-400">Manage local skilled workers</p>
+              </div>
+              <span className="text-2xl">🛠️</span>
+            </Link>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-              <h3 className="text-base font-extrabold text-slate-900 mb-2">Super Admin Capabilities</h3>
-              <ul className="space-y-2 text-xs text-slate-600 font-medium">
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 text-white shadow-xl">
+              <h3 className="text-base font-extrabold text-white mb-2">Super Admin Capabilities</h3>
+              <ul className="space-y-2 text-xs text-slate-300 font-medium">
                 <li className="flex items-center gap-2">✅ Promote/Demote any user to Super Admin, Admin, Moderator, or Member.</li>
                 <li className="flex items-center gap-2">✅ Suspend accounts for 1 Day, 1 Week, 1 Month, 1 Year, or Permanently.</li>
                 <li className="flex items-center gap-2">✅ Execute Emergency Force Logout on all active user sessions across mobile & web.</li>
@@ -485,16 +520,16 @@ export default function SuperAdmin() {
               </ul>
             </div>
 
-            <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between">
+            <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 text-white shadow-xl flex flex-col justify-between">
               <div>
-                <h3 className="text-base font-extrabold text-slate-900 mb-2">Switch to Standard Admin View</h3>
-                <p className="text-xs text-slate-500 leading-relaxed">
+                <h3 className="text-base font-extrabold text-white mb-2">Switch to Standard Admin View</h3>
+                <p className="text-xs text-slate-400 leading-relaxed">
                   Looking for standard Jamaat notices moderation and community inquiries? You can also switch to the standard Admin Panel.
                 </p>
               </div>
               <Link
                 to="/admin"
-                className="mt-4 block text-center rounded-xl bg-slate-900 py-3 text-xs font-extrabold text-white hover:bg-slate-800 transition"
+                className="mt-4 block text-center rounded-xl bg-gradient-to-r from-teal-500 to-emerald-600 py-3 text-xs font-extrabold text-white hover:from-teal-400 hover:to-emerald-500 transition shadow-md"
               >
                 Go to Admin Panel →
               </Link>
@@ -505,14 +540,14 @@ export default function SuperAdmin() {
 
       {/* MEMBERS TAB */}
       {activeTab === "members" && (
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+        <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 text-white shadow-xl space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search by name, username, email, phone, or jamaat..."
-              className="w-full sm:w-80 rounded-xl border border-slate-300 px-4 py-2.5 text-xs text-slate-900 outline-none focus:border-teal-500"
+              className="w-full sm:w-80 rounded-xl border border-slate-700 bg-slate-950 px-4 py-2.5 text-xs text-white placeholder-slate-400 outline-none focus:border-amber-400 transition"
             />
             <div className="flex flex-wrap gap-1.5">
               {(["all", "super_admin", "admin", "moderator", "member", "banned"] as const).map((r) => (
@@ -520,7 +555,9 @@ export default function SuperAdmin() {
                   key={r}
                   onClick={() => setRoleFilter(r)}
                   className={`rounded-lg px-3 py-1.5 text-xs font-bold capitalize transition ${
-                    roleFilter === r ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    roleFilter === r
+                      ? "bg-amber-500 text-slate-950 shadow-md"
+                      : "bg-slate-950 text-slate-400 border border-slate-800 hover:text-white hover:bg-slate-800"
                   }`}
                 >
                   {r.replace("_", " ")}
@@ -532,17 +569,17 @@ export default function SuperAdmin() {
           {/* Mobile Card List (sm:hidden) */}
           <div className="space-y-3 sm:hidden">
             {filteredUsers.length === 0 ? (
-              <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-xs text-slate-500 font-medium">
+              <div className="rounded-2xl border border-slate-800 bg-slate-950 p-6 text-center text-xs text-slate-400 font-medium">
                 No members matching criteria.
               </div>
             ) : (
               filteredUsers.map((u) => (
-                <div key={u._id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+                <div key={u._id} className="rounded-2xl border border-slate-800 bg-slate-950 p-4 shadow-md space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-center gap-3 min-w-0">
                       <UserAvatar name={u.fullName} photoUrl={u.profilePhotoUrl} size="md" />
                       <div className="min-w-0">
-                        <p className="font-extrabold text-slate-900 text-sm truncate">{u.fullName}</p>
+                        <p className="font-extrabold text-white text-sm truncate">{u.fullName}</p>
                         <p className="text-xs text-slate-400 truncate">@{u.username || "user"}</p>
                         <p className="text-[11px] text-slate-500 truncate">{u.mobile || u.email || "No contact"}</p>
                       </div>
@@ -555,23 +592,23 @@ export default function SuperAdmin() {
                           e.stopPropagation();
                           setOpenActionUserId((prev) => (prev === u._id ? null : u._id));
                         }}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-extrabold text-slate-700 shadow-sm hover:bg-teal-50 hover:border-teal-500 transition active:scale-95"
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-extrabold text-slate-200 shadow-sm hover:border-amber-400 hover:bg-slate-800 transition active:scale-95"
                       >
                         <span>⚙️ Actions</span>
-                        <svg className={`h-3.5 w-3.5 transition-transform duration-200 ${openActionUserId === u._id ? 'rotate-180 text-teal-600' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className={`h-3.5 w-3.5 transition-transform duration-200 ${openActionUserId === u._id ? 'rotate-180 text-amber-400' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
                       </button>
 
                       {openActionUserId === u._id && (
-                        <div className="absolute right-0 top-full mt-1.5 z-50 w-48 overflow-hidden rounded-2xl border border-slate-200 bg-white p-1 text-xs shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+                        <div className="absolute right-0 top-full mt-1.5 z-50 w-48 overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 p-1 text-xs shadow-2xl animate-in fade-in zoom-in-95 duration-150">
                           <button
                             type="button"
                             onClick={() => {
                               setOpenActionUserId(null);
                               setRolePickerUser(u);
                             }}
-                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left font-bold text-slate-700 hover:bg-slate-100 transition"
+                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left font-bold text-slate-200 hover:bg-slate-800 transition"
                           >
                             <span>⚙️ Change Role</span>
                           </button>
@@ -583,7 +620,7 @@ export default function SuperAdmin() {
                                 setOpenActionUserId(null);
                                 handleUnbanUser(u._id);
                               }}
-                              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left font-bold text-emerald-700 hover:bg-emerald-50 transition"
+                              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left font-bold text-emerald-400 hover:bg-emerald-950/40 transition"
                             >
                               <span>🟢 Lift Suspension</span>
                             </button>
@@ -594,7 +631,7 @@ export default function SuperAdmin() {
                                 setOpenActionUserId(null);
                                 setUserToBan(u);
                               }}
-                              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left font-bold text-amber-700 hover:bg-amber-50 transition"
+                              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left font-bold text-amber-400 hover:bg-amber-950/40 transition"
                             >
                               <span>🚫 Ban / Suspend</span>
                             </button>
@@ -606,7 +643,7 @@ export default function SuperAdmin() {
                               setOpenActionUserId(null);
                               setUserToDelete(u);
                             }}
-                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left font-bold text-rose-600 hover:bg-rose-50 transition border-t border-slate-100 mt-1 pt-2"
+                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left font-bold text-rose-400 hover:bg-rose-950/40 transition border-t border-slate-800 mt-1 pt-2"
                           >
                             <span>🗑️ Delete Account</span>
                           </button>
@@ -615,26 +652,26 @@ export default function SuperAdmin() {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
-                    <span className="font-bold text-slate-600">Jamaat: {u.jamaat || "General"}</span>
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-800 text-xs">
+                    <span className="font-bold text-slate-400">Jamaat: {u.jamaat || "General"}</span>
                     <div className="flex items-center gap-1.5">
-                      <span className={`inline-block rounded-md px-2 py-0.5 text-[10px] font-extrabold uppercase border ${
+                      <span className={`inline-block rounded-lg px-2.5 py-1 text-[11px] font-black uppercase border shadow-sm ${
                         u.role === "super_admin"
-                          ? "bg-amber-50 text-amber-700 border-amber-300"
+                          ? "bg-white dark:bg-amber-500/20 !text-black dark:!text-amber-300 border-amber-400 dark:border-amber-500/30"
                           : u.role === "admin"
-                          ? "bg-teal-50 text-teal-700 border-teal-300"
+                          ? "bg-white dark:bg-teal-500/20 !text-black dark:!text-teal-300 border-teal-400 dark:border-teal-500/30"
                           : u.role === "moderator"
-                          ? "bg-indigo-50 text-indigo-700 border-indigo-300"
-                          : "bg-slate-100 text-slate-700 border-slate-200"
+                          ? "bg-white dark:bg-indigo-500/20 !text-black dark:!text-indigo-300 border-indigo-400 dark:border-indigo-500/30"
+                          : "bg-white dark:bg-slate-800 !text-black dark:!text-slate-300 border-slate-300 dark:border-slate-700"
                       }`}>
-                        {u.role.replace("_", " ")}
+                        <span className="!text-black dark:!text-white font-black">{u.role.replace("_", " ")}</span>
                       </span>
                       {u.isBanned ? (
-                        <span className="rounded-md bg-rose-50 px-2 py-0.5 text-[10px] font-extrabold text-rose-700 border border-rose-200">
+                        <span className="rounded-md bg-rose-500/20 px-2 py-0.5 text-[10px] font-extrabold text-rose-300 border border-rose-500/30">
                           Banned ({u.banDuration || "Temp"})
                         </span>
                       ) : (
-                        <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold text-emerald-700 border border-emerald-200">
+                        <span className="rounded-md bg-emerald-500/20 px-2 py-0.5 text-[10px] font-extrabold text-emerald-300 border border-emerald-500/30">
                           Active
                         </span>
                       )}
@@ -646,9 +683,9 @@ export default function SuperAdmin() {
           </div>
 
           {/* Desktop Table View (hidden sm:block) */}
-          <div className="hidden sm:block overflow-x-auto rounded-2xl border border-slate-200">
-            <table className="w-full text-left text-xs text-slate-700">
-              <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase tracking-wider font-extrabold">
+          <div className="hidden sm:block overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950">
+            <table className="w-full text-left text-xs text-slate-300">
+              <thead className="bg-slate-900 border-b border-slate-800 text-slate-400 uppercase tracking-wider font-extrabold">
                 <tr>
                   <th className="p-3.5">Member</th>
                   <th className="p-3.5">Jamaat</th>
@@ -657,7 +694,7 @@ export default function SuperAdmin() {
                   <th className="p-3.5 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100">
+              <tbody className="divide-y divide-slate-800/60">
                 {filteredUsers.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="p-8 text-center text-slate-500 font-medium">
@@ -666,37 +703,37 @@ export default function SuperAdmin() {
                   </tr>
                 ) : (
                   filteredUsers.map((u) => (
-                    <tr key={u._id} className="hover:bg-slate-50/50">
+                    <tr key={u._id} className="hover:bg-slate-900/50 transition">
                       <td className="p-3.5">
                         <div className="flex items-center gap-3">
                           <UserAvatar name={u.fullName} photoUrl={u.profilePhotoUrl} size="sm" />
                           <div>
-                            <p className="font-extrabold text-slate-900">{u.fullName}</p>
+                            <p className="font-extrabold text-white">{u.fullName}</p>
                             <p className="text-[11px] text-slate-400">@{u.username || "user"} • {u.mobile || u.email || "No contact"}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="p-3.5 font-bold text-slate-600">{u.jamaat || "General"}</td>
+                      <td className="p-3.5 font-bold text-slate-300">{u.jamaat || "General"}</td>
                       <td className="p-3.5">
-                        <span className={`inline-block rounded-md px-2 py-0.5 text-[10px] font-extrabold uppercase border ${
+                        <span className={`inline-block rounded-lg px-3 py-1 text-[11px] font-black uppercase border shadow-sm ${
                           u.role === "super_admin"
-                            ? "bg-amber-50 text-amber-700 border-amber-300"
+                            ? "bg-white dark:bg-amber-500/20 !text-black dark:!text-amber-300 border-amber-400 dark:border-amber-500/30"
                             : u.role === "admin"
-                            ? "bg-teal-50 text-teal-700 border-teal-300"
+                            ? "bg-white dark:bg-teal-500/20 !text-black dark:!text-teal-300 border-teal-400 dark:border-teal-500/30"
                             : u.role === "moderator"
-                            ? "bg-indigo-50 text-indigo-700 border-indigo-300"
-                            : "bg-slate-100 text-slate-700 border-slate-200"
+                            ? "bg-white dark:bg-indigo-500/20 !text-black dark:!text-indigo-300 border-indigo-400 dark:border-indigo-500/30"
+                            : "bg-white dark:bg-slate-800 !text-black dark:!text-slate-300 border-slate-300 dark:border-slate-700"
                         }`}>
-                          {u.role.replace("_", " ")}
+                          <span className="!text-black dark:!text-white font-black">{u.role.replace("_", " ")}</span>
                         </span>
                       </td>
                       <td className="p-3.5">
                         {u.isBanned ? (
-                          <span className="rounded-md bg-rose-50 px-2 py-0.5 text-[10px] font-extrabold text-rose-700 border border-rose-200">
+                          <span className="rounded-md bg-rose-500/20 px-2 py-0.5 text-[10px] font-extrabold text-rose-300 border border-rose-500/30">
                             Banned ({u.banDuration || "Temp"})
                           </span>
                         ) : (
-                          <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-[10px] font-extrabold text-emerald-700 border border-emerald-200">
+                          <span className="rounded-md bg-emerald-500/20 px-2 py-0.5 text-[10px] font-extrabold text-emerald-300 border border-emerald-500/30">
                             Active
                           </span>
                         )}
@@ -709,23 +746,23 @@ export default function SuperAdmin() {
                               e.stopPropagation();
                               setOpenActionUserId((prev) => (prev === u._id ? null : u._id));
                             }}
-                            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-extrabold text-slate-700 shadow-sm hover:border-teal-500 hover:bg-teal-50 transition active:scale-95"
+                            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-extrabold text-slate-200 shadow-sm hover:border-amber-400 hover:bg-slate-800 transition active:scale-95"
                           >
                             <span>⚙️ Actions</span>
-                            <svg className={`h-3.5 w-3.5 transition-transform duration-200 ${openActionUserId === u._id ? 'rotate-180 text-teal-600' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <svg className={`h-3.5 w-3.5 transition-transform duration-200 ${openActionUserId === u._id ? 'rotate-180 text-amber-400' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                             </svg>
                           </button>
 
                           {openActionUserId === u._id && (
-                            <div className="absolute right-0 mt-1.5 z-50 w-44 overflow-hidden rounded-2xl border border-slate-200 bg-white p-1 text-xs shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+                            <div className="absolute right-0 mt-1.5 z-50 w-44 overflow-hidden rounded-2xl border border-slate-700 bg-slate-900 p-1 text-xs shadow-2xl animate-in fade-in zoom-in-95 duration-150">
                               <button
                                 type="button"
                                 onClick={() => {
                                   setOpenActionUserId(null);
                                   setRolePickerUser(u);
                                 }}
-                                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left font-bold text-slate-700 hover:bg-slate-100 transition"
+                                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left font-bold text-slate-200 hover:bg-slate-800 transition"
                               >
                                 <span>⚙️ Change Role</span>
                               </button>
@@ -737,7 +774,7 @@ export default function SuperAdmin() {
                                     setOpenActionUserId(null);
                                     handleUnbanUser(u._id);
                                   }}
-                                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left font-bold text-emerald-700 hover:bg-emerald-50 transition"
+                                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left font-bold text-emerald-400 hover:bg-emerald-950/40 transition"
                                 >
                                   <span>🟢 Lift Ban</span>
                                 </button>
@@ -748,7 +785,7 @@ export default function SuperAdmin() {
                                     setOpenActionUserId(null);
                                     setUserToBan(u);
                                   }}
-                                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left font-bold text-amber-700 hover:bg-amber-50 transition"
+                                  className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left font-bold text-amber-400 hover:bg-amber-950/40 transition"
                                 >
                                   <span>🚫 Ban / Suspend</span>
                                 </button>
@@ -760,7 +797,7 @@ export default function SuperAdmin() {
                                   setOpenActionUserId(null);
                                   setUserToDelete(u);
                                 }}
-                                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left font-bold text-rose-600 hover:bg-rose-50 transition border-t border-slate-100 mt-1 pt-1.5"
+                                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left font-bold text-rose-400 hover:bg-rose-950/40 transition border-t border-slate-800 mt-1 pt-1.5"
                               >
                                 <span>🗑️ Delete Member</span>
                               </button>
@@ -779,18 +816,18 @@ export default function SuperAdmin() {
 
       {/* POSTS MODERATION TAB */}
       {activeTab === "posts" && (
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+        <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 text-white shadow-xl space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h3 className="text-base font-extrabold text-slate-900">Feed Content Moderation</h3>
-              <p className="text-xs text-slate-500">Monitor and delete inappropriate community posts.</p>
+              <h3 className="text-base font-extrabold text-white">Feed Content Moderation</h3>
+              <p className="text-xs text-slate-400">Monitor and delete inappropriate community posts.</p>
             </div>
             <input
               type="text"
               value={postSearch}
               onChange={(e) => setPostSearch(e.target.value)}
               placeholder="Filter posts by text or author..."
-              className="w-full sm:w-72 rounded-xl border border-slate-300 px-4 py-2 text-xs outline-none focus:border-teal-500"
+              className="w-full sm:w-72 rounded-xl border border-slate-700 bg-slate-950 px-4 py-2 text-xs text-white placeholder-slate-400 outline-none focus:border-amber-400 transition"
             />
           </div>
 
@@ -806,27 +843,27 @@ export default function SuperAdmin() {
                   : (p.mediaUrls || []).map((u) => ({ url: u }));
 
                 return (
-                  <div key={p._id} className="rounded-2xl border border-slate-200 bg-slate-50/50 p-4 flex flex-col justify-between space-y-3">
+                  <div key={p._id} className="rounded-2xl border border-slate-800 bg-slate-950 p-4 flex flex-col justify-between space-y-3">
                     <div>
                       <div className="flex items-center justify-between gap-3">
                         <div className="flex items-center gap-3">
                           <UserAvatar name={p.authorName || "Author"} photoUrl={p.authorPhotoUrl} size="sm" />
                           <div>
-                            <p className="text-xs font-extrabold text-slate-900">{p.authorName || "Community Member"}</p>
+                            <p className="text-xs font-extrabold text-white">{p.authorName || "Community Member"}</p>
                             <p className="text-[10px] text-slate-400">{p.createdAt ? new Date(p.createdAt).toLocaleDateString() : "Recent"}</p>
                           </div>
                         </div>
 
                         <button
                           onClick={() => navigate(`/feed?postId=${p._id}`)}
-                          className="inline-flex items-center gap-1 rounded-lg bg-teal-50 px-2.5 py-1 text-[11px] font-bold text-teal-700 hover:bg-teal-100 border border-teal-200/80 transition"
+                          className="inline-flex items-center gap-1 rounded-lg bg-teal-500/20 border border-teal-500/30 px-2.5 py-1 text-[11px] font-bold text-teal-300 hover:bg-teal-500/30 transition"
                           title="View post in community feed"
                         >
                           👁️ View Post
                         </button>
                       </div>
 
-                      {p.text && <p className="mt-3 text-xs text-slate-700 leading-relaxed line-clamp-3">{p.text}</p>}
+                      {p.text && <p className="mt-3 text-xs text-slate-300 leading-relaxed line-clamp-3">{p.text}</p>}
 
                       {/* Post Media (Images & Videos) */}
                       {mediaItems.length > 0 && (
@@ -836,7 +873,7 @@ export default function SuperAdmin() {
                             const isVideo = (item.type || "").startsWith("video/") || mediaUrl.match(/\.(mp4|mov|webm)(\?.*)?$/i);
 
                             return (
-                              <div key={idx} className="relative overflow-hidden rounded-xl border border-slate-200 bg-black/5">
+                              <div key={idx} className="relative overflow-hidden rounded-xl border border-slate-800 bg-black/50">
                                 {isVideo ? (
                                   <video controls src={mediaUrl} className="max-h-44 w-full object-cover bg-black rounded-xl" />
                                 ) : (
@@ -854,18 +891,18 @@ export default function SuperAdmin() {
                       )}
                     </div>
 
-                    <div className="pt-3 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-2">
-                      <span className="text-[10px] font-bold text-slate-500">❤️ {p.likes || 0} Likes • 💬 {p.comments || 0} Comments</span>
+                    <div className="pt-3 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-[10px] font-bold text-slate-400">❤️ {p.likes || 0} Likes • 💬 {p.comments || 0} Comments</span>
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => navigate(`/feed?postId=${p._id}`)}
-                          className="rounded-lg bg-slate-200/80 px-2.5 py-1 text-[11px] font-bold text-slate-800 hover:bg-slate-300 transition"
+                          className="rounded-lg bg-slate-800 px-2.5 py-1 text-[11px] font-bold text-slate-200 hover:bg-slate-700 transition"
                         >
                           Tap to View ↗
                         </button>
                         <button
                           onClick={() => setPostToDelete(p)}
-                          className="rounded-lg bg-rose-100 px-2.5 py-1 text-[11px] font-bold text-rose-700 hover:bg-rose-200 transition"
+                          className="rounded-lg bg-rose-500/20 border border-rose-500/30 px-2.5 py-1 text-[11px] font-bold text-rose-300 hover:bg-rose-500/30 transition"
                         >
                           Delete
                         </button>
@@ -881,10 +918,10 @@ export default function SuperAdmin() {
 
       {/* JAMAATS TAB */}
       {activeTab === "jamaats" && (
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-6">
+        <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 text-white shadow-xl space-y-6">
           <div>
-            <h3 className="text-base font-extrabold text-slate-900">Jamaat Branches & Areas</h3>
-            <p className="text-xs text-slate-500">Manage all registered Jamaat divisions for user profiles.</p>
+            <h3 className="text-base font-extrabold text-white">Jamaat Branches & Areas</h3>
+            <p className="text-xs text-slate-400">Manage all registered Jamaat divisions for user profiles.</p>
           </div>
 
           <form onSubmit={handleAddJamaat} className="flex gap-3 max-w-md">
@@ -893,12 +930,12 @@ export default function SuperAdmin() {
               value={jamaatInput}
               onChange={(e) => setJamaatInput(e.target.value)}
               placeholder="Enter new Jamaat / Area name..."
-              className="flex-1 rounded-xl border border-slate-300 px-4 py-2.5 text-xs outline-none focus:border-teal-500"
+              className="flex-1 rounded-xl border border-slate-700 bg-slate-950 px-4 py-2.5 text-xs text-white placeholder-slate-400 outline-none focus:border-amber-400 transition"
             />
             <button
               type="submit"
               disabled={actionLoading}
-              className="rounded-xl bg-teal-600 px-5 py-2.5 text-xs font-extrabold text-white hover:bg-teal-500 transition"
+              className="rounded-xl bg-amber-500 px-5 py-2.5 text-xs font-black text-slate-950 hover:bg-amber-400 transition"
             >
               Add Jamaat
             </button>
@@ -906,14 +943,14 @@ export default function SuperAdmin() {
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {jamaats.map((j) => (
-              <div key={j} className="rounded-2xl border border-slate-200 bg-slate-50 p-4 font-extrabold text-xs text-slate-800 flex items-center justify-between gap-2">
+              <div key={j} className="rounded-2xl border border-slate-800 bg-slate-950 p-4 font-extrabold text-xs text-white flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2">
                   <span>🏰</span>
                   <span>{j}</span>
                 </div>
                 <button
                   onClick={() => setJamaatToDelete(j)}
-                  className="text-slate-400 hover:text-rose-600 transition"
+                  className="text-slate-400 hover:text-rose-400 transition"
                   title="Delete Jamaat"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -928,11 +965,11 @@ export default function SuperAdmin() {
 
       {/* REPORTS TAB */}
       {activeTab === "reports" && (
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+        <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 text-white shadow-xl space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <h3 className="text-base font-extrabold text-slate-900">User Content Reports</h3>
-              <p className="text-xs text-slate-500">Review flagged posts, comments, and member profiles.</p>
+              <h3 className="text-base font-extrabold text-white">User Content Reports</h3>
+              <p className="text-xs text-slate-400">Review flagged posts, comments, and member profiles.</p>
             </div>
             <div className="flex gap-2">
               {(["all", "pending", "resolved"] as const).map((st) => (
@@ -940,7 +977,9 @@ export default function SuperAdmin() {
                   key={st}
                   onClick={() => setReportStatusFilter(st)}
                   className={`rounded-lg px-3 py-1.5 text-xs font-bold capitalize transition ${
-                    reportStatusFilter === st ? "bg-slate-900 text-white" : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                    reportStatusFilter === st
+                      ? "bg-amber-500 text-slate-950 shadow-md"
+                      : "bg-slate-950 text-slate-400 border border-slate-800 hover:text-white hover:bg-slate-800"
                   }`}
                 >
                   {st}
@@ -956,20 +995,20 @@ export default function SuperAdmin() {
           ) : (
             <div className="space-y-3">
               {filteredReports.map((r) => (
-                <div key={r._id} className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div key={r._id} className="rounded-2xl border border-slate-800 bg-slate-950 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
-                      <span className="rounded-md bg-amber-100 px-2 py-0.5 text-[10px] font-black uppercase text-amber-800">
+                      <span className="rounded-md bg-amber-500/20 border border-amber-500/30 px-2 py-0.5 text-[10px] font-black uppercase text-amber-300">
                         {r.targetType}
                       </span>
-                      <span className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase ${
-                        r.status === "pending" ? "bg-rose-100 text-rose-800" : "bg-emerald-100 text-emerald-800"
+                      <span className={`rounded-md px-2 py-0.5 text-[10px] font-black uppercase border ${
+                        r.status === "pending" ? "bg-rose-500/20 text-rose-300 border-rose-500/30" : "bg-emerald-500/20 text-emerald-300 border-emerald-500/30"
                       }`}>
                         {r.status}
                       </span>
                       <span className="text-[11px] text-slate-400">Reported by <strong>{r.reporterName}</strong></span>
                     </div>
-                    <p className="text-xs font-bold text-slate-900 mt-1">Reason: <span className="font-normal text-slate-700">{r.reason}</span></p>
+                    <p className="text-xs font-bold text-white mt-1">Reason: <span className="font-normal text-slate-300">{r.reason}</span></p>
                     {r.targetId && <p className="text-[10px] text-slate-400 font-mono">Target ID: {r.targetId}</p>}
                   </div>
 
@@ -984,7 +1023,7 @@ export default function SuperAdmin() {
                     )}
                     <button
                       onClick={() => setReportToDelete(r)}
-                      className="rounded-lg bg-rose-50 px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-100 transition"
+                      className="rounded-lg bg-rose-500/20 border border-rose-500/30 px-3 py-1.5 text-xs font-bold text-rose-300 hover:bg-rose-500/30 transition"
                     >
                       Delete Report
                     </button>
@@ -999,46 +1038,46 @@ export default function SuperAdmin() {
       {/* SECURITY TAB */}
       {activeTab === "security" && (
         <div className="space-y-6">
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
-            <h3 className="text-base font-extrabold text-slate-900">Platform Security & Emergency Protocol</h3>
-            <p className="text-xs text-slate-600 leading-relaxed">
+          <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 text-white shadow-xl space-y-4">
+            <h3 className="text-base font-extrabold text-white">Platform Security & Emergency Protocol</h3>
+            <p className="text-xs text-slate-400 leading-relaxed">
               Super Admin root security controls allow immediate platform-wide session invalidation, protection of root admin credentials, and monitoring system rate limits.
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-2">
+              <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 space-y-2">
                 <span className="text-2xl">🔒</span>
-                <h4 className="text-xs font-black text-slate-900">JWT Token Security</h4>
-                <p className="text-[11px] text-slate-500">Every session is validated against active user session IDs. Force Logout invalidates all existing user tokens instantly.</p>
+                <h4 className="text-xs font-black text-white">JWT Token Security</h4>
+                <p className="text-[11px] text-slate-400">Every session is validated against active user session IDs. Force Logout invalidates all existing user tokens instantly.</p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-2">
+              <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 space-y-2">
                 <span className="text-2xl">⚡</span>
-                <h4 className="text-xs font-black text-slate-900">Rate Limiting</h4>
-                <p className="text-[11px] text-slate-500">Brute-force protection enabled on /auth routes (max 15 requests/min per IP) and global API (100 req/min).</p>
+                <h4 className="text-xs font-black text-white">Rate Limiting</h4>
+                <p className="text-[11px] text-slate-400">Brute-force protection enabled on /auth routes (max 15 requests/min per IP) and global API (100 req/min).</p>
               </div>
 
-              <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 space-y-2">
+              <div className="rounded-2xl border border-slate-800 bg-slate-950 p-4 space-y-2">
                 <span className="text-2xl">🛡️</span>
-                <h4 className="text-xs font-black text-slate-900">Super Admin Lock</h4>
-                <p className="text-[11px] text-slate-500">Default Super Admin credentials are hard-protected from deletion or accidental privilege demotion.</p>
+                <h4 className="text-xs font-black text-white">Super Admin Lock</h4>
+                <p className="text-[11px] text-slate-400">Default Super Admin credentials are hard-protected from deletion or accidental privilege demotion.</p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-3xl border border-rose-200 bg-rose-50/50 p-6 shadow-sm space-y-4">
-            <div className="flex items-center gap-3 text-rose-700">
+          <div className="rounded-3xl border border-rose-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-rose-950/80 p-6 text-white shadow-xl space-y-4">
+            <div className="flex items-center gap-3 text-rose-400">
               <span className="text-3xl">🚨</span>
               <div>
-                <h3 className="text-base font-extrabold">Emergency Red Button</h3>
-                <p className="text-xs text-rose-600">Execute emergency actions when security breach or suspicious activity is detected.</p>
+                <h3 className="text-base font-extrabold text-white">Emergency Red Button</h3>
+                <p className="text-xs text-rose-300">Execute emergency actions when security breach or suspicious activity is detected.</p>
               </div>
             </div>
 
             <div className="pt-2">
               <button
                 onClick={() => setForceLogoutModal(true)}
-                className="rounded-xl bg-rose-600 px-6 py-3 text-xs font-extrabold text-white shadow-lg shadow-rose-600/30 hover:bg-rose-500 transition active:scale-95"
+                className="rounded-xl bg-rose-600 px-6 py-3 text-xs font-extrabold text-white shadow-lg shadow-rose-600/30 hover:bg-rose-500 transition active:scale-95 cursor-pointer"
               >
                 🚨 Execute Force Logout Across All Devices
               </button>
@@ -1051,9 +1090,9 @@ export default function SuperAdmin() {
 
       {/* Change Role Modal */}
       {rolePickerUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl space-y-4">
-            <h3 className="text-base font-extrabold text-slate-900">Change Role for {rolePickerUser.fullName}</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
+          <div className="relative overflow-hidden w-full max-w-sm rounded-3xl border border-amber-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950/95 p-6 text-white shadow-2xl space-y-4">
+            <h3 className="text-base font-extrabold text-white">Change Role for {rolePickerUser.fullName}</h3>
             <div className="space-y-2">
               {(["admin", "moderator", "member"] as const).map((r) => (
                 <button
@@ -1061,14 +1100,14 @@ export default function SuperAdmin() {
                   disabled={actionLoading}
                   onClick={() => handleUpdateRole(rolePickerUser._id, r)}
                   className={`w-full rounded-xl p-3 text-left text-xs font-extrabold capitalize transition ${
-                    rolePickerUser.role === r ? "bg-teal-600 text-white" : "bg-slate-100 text-slate-800 hover:bg-slate-200"
+                    rolePickerUser.role === r ? "bg-amber-500 text-slate-950" : "bg-slate-950 text-slate-200 border border-slate-800 hover:bg-slate-800"
                   }`}
                 >
                   {r.replace("_", " ")}
                 </button>
               ))}
             </div>
-            <button onClick={() => setRolePickerUser(null)} className="w-full text-center text-xs font-bold text-slate-500 py-2">
+            <button onClick={() => setRolePickerUser(null)} className="w-full text-center text-xs font-bold text-slate-400 py-2 hover:text-white">
               Cancel
             </button>
           </div>
@@ -1077,10 +1116,10 @@ export default function SuperAdmin() {
 
       {/* Ban User Modal */}
       {userToBan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl space-y-4">
-            <h3 className="text-base font-extrabold text-slate-900">Suspend Account: {userToBan.fullName}</h3>
-            <p className="text-xs text-slate-500">Select suspension duration:</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
+          <div className="relative overflow-hidden w-full max-w-sm rounded-3xl border border-rose-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-rose-950/95 p-6 text-white shadow-2xl space-y-4">
+            <h3 className="text-base font-extrabold text-white">Suspend Account: {userToBan.fullName}</h3>
+            <p className="text-xs text-slate-300">Select suspension duration:</p>
             <div className="grid grid-cols-2 gap-2">
               {[
                 { id: "1day", label: "1 Day" },
@@ -1093,7 +1132,7 @@ export default function SuperAdmin() {
                   key={d.id}
                   onClick={() => setBanDuration(d.id as any)}
                   className={`rounded-xl p-2.5 text-xs font-extrabold transition ${
-                    banDuration === d.id ? "bg-rose-600 text-white" : "bg-slate-100 text-slate-800 hover:bg-slate-200"
+                    banDuration === d.id ? "bg-rose-600 text-white" : "bg-slate-950 text-slate-300 border border-slate-800 hover:bg-slate-800"
                   }`}
                 >
                   {d.label}
@@ -1101,10 +1140,10 @@ export default function SuperAdmin() {
               ))}
             </div>
             <div className="flex gap-2 pt-2">
-              <button onClick={() => setUserToBan(null)} disabled={actionLoading} className="flex-1 rounded-xl bg-slate-100 py-2.5 text-xs font-bold text-slate-600">
+              <button onClick={() => setUserToBan(null)} disabled={actionLoading} className="flex-1 rounded-xl border border-slate-700 bg-slate-900 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-800">
                 Cancel
               </button>
-              <button onClick={handleBanUser} disabled={actionLoading} className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-bold text-white shadow-md">
+              <button onClick={handleBanUser} disabled={actionLoading} className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-bold text-white shadow-md hover:bg-rose-500">
                 {actionLoading ? "Banning..." : "Confirm Ban"}
               </button>
             </div>
@@ -1114,20 +1153,20 @@ export default function SuperAdmin() {
 
       {/* Delete User Modal */}
       {userToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl space-y-4">
-            <div className="flex items-center gap-3 text-rose-600">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
+          <div className="relative overflow-hidden w-full max-w-md rounded-3xl border border-rose-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-rose-950/95 p-6 text-white shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-rose-400">
               <span className="text-3xl">⚠️</span>
-              <h3 className="text-base font-extrabold">Permanently Delete User Account</h3>
+              <h3 className="text-base font-extrabold text-white">Permanently Delete User Account</h3>
             </div>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Are you sure you want to permanently delete <strong className="text-slate-900">"{userToDelete.fullName}"</strong>? All their posts, comments, likes, and profile data will be permanently removed from the community database.
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Are you sure you want to permanently delete <strong className="text-white">"{userToDelete.fullName}"</strong>? All their posts, comments, likes, and profile data will be permanently removed from the community database.
             </p>
             <div className="flex gap-2 pt-2">
-              <button onClick={() => setUserToDelete(null)} disabled={actionLoading} className="flex-1 rounded-xl bg-slate-100 py-2.5 text-xs font-bold text-slate-600">
+              <button onClick={() => setUserToDelete(null)} disabled={actionLoading} className="flex-1 rounded-xl border border-slate-700 bg-slate-900 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-800">
                 Cancel
               </button>
-              <button onClick={handleDeleteUser} disabled={actionLoading} className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-bold text-white shadow-md">
+              <button onClick={handleDeleteUser} disabled={actionLoading} className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-bold text-white shadow-md hover:bg-rose-500">
                 {actionLoading ? "Deleting..." : "Delete Account Permanently"}
               </button>
             </div>
@@ -1137,23 +1176,23 @@ export default function SuperAdmin() {
 
       {/* Delete Post Modal */}
       {postToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl space-y-4">
-            <div className="flex items-center gap-3 text-rose-600">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
+          <div className="relative overflow-hidden w-full max-w-md rounded-3xl border border-rose-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-rose-950/95 p-6 text-white shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-rose-400">
               <span className="text-3xl">🗑️</span>
-              <h3 className="text-base font-extrabold">Delete Feed Post</h3>
+              <h3 className="text-base font-extrabold text-white">Delete Feed Post</h3>
             </div>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Are you sure you want to remove this post by <strong className="text-slate-900">{postToDelete.authorName || "Member"}</strong>?
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Are you sure you want to remove this post by <strong className="text-white">{postToDelete.authorName || "Member"}</strong>?
             </p>
-            <div className="rounded-xl bg-slate-100 p-3 text-xs text-slate-700 italic line-clamp-3">
+            <div className="rounded-xl border border-slate-800 bg-slate-950 p-3 text-xs text-slate-300 italic line-clamp-3">
               "{postToDelete.text || "No text content"}"
             </div>
             <div className="flex gap-2 pt-2">
-              <button onClick={() => setPostToDelete(null)} disabled={actionLoading} className="flex-1 rounded-xl bg-slate-100 py-2.5 text-xs font-bold text-slate-600">
+              <button onClick={() => setPostToDelete(null)} disabled={actionLoading} className="flex-1 rounded-xl border border-slate-700 bg-slate-900 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-800">
                 Cancel
               </button>
-              <button onClick={handleDeletePost} disabled={actionLoading} className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-bold text-white shadow-md">
+              <button onClick={handleDeletePost} disabled={actionLoading} className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-bold text-white shadow-md hover:bg-rose-500">
                 {actionLoading ? "Removing..." : "Remove Post"}
               </button>
             </div>
@@ -1163,20 +1202,20 @@ export default function SuperAdmin() {
 
       {/* Delete Jamaat Modal */}
       {jamaatToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl space-y-4">
-            <div className="flex items-center gap-3 text-rose-600">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
+          <div className="relative overflow-hidden w-full max-w-md rounded-3xl border border-rose-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-rose-950/95 p-6 text-white shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-rose-400">
               <span className="text-3xl">🏰</span>
-              <h3 className="text-base font-extrabold">Permanently Delete Jamaat</h3>
+              <h3 className="text-base font-extrabold text-white">Permanently Delete Jamaat</h3>
             </div>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Are you sure you want to permanently delete <strong className="text-slate-900">"{jamaatToDelete}"</strong>? All members currently assigned to this Jamaat will be updated to <strong className="text-slate-900">General</strong>.
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Are you sure you want to permanently delete <strong className="text-white">"{jamaatToDelete}"</strong>? All members currently assigned to this Jamaat will be updated to <strong className="text-white">General</strong>.
             </p>
             <div className="flex gap-2 pt-2">
-              <button onClick={() => setJamaatToDelete(null)} disabled={actionLoading} className="flex-1 rounded-xl bg-slate-100 py-2.5 text-xs font-bold text-slate-600">
+              <button onClick={() => setJamaatToDelete(null)} disabled={actionLoading} className="flex-1 rounded-xl border border-slate-700 bg-slate-900 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-800">
                 Cancel
               </button>
-              <button onClick={handleDeleteJamaat} disabled={actionLoading} className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-bold text-white shadow-md">
+              <button onClick={handleDeleteJamaat} disabled={actionLoading} className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-bold text-white shadow-md hover:bg-rose-500">
                 {actionLoading ? "Deleting..." : "Delete Permanently"}
               </button>
             </div>
@@ -1186,20 +1225,20 @@ export default function SuperAdmin() {
 
       {/* Delete Report Modal */}
       {reportToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl space-y-4">
-            <div className="flex items-center gap-3 text-rose-600">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
+          <div className="relative overflow-hidden w-full max-w-md rounded-3xl border border-rose-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-rose-950/95 p-6 text-white shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-rose-400">
               <span className="text-3xl">🚩</span>
-              <h3 className="text-base font-extrabold">Delete Report Entry</h3>
+              <h3 className="text-base font-extrabold text-white">Delete Report Entry</h3>
             </div>
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <p className="text-xs text-slate-300 leading-relaxed">
               Are you sure you want to remove this report entry from the database?
             </p>
             <div className="flex gap-2 pt-2">
-              <button onClick={() => setReportToDelete(null)} disabled={actionLoading} className="flex-1 rounded-xl bg-slate-100 py-2.5 text-xs font-bold text-slate-600">
+              <button onClick={() => setReportToDelete(null)} disabled={actionLoading} className="flex-1 rounded-xl border border-slate-700 bg-slate-900 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-800">
                 Cancel
               </button>
-              <button onClick={handleDeleteReport} disabled={actionLoading} className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-bold text-white shadow-md">
+              <button onClick={handleDeleteReport} disabled={actionLoading} className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-bold text-white shadow-md hover:bg-rose-500">
                 {actionLoading ? "Deleting..." : "Delete Report"}
               </button>
             </div>
@@ -1209,20 +1248,20 @@ export default function SuperAdmin() {
 
       {/* Force Logout Modal */}
       {forceLogoutModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl space-y-4">
-            <div className="flex items-center gap-3 text-rose-600">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
+          <div className="relative overflow-hidden w-full max-w-md rounded-3xl border border-rose-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-rose-950/95 p-6 text-white shadow-2xl space-y-4">
+            <div className="flex items-center gap-3 text-rose-400">
               <span className="text-3xl">🚨</span>
-              <h3 className="text-base font-extrabold">Emergency Force Logout All</h3>
+              <h3 className="text-base font-extrabold text-white">Emergency Force Logout All</h3>
             </div>
-            <p className="text-xs text-slate-600 leading-relaxed">
+            <p className="text-xs text-slate-300 leading-relaxed">
               This will immediately invalidate all active JWT tokens across all mobile apps and websites. Everyone will be required to log in again.
             </p>
             <div className="flex gap-2 pt-2">
-              <button onClick={() => setForceLogoutModal(false)} disabled={actionLoading} className="flex-1 rounded-xl bg-slate-100 py-2.5 text-xs font-bold text-slate-600">
+              <button onClick={() => setForceLogoutModal(false)} disabled={actionLoading} className="flex-1 rounded-xl border border-slate-700 bg-slate-900 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-800">
                 Cancel
               </button>
-              <button onClick={handleForceLogoutAll} disabled={actionLoading} className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-bold text-white shadow-md">
+              <button onClick={handleForceLogoutAll} disabled={actionLoading} className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-bold text-white shadow-md hover:bg-rose-500">
                 {actionLoading ? "Executing..." : "Execute Force Logout"}
               </button>
             </div>

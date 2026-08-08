@@ -119,7 +119,7 @@ export default function Home() {
   return (
     <div className="w-full space-y-8 py-2">
       {/* Premium Hero Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 p-8 text-white shadow-xl md:p-10 border border-slate-800">
+      <div className="page-hero-banner relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 p-8 text-white shadow-xl md:p-10 border border-slate-800">
         <div className="absolute right-0 top-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-teal-500/10 blur-3xl" />
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
           <div className="space-y-3 max-w-2xl">
@@ -143,7 +143,7 @@ export default function Home() {
               </Link>
               <Link
                 to="/notices"
-                className="inline-flex items-center gap-2 rounded-xl bg-white/10 px-5 py-3 text-xs font-bold text-white border border-white/20 hover:bg-white/20 transition active:scale-95"
+                className="inline-flex items-center gap-2 rounded-xl bg-slate-100 dark:bg-white/10 px-5 py-3 text-xs font-extrabold text-slate-900 dark:text-white border border-slate-300 dark:border-white/30 hover:bg-slate-200 dark:hover:bg-white/20 transition active:scale-95 shadow-sm"
               >
                 <span>📢</span> View Notices & Mayyat
               </Link>
