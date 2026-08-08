@@ -115,8 +115,73 @@ export default function PeopleProfile() {
   const [usernameStatus, setUsernameStatus] = useState<UsernameStatus>("idle");
   const [usernameMessage, setUsernameMessage] = useState("");
 
+  // Email Change & OTP Modal State
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailStep, setEmailStep] = useState<1 | 2>(1);
+  const [newEmailInput, setNewEmailInput] = useState("");
+  const [otpInput, setOtpInput] = useState("");
+  const [sendingOtp, setSendingOtp] = useState(false);
+  const [verifyingEmail, setVerifyingEmail] = useState(false);
+
   const showToast = (message: string, type: "success" | "error" = "success") => {
     setToast({ message, type, isVisible: true });
+  };
+
+  const handleOpenEmailModal = () => {
+    setNewEmailInput("");
+    setOtpInput("");
+    setEmailStep(1);
+    setShowEmailModal(true);
+  };
+
+  const handleSendEmailOtp = async (e: FormEvent) => {
+    e.preventDefault();
+    const targetEmail = newEmailInput.trim().toLowerCase();
+    if (!targetEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(targetEmail)) {
+      showToast("Please enter a valid new email address.", "error");
+      return;
+    }
+    if (targetEmail === user?.email?.toLowerCase()) {
+      showToast("New email cannot be the same as your current email.", "error");
+      return;
+    }
+
+    try {
+      setSendingOtp(true);
+      await API.post("/auth/otp/send", { email: targetEmail, purpose: "change_email" });
+      showToast("Verification OTP sent to your new email address!", "success");
+      setEmailStep(2);
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Unable to send verification OTP.", "error");
+    } finally {
+      setSendingOtp(false);
+    }
+  };
+
+  const handleVerifyAndUpdateEmail = async (e: FormEvent) => {
+    e.preventDefault();
+    const targetEmail = newEmailInput.trim().toLowerCase();
+    const code = otpInput.trim();
+    if (!code || code.length < 4) {
+      showToast("Please enter the 6-digit OTP verification code.", "error");
+      return;
+    }
+
+    try {
+      setVerifyingEmail(true);
+      const res = await API.put<{ user: UserProfile }>("/auth/me/email", { newEmail: targetEmail, otp: code });
+      if (res.data?.user) {
+        setUser(res.data.user);
+        setForm(toForm(res.data.user));
+      }
+      showToast("Email address updated and verified successfully!", "success");
+      setShowEmailModal(false);
+      window.dispatchEvent(new Event("community-profile-updated"));
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to verify OTP or update email.", "error");
+    } finally {
+      setVerifyingEmail(false);
+    }
   };
 
   const profileCompletion = useMemo(() => {
@@ -452,14 +517,25 @@ export default function PeopleProfile() {
 
             <div>
               <label className="form-label">Email Address</label>
-              <input
-                name="email"
-                type="email"
-                value={form.email || ""}
-                onChange={handleChange}
-                placeholder="name@example.com"
-                className="form-input"
-              />
+              <div className="relative flex items-center w-full">
+                <input
+                  name="email"
+                  type="email"
+                  value={form.email || ""}
+                  readOnly
+                  placeholder="name@example.com"
+                  className="form-input pr-28 sm:pr-36 text-xs sm:text-sm bg-slate-100/90 cursor-not-allowed font-semibold text-slate-800 truncate border-slate-200"
+                />
+                <button
+                  type="button"
+                  onClick={handleOpenEmailModal}
+                  className="absolute right-1.5 top-1.5 bottom-1.5 inline-flex items-center justify-center gap-1 sm:gap-1.5 rounded-xl bg-teal-600 px-3 sm:px-4 text-xs font-extrabold text-white shadow-md shadow-teal-600/20 hover:bg-teal-500 transition active:scale-95 shrink-0"
+                >
+                  <span>✏️</span>
+                  <span>Change Email</span>
+                </button>
+              </div>
+              <p className="mt-1.5 text-[11px] text-slate-500">Email is locked for security. Click 'Change Email' to verify a new email via OTP.</p>
             </div>
 
             <div>
@@ -543,6 +619,130 @@ export default function PeopleProfile() {
           </div>
         </div>
       </form>
+
+      {/* Email Change & OTP Modal */}
+      {showEmailModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">✉️</span>
+                <h3 className="text-base font-extrabold text-slate-900">
+                  {emailStep === 1 ? "Verify New Email Address" : "Enter Verification Code"}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowEmailModal(false)}
+                className="rounded-full bg-slate-100 p-1.5 text-slate-500 hover:bg-slate-200 transition"
+              >
+                ✕
+              </button>
+            </div>
+
+            {emailStep === 1 ? (
+              <form onSubmit={handleSendEmailOtp} className="space-y-4">
+                <p className="text-xs text-slate-600 leading-relaxed">
+                  Enter your new email address below. We will send a 6-digit OTP code to verify ownership before updating your account.
+                </p>
+
+                <div>
+                  <label className="form-label">Current Email</label>
+                  <input
+                    type="email"
+                    value={user?.email || "Not specified"}
+                    disabled
+                    className="form-input bg-slate-100 text-slate-500 text-xs font-medium cursor-not-allowed"
+                  />
+                </div>
+
+                <div>
+                  <label className="form-label">New Email Address <span className="text-rose-500">*</span></label>
+                  <input
+                    type="email"
+                    value={newEmailInput}
+                    onChange={(e) => setNewEmailInput(e.target.value)}
+                    placeholder="e.g. newemail@example.com"
+                    required
+                    className="form-input text-xs font-medium focus:border-teal-500"
+                  />
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowEmailModal(false)}
+                    className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={sendingOtp || !newEmailInput.trim()}
+                    className="rounded-xl bg-teal-600 px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-teal-500 transition disabled:opacity-50"
+                  >
+                    {sendingOtp ? "Sending OTP..." : "Send Verification OTP 📩"}
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyAndUpdateEmail} className="space-y-4">
+                <div className="rounded-2xl bg-teal-50/70 border border-teal-200 p-3.5 text-xs text-teal-900 leading-relaxed">
+                  🔐 We sent a 6-digit OTP code to <strong className="font-extrabold text-teal-950">{newEmailInput}</strong>. Please check your inbox or spam folder.
+                </div>
+
+                <div>
+                  <label className="form-label">6-Digit Verification OTP Code <span className="text-rose-500">*</span></label>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    value={otpInput}
+                    onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, ""))}
+                    placeholder="123456"
+                    required
+                    className="form-input text-center text-lg font-mono font-bold tracking-widest text-slate-900 focus:border-teal-500"
+                  />
+                </div>
+
+                <div className="flex items-center justify-between text-xs pt-1">
+                  <button
+                    type="button"
+                    onClick={() => setEmailStep(1)}
+                    className="font-bold text-slate-500 hover:text-slate-800 transition"
+                  >
+                    ← Change Email Address
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleSendEmailOtp}
+                    disabled={sendingOtp}
+                    className="font-extrabold text-teal-600 hover:text-teal-700 transition"
+                  >
+                    Resend OTP Code
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-end gap-2 pt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowEmailModal(false)}
+                    className="rounded-xl border border-slate-200 px-4 py-2.5 text-xs font-bold text-slate-600 hover:bg-slate-100 transition"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={verifyingEmail || otpInput.length < 4}
+                    className="rounded-xl bg-teal-600 px-5 py-2.5 text-xs font-extrabold text-white shadow-md hover:bg-teal-500 transition disabled:opacity-50"
+                  >
+                    {verifyingEmail ? "Verifying..." : "Verify & Update Email ✓"}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

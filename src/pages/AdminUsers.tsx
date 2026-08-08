@@ -78,6 +78,17 @@ export default function AdminUsers() {
   const [userToDelete, setUserToDelete] = useState<UserItem | null>(null);
   const [forceLogoutModal, setForceLogoutModal] = useState(false);
   const [submittingAction, setSubmittingAction] = useState(false);
+  const [openActionUserId, setOpenActionUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (!(e.target as HTMLElement).closest(".member-action-dropdown")) {
+        setOpenActionUserId(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     loadAdminData();
@@ -389,7 +400,115 @@ export default function AdminUsers() {
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+          {/* Mobile Card List (sm:hidden) */}
+          <div className="space-y-3 sm:hidden">
+            {filteredUsers.length === 0 ? (
+              <div className="rounded-2xl border border-slate-200 bg-white p-6 text-center text-xs text-slate-500 font-medium">
+                No members matching criteria.
+              </div>
+            ) : (
+              filteredUsers.map((u) => (
+                <div key={u._id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <UserAvatar name={u.fullName} photoUrl={u.profilePhotoUrl} size="md" />
+                      <div className="min-w-0">
+                        <p className="font-extrabold text-slate-900 text-sm truncate">{u.fullName}</p>
+                        <p className="text-xs text-slate-400 truncate">@{u.username || "member"}</p>
+                        <p className="text-[11px] text-slate-500 truncate">{u.mobile || u.email || "No contact"}</p>
+                      </div>
+                    </div>
+
+                    <div className="relative shrink-0 member-action-dropdown">
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenActionUserId((prev) => (prev === u._id ? null : u._id));
+                        }}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-extrabold text-slate-700 shadow-sm hover:bg-teal-50 hover:border-teal-500 transition active:scale-95"
+                      >
+                        <span>⚙️ Actions</span>
+                        <svg className={`h-3.5 w-3.5 transition-transform duration-200 ${openActionUserId === u._id ? 'rotate-180 text-teal-600' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+
+                      {openActionUserId === u._id && (
+                        <div className="absolute right-0 top-full mt-1.5 z-50 w-48 overflow-hidden rounded-2xl border border-slate-200 bg-white p-1 text-xs shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOpenActionUserId(null);
+                              setRolePickerUser(u);
+                            }}
+                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left font-bold text-slate-700 hover:bg-slate-100 transition"
+                          >
+                            <span>⚙️ Change Role</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOpenActionUserId(null);
+                              setUserToBan(u);
+                            }}
+                            className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left font-bold transition ${
+                              u.isBanned ? "text-emerald-700 hover:bg-emerald-50" : "text-amber-700 hover:bg-amber-50"
+                            }`}
+                          >
+                            <span>{u.isBanned ? "🟢 Unban Member" : "🚫 Ban / Suspend"}</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOpenActionUserId(null);
+                              setUserToDelete(u);
+                            }}
+                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left font-bold text-rose-600 hover:bg-rose-50 transition border-t border-slate-100 mt-1 pt-2"
+                          >
+                            <span>🗑️ Delete Member</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
+                    <span className="font-bold text-slate-600">Jamaat: {u.jamaat || "General"}</span>
+                    <div className="flex items-center gap-1.5">
+                      <span
+                        className={`inline-block rounded-md px-2.5 py-0.5 text-[10px] font-bold uppercase ${
+                          u.role === "super_admin"
+                            ? "bg-purple-100 text-purple-800"
+                            : u.role === "admin"
+                            ? "bg-blue-100 text-blue-800"
+                            : u.role === "moderator"
+                            ? "bg-teal-100 text-teal-800"
+                            : "bg-slate-100 text-slate-700"
+                        }`}
+                      >
+                        {u.role.replace("_", " ")}
+                      </span>
+                      {u.isBanned ? (
+                        <span className="rounded-md bg-red-100 px-2 py-0.5 text-[10px] font-bold text-red-700 uppercase">
+                          Suspended
+                        </span>
+                      ) : (
+                        <span className="rounded-md bg-emerald-100 px-2 py-0.5 text-[10px] font-bold text-emerald-700 uppercase">
+                          Active
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Desktop Table View (hidden sm:block) */}
+          <div className="hidden sm:block overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
             <table className="w-full text-left text-xs text-slate-700">
               <thead className="bg-slate-50 text-[11px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">
                 <tr>
@@ -445,27 +564,59 @@ export default function AdminUsers() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="relative inline-block text-left member-action-dropdown">
                         <button
-                          onClick={() => setRolePickerUser(u)}
-                          className="rounded-lg bg-slate-100 px-2.5 py-1 font-bold text-slate-700 hover:bg-slate-200"
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setOpenActionUserId((prev) => (prev === u._id ? null : u._id));
+                          }}
+                          className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-extrabold text-slate-700 shadow-sm hover:border-teal-500 hover:bg-teal-50 transition active:scale-95"
                         >
-                          Role
+                          <span>⚙️ Actions</span>
+                          <svg className={`h-3.5 w-3.5 transition-transform duration-200 ${openActionUserId === u._id ? 'rotate-180 text-teal-600' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                          </svg>
                         </button>
-                        <button
-                          onClick={() => setUserToBan(u)}
-                          className={`rounded-lg px-2.5 py-1 font-bold ${
-                            u.isBanned ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100" : "bg-amber-50 text-amber-700 hover:bg-amber-100"
-                          }`}
-                        >
-                          {u.isBanned ? "Unban" : "Ban"}
-                        </button>
-                        <button
-                          onClick={() => setUserToDelete(u)}
-                          className="rounded-lg bg-red-50 px-2.5 py-1 font-bold text-red-600 hover:bg-red-100"
-                        >
-                          Delete
-                        </button>
+
+                        {openActionUserId === u._id && (
+                          <div className="absolute right-0 mt-1.5 z-50 w-44 overflow-hidden rounded-2xl border border-slate-200 bg-white p-1 text-xs shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOpenActionUserId(null);
+                                setRolePickerUser(u);
+                              }}
+                              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left font-bold text-slate-700 hover:bg-slate-100 transition"
+                            >
+                              <span>⚙️ Change Role</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOpenActionUserId(null);
+                                setUserToBan(u);
+                              }}
+                              className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left font-bold transition ${
+                                u.isBanned ? "text-emerald-700 hover:bg-emerald-50" : "text-amber-700 hover:bg-amber-50"
+                              }`}
+                            >
+                              <span>{u.isBanned ? "🟢 Unban Member" : "🚫 Ban / Suspend"}</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOpenActionUserId(null);
+                                setUserToDelete(u);
+                              }}
+                              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left font-bold text-rose-600 hover:bg-rose-50 transition border-t border-slate-100 mt-1 pt-1.5"
+                            >
+                              <span>🗑️ Delete Member</span>
+                            </button>
+                          </div>
+                        )}
                       </div>
                     </td>
                   </tr>
@@ -596,7 +747,7 @@ export default function AdminUsers() {
           <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl space-y-4">
             <h3 className="text-lg font-bold text-slate-900">Assign Role to {rolePickerUser.fullName}</h3>
             <div className="space-y-2">
-              {(["member", "moderator", "admin", "super_admin"] as UserRole[]).map((r) => (
+              {(["member", "moderator", "admin"] as const).map((r) => (
                 <button
                   key={r}
                   disabled={submittingAction}
