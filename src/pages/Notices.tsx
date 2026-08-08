@@ -1272,7 +1272,7 @@ export default function NoticesPage() {
 
               {/* Body Content Box */}
               <div
-                className={`mt-4 rounded-2xl p-4 sm:p-6 backdrop-blur-md ${
+                className={`mt-4 rounded-2xl p-4 sm:p-6 backdrop-blur-md break-words [overflow-wrap:anywhere] ${
                   isMayyat
                     ? "bg-slate-950/80 border border-amber-500/30 shadow-inner"
                     : "bg-white/5 border border-white/10 text-slate-100"

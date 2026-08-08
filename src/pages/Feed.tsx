@@ -721,7 +721,7 @@ export default function Feed() {
                       </div>
                     </div>
 
-                    {post.text ? <p className="mt-4 whitespace-pre-line text-[15px] leading-7 text-slate-800">{post.text}</p> : null}
+                    {post.text ? <p className="mt-4 whitespace-pre-line text-[15px] leading-7 text-slate-800 break-words [overflow-wrap:anywhere]">{post.text}</p> : null}
 
                     {post.media && post.media.length > 0 ? (
                       <div className={`mt-4 grid gap-3 ${post.media.length === 1 ? "grid-cols-1" : "sm:grid-cols-2"}`}>
