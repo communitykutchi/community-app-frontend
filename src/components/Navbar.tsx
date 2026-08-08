@@ -309,20 +309,20 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800/80 bg-white/95 dark:bg-slate-950/90 text-slate-900 dark:text-white backdrop-blur-md transition-all gpu-smooth py-1 sm:py-1.5 shadow-sm">
-      <div className="mx-auto flex min-h-[84px] max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+      <div className="mx-auto flex min-h-[60px] sm:min-h-[76px] max-w-7xl items-center justify-between px-3 py-2 sm:px-6 lg:px-8 gap-2">
         
         {/* Brand Section */}
-        <Link to="/" className="flex items-center gap-3 transition hover:opacity-90 py-1.5">
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 p-0.5 shadow-md shadow-teal-500/20">
+        <Link to="/" className="flex items-center gap-2 sm:gap-3 transition hover:opacity-90 py-1 shrink min-w-0">
+          <div className="relative flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 p-0.5 shadow-md shadow-teal-500/20">
             <div className="h-full w-full rounded-[10px] bg-slate-950 p-1 flex items-center justify-center">
               <img src="/logo.png" alt="Logo" className="h-full w-full object-contain" />
             </div>
           </div>
-          <div>
-            <h1 className="text-sm font-extrabold text-slate-900 dark:text-white tracking-tight leading-none">
+          <div className="min-w-0">
+            <h1 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight truncate">
               All Kutchi Community
             </h1>
-            <p className="text-[10px] text-emerald-400 font-medium tracking-wide mt-0.5">
+            <p className="text-[9px] sm:text-[10px] text-emerald-500 font-medium tracking-wide mt-0.5 leading-none hidden xs:block truncate">
               Official Portal
             </p>
           </div>
@@ -431,7 +431,7 @@ export default function Navbar() {
         )}
 
         {/* Right User Actions */}
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
           {isAuthenticated && !isAuthRoute ? (
             <div className="relative" ref={dropdownRef}>
               <button
@@ -506,24 +506,6 @@ export default function Navbar() {
                   ) : null}
 
                   <button
-                    type="button"
-                    onClick={toggleTheme}
-                    className="flex w-full items-center justify-between rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all font-medium my-0.5"
-                  >
-                    <div className="flex items-center gap-2.5">
-                      <span className="text-sm">{theme === 'dark' ? '🌙' : '☀️'}</span>
-                      <span>Theme Mode</span>
-                    </div>
-                    <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider ${
-                      theme === 'dark'
-                        ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-                        : 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
-                    }`}>
-                      {theme === 'dark' ? 'Dark' : 'Light'}
-                    </span>
-                  </button>
-
-                  <button
                     onClick={handleLogout}
                     className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition-all font-medium mt-1 border-t border-slate-800/80"
                   >
@@ -536,16 +518,24 @@ export default function Navbar() {
               )}
             </div>
           ) : (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               <Link
                 to="/login"
-                className="rounded-lg px-3.5 py-1.5 text-xs font-semibold text-slate-300 transition hover:text-white hover:bg-slate-800/80"
+                className={`rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-xs transition whitespace-nowrap shrink-0 border ${
+                  location.pathname === '/login'
+                    ? 'nav-btn-active font-extrabold'
+                    : 'nav-btn-inactive font-bold'
+                }`}
               >
                 Sign In
               </Link>
               <Link
                 to="/register"
-                className="rounded-lg bg-teal-600 px-3.5 py-1.5 text-xs font-semibold text-white shadow-sm shadow-teal-600/30 transition hover:bg-teal-500"
+                className={`rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-xs transition whitespace-nowrap shrink-0 border ${
+                  location.pathname === '/register' || location.pathname !== '/login'
+                    ? 'nav-btn-active font-extrabold'
+                    : 'nav-btn-inactive font-bold'
+                }`}
               >
                 Register
               </Link>
@@ -644,20 +634,6 @@ export default function Navbar() {
             })}
 
             <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-800 space-y-1.5">
-              <button
-                type="button"
-                onClick={toggleTheme}
-                className="mobile-theme-toggle-btn flex w-full items-center justify-between rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-800 px-3.5 py-2.5 text-xs font-bold text-slate-900 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-800 transition shadow-sm cursor-pointer"
-              >
-                <div className="flex items-center gap-2.5">
-                  <span className="text-sm">{theme === 'dark' ? '🌙' : '☀️'}</span>
-                  <span>Theme: {theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
-                </div>
-                <span className="rounded-lg bg-teal-500/15 px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-teal-700 dark:text-teal-300 border border-teal-500/30">
-                  Switch to {theme === 'dark' ? 'Light' : 'Dark'}
-                </span>
-              </button>
-
               {isAuthenticated && (
                 <button
                   onClick={handleLogout}

@@ -11,57 +11,19 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setThemeState] = useState<Theme>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('theme');
-      if (saved === 'dark' || saved === 'light') {
-        const root = document.documentElement;
-        if (saved === 'dark') {
-          root.classList.add('dark');
-          root.classList.remove('light');
-        } else {
-          root.classList.add('light');
-          root.classList.remove('dark');
-        }
-        return saved;
-      }
-    }
-    return 'light'; // Default is Light theme as requested
-  });
+  const [theme] = useState<Theme>('light');
 
-  const setTheme = (newTheme: Theme) => {
-    const root = document.documentElement;
-    root.classList.add('theme-transition');
-    if (newTheme === 'dark') {
-      root.classList.add('dark');
-      root.classList.remove('light');
-    } else {
-      root.classList.add('light');
-      root.classList.remove('dark');
-    }
-    setThemeState(newTheme);
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('theme', newTheme);
-    }
-    setTimeout(() => {
-      root.classList.remove('theme-transition');
-    }, 200);
-  };
-
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-  };
+  const setTheme = () => {};
+  const toggleTheme = () => {};
 
   useEffect(() => {
-    const root = document.documentElement;
-    if (theme === 'dark') {
-      root.classList.add('dark');
-      root.classList.remove('light');
-    } else {
+    if (typeof window !== 'undefined') {
+      const root = document.documentElement;
       root.classList.add('light');
       root.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
     }
-  }, [theme]);
+  }, []);
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, toggleTheme }}>
