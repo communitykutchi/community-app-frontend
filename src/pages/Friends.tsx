@@ -183,40 +183,40 @@ export default function Friends() {
       </div>
 
       {activeTab === "search" ? (
-        <div className="rounded-[1.25rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="relative overflow-hidden rounded-3xl border border-blue-500/30 bg-gradient-to-br from-slate-950 via-blue-950/60 to-slate-950 p-6 sm:p-8 text-white shadow-xl">
           <div className="space-y-4">
-            <label className="block text-sm font-semibold text-slate-700">Search community members</label>
+            <label className="block text-sm font-black text-white">Search community members</label>
             <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
               <input
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
                 placeholder="Type a name, username, email, or phone"
-                className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200"
+                className="w-full rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm text-white placeholder:text-slate-400 outline-none transition focus:border-teal-400 focus:bg-white/15"
               />
               <button
                 type="button"
                 onClick={handleSearchClick}
                 disabled={searching}
-                className="rounded-2xl bg-emerald-700 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-2xl bg-teal-500 hover:bg-teal-400 px-5 py-3 text-sm font-black text-slate-950 transition shadow-md disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {searching ? 'Searching...' : 'Search'}
               </button>
             </div>
 
             {message ? (
-              <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">{message}</div>
+              <div className="rounded-2xl border border-rose-500/40 bg-rose-950/60 px-4 py-3 text-sm text-rose-300 font-bold">{message}</div>
             ) : null}
 
             {query.trim().length > 0 ? (
-              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4 shadow-sm">
+              <div className="rounded-3xl border border-white/10 bg-white/5 p-4 backdrop-blur-md">
                 {searching ? (
-                  <p className="text-sm text-slate-500">Searching members...</p>
+                  <p className="text-sm text-slate-300">Searching members...</p>
                 ) : results.length === 0 ? (
-                  <p className="text-sm text-slate-500">No matching members found.</p>
+                  <p className="text-sm text-slate-300">No matching members found.</p>
                 ) : (
                   <div className="space-y-3">
                     {results.map((user) => (
-                      <div key={user._id} className="flex flex-col gap-3 rounded-3xl border border-slate-200 bg-white p-4 sm:flex-row sm:items-center sm:justify-between">
+                      <div key={user._id} className="flex flex-col gap-3 rounded-2xl border border-white/10 bg-white/10 p-4 sm:flex-row sm:items-center sm:justify-between hover:bg-white/15 transition">
                         <div
                           onClick={() => navigate(`/user/${user._id}`)}
                           className="flex items-center gap-3 cursor-pointer group"
@@ -225,23 +225,23 @@ export default function Friends() {
                             <img
                               src={user.profilePhotoUrl}
                               alt={user.fullName || user.username || 'User avatar'}
-                              className="h-12 w-12 rounded-full object-cover group-hover:scale-105 transition"
+                              className="h-12 w-12 rounded-full object-cover group-hover:scale-105 transition ring-2 ring-teal-400/40"
                             />
                           ) : (
-                            <div className="grid h-12 w-12 place-items-center rounded-full bg-slate-100 text-sm font-semibold text-slate-700 group-hover:scale-105 transition">
+                            <div className="grid h-12 w-12 place-items-center rounded-full bg-teal-500/20 text-sm font-black text-teal-300 border border-teal-400/30 group-hover:scale-105 transition">
                               {user.fullName?.[0]?.toUpperCase() || user.username?.[0]?.toUpperCase() || '?'}
                             </div>
                           )}
                           <div>
-                            <p className="text-sm font-semibold text-slate-900 group-hover:text-teal-700 transition">{user.fullName || user.username || 'Member'}</p>
-                            <p className="text-sm text-slate-600">{user.username ? `@${user.username}` : user.email || user.mobile}</p>
+                            <p className="text-sm font-black text-white group-hover:text-teal-300 transition">{user.fullName || user.username || 'Member'}</p>
+                            <p className="text-xs text-slate-300">{user.username ? `@${user.username}` : (user.email || "Community Member")}</p>
                           </div>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
                           <button
                             type="button"
                             onClick={() => navigate(`/user/${user._id}`)}
-                            className="rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 transition"
+                            className="rounded-2xl border border-white/20 bg-white/10 px-3.5 py-2 text-xs font-bold text-white hover:bg-white/20 transition"
                           >
                             👤 Profile
                           </button>
@@ -250,7 +250,7 @@ export default function Friends() {
                             <button
                               type="button"
                               onClick={() => navigate(`/friends/${user._id}/chat`)}
-                              className="rounded-2xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-800"
+                              className="rounded-2xl bg-emerald-500 hover:bg-emerald-400 px-4 py-2 text-xs font-black text-slate-950 transition"
                             >
                               💬 Chat
                             </button>
@@ -258,7 +258,7 @@ export default function Friends() {
                             <button
                               type="button"
                               onClick={() => handleAcceptRequest(user._id)}
-                              className="rounded-2xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white transition hover:bg-emerald-800"
+                              className="rounded-2xl bg-emerald-500 hover:bg-emerald-400 px-4 py-2 text-xs font-black text-slate-950 transition"
                             >
                               ✅ Accept Request
                             </button>
@@ -266,15 +266,15 @@ export default function Friends() {
                             <button
                               type="button"
                               onClick={() => handleCancelRequest(user._id)}
-                              className="rounded-2xl bg-rose-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-rose-700"
+                              className="rounded-2xl border border-amber-400/40 bg-amber-500/20 px-4 py-2 text-xs font-bold text-amber-300 hover:bg-amber-500/30 transition"
                             >
-                              Cancel Request
+                              ⏳ Request Sent
                             </button>
                           ) : (
                             <button
                               type="button"
                               onClick={() => handleSendRequest(user._id)}
-                              className="rounded-2xl bg-teal-600 px-4 py-2 text-xs font-bold text-white transition hover:bg-teal-500"
+                              className="rounded-2xl bg-teal-500 hover:bg-teal-400 px-4 py-2 text-xs font-black text-slate-950 transition"
                             >
                               ➕ Add Friend
                             </button>
@@ -365,36 +365,36 @@ export default function Friends() {
       ) : null}
 
       {activeTab === "friends" ? (
-        <div className="rounded-[1.25rem] border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="relative overflow-hidden rounded-3xl border border-blue-500/30 bg-gradient-to-br from-slate-950 via-blue-950/60 to-slate-950 p-6 sm:p-8 text-white shadow-xl">
           <div>
-            <h2 className="text-xl font-black text-slate-900">Your friends</h2>
-            <p className="mt-2 text-sm leading-6 text-slate-600">Chat with or remove friends from your list.</p>
+            <h2 className="text-xl font-black text-white">Your friends</h2>
+            <p className="mt-1 text-xs text-slate-300">Chat with or remove friends from your list.</p>
           </div>
 
           {loading ? (
-            <p className="mt-4 text-sm text-slate-500">Loading friends...</p>
+            <p className="mt-4 text-sm text-slate-300">Loading friends...</p>
           ) : friends.length === 0 ? (
-            <p className="mt-4 text-sm text-slate-500">No friends yet. Search for members to add.</p>
+            <p className="mt-4 text-sm text-slate-300">No friends yet. Search for members to add.</p>
           ) : (
             <div className="mt-6 space-y-3">
               {friends.map((friend) => {
                 const friendPresence = getPresenceStatus(friend.isOnline, friend.lastActive);
                 return (
-                  <div key={friend._id} className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+                  <div key={friend._id} className="rounded-2xl border border-white/10 bg-white/10 p-4 sm:p-5 hover:bg-white/15 transition backdrop-blur-md">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                       <div
                         onClick={() => navigate(`/user/${friend._id}`)}
                         className="flex items-center gap-4 cursor-pointer group"
                       >
                         <div className="relative">
-                          <UserAvatar name={friend.fullName || friend.username} photoUrl={friend.profilePhotoUrl} size="md" className="ring-1 ring-slate-200 group-hover:scale-105 transition" />
-                          <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-white ${friendPresence.isOnline ? 'bg-emerald-500' : 'bg-slate-300'}`} />
+                          <UserAvatar name={friend.fullName || friend.username} photoUrl={friend.profilePhotoUrl} size="md" className="ring-2 ring-teal-400/40 group-hover:scale-105 transition" />
+                          <span className={`absolute bottom-0 right-0 h-3.5 w-3.5 rounded-full ring-2 ring-slate-950 ${friendPresence.isOnline ? 'bg-emerald-400' : 'bg-slate-500'}`} />
                         </div>
                         <div>
-                          <p className="text-sm font-semibold text-slate-900 group-hover:text-teal-700 transition">{friend.fullName || friend.username || 'Member'}</p>
-                          <p className="text-xs text-slate-600">{friend.username ? `@${friend.username}` : friend.email || friend.mobile}</p>
-                          <p className={`text-xs font-medium flex items-center gap-1 mt-0.5 ${friendPresence.isOnline ? 'text-emerald-600' : 'text-slate-500'}`}>
-                            <span className={`h-1.5 w-1.5 rounded-full ${friendPresence.isOnline ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
+                          <p className="text-sm font-black text-white group-hover:text-teal-300 transition">{friend.fullName || friend.username || 'Member'}</p>
+                          <p className="text-xs text-slate-300">{friend.username ? `@${friend.username}` : friend.email || friend.mobile}</p>
+                          <p className={`text-xs font-bold flex items-center gap-1.5 mt-1 ${friendPresence.isOnline ? 'text-emerald-300' : 'text-slate-400'}`}>
+                            <span className={`h-2 w-2 rounded-full ${friendPresence.isOnline ? 'bg-emerald-400 animate-pulse' : 'bg-slate-500'}`}></span>
                             {friendPresence.text}
                           </p>
                         </div>
@@ -403,11 +403,11 @@ export default function Friends() {
                         <button
                           type="button"
                           onClick={() => navigate(`/friends/${friend._id}/chat`)}
-                          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-emerald-800"
+                          className="inline-flex items-center justify-center gap-2 rounded-2xl bg-emerald-500 hover:bg-emerald-400 px-4 py-2 text-xs font-black text-slate-950 transition shadow-md"
                         >
-                          <span>Chat</span>
+                          <span>💬 Chat</span>
                           {friend.unreadCount && friend.unreadCount > 0 ? (
-                            <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-[11px] font-black text-white">
+                            <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[10px] font-black text-white">
                               {friend.unreadCount > 99 ? '99+' : friend.unreadCount}
                             </span>
                           ) : null}
@@ -415,7 +415,7 @@ export default function Friends() {
                         <button
                           type="button"
                           onClick={() => setUnfriendConfirmUser(friend)}
-                          className="inline-flex items-center justify-center rounded-2xl bg-rose-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-700"
+                          className="inline-flex items-center justify-center rounded-2xl bg-rose-600/90 hover:bg-rose-500 px-4 py-2 text-xs font-bold text-white transition"
                         >
                           Unfriend
                         </button>

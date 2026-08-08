@@ -59,3 +59,41 @@ export function getPresenceStatus(
 
   return { isOnline: false, text: `Last seen ${dateStr} at ${timeStr}` };
 }
+
+export function getChatMessageDateLabel(createdAt?: string | Date | null): string {
+  if (!createdAt) return "";
+  const d = new Date(createdAt);
+  if (isNaN(d.getTime())) return "";
+
+  const now = new Date();
+
+  const isToday =
+    d.getDate() === now.getDate() &&
+    d.getMonth() === now.getMonth() &&
+    d.getFullYear() === now.getFullYear();
+
+  if (isToday) return "Today";
+
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday =
+    d.getDate() === yesterday.getDate() &&
+    d.getMonth() === yesterday.getMonth() &&
+    d.getFullYear() === yesterday.getFullYear();
+
+  if (isYesterday) return "Yesterday";
+
+  const diffMs = now.getTime() - d.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays >= 1 && diffDays < 7) {
+    return d.toLocaleDateString("en-US", { weekday: "long" });
+  }
+
+  const isSameYear = d.getFullYear() === now.getFullYear();
+  return d.toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "short",
+    ...(isSameYear ? {} : { year: "numeric" }),
+  });
+}

@@ -205,30 +205,30 @@ export default function Help() {
       {/* FAQ Accordions */}
       <div className="mt-6 space-y-3">
         {filteredFaqs.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm">
+          <div className="rounded-2xl border border-slate-800 bg-slate-900 p-10 text-center shadow-sm text-white">
             <span className="text-3xl">🔍</span>
-            <p className="mt-2 text-xs font-bold text-slate-700">No help items match your search.</p>
+            <p className="mt-2 text-xs font-bold text-slate-300">No help items match your search.</p>
           </div>
         ) : (
           filteredFaqs.map((faq) => {
             const isExpanded = expandedFaqId === faq.id;
             return (
-              <div key={faq.id} className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-sm transition">
+              <div key={faq.id} className="overflow-hidden rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 text-white shadow-lg transition duration-200">
                 <button
                   onClick={() => setExpandedFaqId(isExpanded ? null : faq.id)}
-                  className="flex w-full items-center justify-between p-5 text-left transition hover:bg-slate-50/50"
+                  className="flex w-full items-center justify-between p-5 text-left transition hover:bg-white/5"
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-xl">{faq.icon}</span>
-                    <span className="text-sm font-extrabold text-slate-900">{faq.question}</span>
+                    <span className="text-sm font-black text-white">{faq.question}</span>
                   </div>
-                  <span className={`text-lg font-bold text-slate-400 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}>
+                  <span className={`text-lg font-bold text-teal-400 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}>
                     ▾
                   </span>
                 </button>
 
                 {isExpanded && (
-                  <div className="border-t border-slate-100 bg-slate-50/50 p-5 text-xs text-slate-600 leading-relaxed">
+                  <div className="border-t border-slate-800 bg-white/5 p-5 text-xs text-slate-200 leading-relaxed font-medium">
                     {faq.answer}
                   </div>
                 )}
@@ -242,35 +242,35 @@ export default function Help() {
       <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4">
         <a
           href="tel:+923001234567"
-          className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-teal-500 hover:shadow-md"
+          className="group relative overflow-hidden flex items-center gap-4 rounded-2xl border border-teal-500/30 bg-gradient-to-br from-slate-900 via-teal-950/70 to-slate-950 p-5 text-white shadow-xl transition hover:-translate-y-1 hover:border-teal-400"
         >
-          <div className="grid h-12 w-12 place-items-center rounded-xl bg-teal-50 text-2xl text-teal-600">📞</div>
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-teal-500/20 text-2xl text-teal-300 border border-teal-400/30 shadow-inner group-hover:scale-110 transition">📞</div>
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Phone Hotline</h4>
-            <p className="text-sm font-extrabold text-slate-900">+92 300 1234567</p>
+            <h4 className="text-[10px] font-black uppercase tracking-wider text-teal-300">Phone Hotline</h4>
+            <p className="text-sm font-black text-white">+92 300 1234567</p>
           </div>
         </a>
 
         <a
           href="mailto:support@kutchicommunity.com"
-          className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-teal-500 hover:shadow-md"
+          className="group relative overflow-hidden flex items-center gap-4 rounded-2xl border border-teal-500/30 bg-gradient-to-br from-slate-900 via-teal-950/70 to-slate-950 p-5 text-white shadow-xl transition hover:-translate-y-1 hover:border-teal-400"
         >
-          <div className="grid h-12 w-12 place-items-center rounded-xl bg-teal-50 text-2xl text-teal-600">✉️</div>
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-teal-500/20 text-2xl text-teal-300 border border-teal-400/30 shadow-inner group-hover:scale-110 transition">✉️</div>
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Email Support</h4>
-            <p className="text-sm font-extrabold text-slate-900">support@kutchicommunity.com</p>
+            <h4 className="text-[10px] font-black uppercase tracking-wider text-teal-300">Email Support</h4>
+            <p className="text-xs font-black text-white truncate max-w-[180px]">support@kutchicommunity.com</p>
           </div>
         </a>
 
         <button
           type="button"
           onClick={() => setShowReportModal(true)}
-          className="flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:border-teal-500 hover:shadow-md text-left"
+          className="group relative overflow-hidden flex items-center gap-4 rounded-2xl border border-teal-500/30 bg-gradient-to-br from-slate-900 via-teal-950/70 to-slate-950 p-5 text-white shadow-xl transition hover:-translate-y-1 hover:border-teal-400 text-left"
         >
-          <div className="grid h-12 w-12 place-items-center rounded-xl bg-teal-50 text-2xl text-teal-600">🛡️</div>
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-teal-500/20 text-2xl text-teal-300 border border-teal-400/30 shadow-inner group-hover:scale-110 transition">🛡️</div>
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">Admin Help Desk</h4>
-            <p className="text-sm font-extrabold text-slate-900">Submit Support Ticket</p>
+            <h4 className="text-[10px] font-black uppercase tracking-wider text-teal-300">Admin Help Desk</h4>
+            <p className="text-sm font-black text-white">Submit Ticket →</p>
           </div>
         </button>
       </div>

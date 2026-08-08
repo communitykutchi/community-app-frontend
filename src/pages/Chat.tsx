@@ -1,8 +1,8 @@
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import API from "../api/axios";
 import UserAvatar from "../components/UserAvatar";
-import { getPresenceStatus } from "../utils/presence";
+import { getPresenceStatus, getChatMessageDateLabel } from "../utils/presence";
 
 interface ChatMessage {
   _id?: string;
@@ -398,10 +398,31 @@ export default function Chat() {
     setMessage((prev) => prev + emoji);
   };
 
-  const partner = chat?.participants.find((participant) => participant._id === friendId) ||
-                  chat?.participants.find((participant) => participant._id !== friendId);
+  const partner = chat?.participants.find((p) => p._id !== currentUser?._id) ||
+                  chat?.participants.find((participant) => participant._id === friendId) ||
+                  chat?.participants[0];
 
-  const partnerPresence = getPresenceStatus(partner?.isOnline, partner?.lastActive);
+  const partnerEffectiveLastActive = (() => {
+    if (!partner) return null;
+    let maxTime = partner.lastActive ? new Date(partner.lastActive).getTime() : 0;
+    if (isNaN(maxTime)) maxTime = 0;
+
+    if (chat?.messages) {
+      for (const msg of chat.messages) {
+        const senderId = msg.sender?._id ? String(msg.sender._id) : String(msg.sender || "");
+        if (senderId === String(partner._id) && msg.createdAt) {
+          const msgTime = new Date(msg.createdAt).getTime();
+          if (!isNaN(msgTime) && msgTime > maxTime) {
+            maxTime = msgTime;
+          }
+        }
+      }
+    }
+
+    return maxTime > 0 ? new Date(maxTime).toISOString() : partner.lastActive;
+  })();
+
+  const partnerPresence = getPresenceStatus(partner?.isOnline, partnerEffectiveLastActive);
 
   const emojis = ["😊", "😂", "❤️", "👍", "🔥", "🎉", "👋", "🙌", "😍", "✨", "🙏", "😎"];
 
@@ -500,10 +521,14 @@ export default function Chat() {
         {/* Chat Messages Body */}
         <main
           id="chat-messages-container-full"
-          className="flex-1 overflow-y-auto bg-gradient-to-b from-slate-100 via-slate-50 to-emerald-50/20 p-4 sm:p-6 space-y-3"
+          className="flex-1 overflow-y-auto bg-gradient-to-b from-slate-100 via-slate-50 to-emerald-50/20 p-4 sm:p-6 space-y-1.5"
         >
           {chat?.messages?.length ? (
             chat.messages.map((item, index) => {
+              const dateLabel = getChatMessageDateLabel(item.createdAt);
+              const prevDateLabel = index > 0 ? getChatMessageDateLabel(chat.messages[index - 1].createdAt) : null;
+              const showDateDivider = Boolean(dateLabel && dateLabel !== prevDateLabel);
+
               const senderId = typeof item.sender === "object" && item.sender?._id 
                 ? String(item.sender._id) 
                 : String(item.sender || "");
@@ -522,50 +547,61 @@ export default function Chat() {
                 : undefined;
 
               return (
-                <div key={index} className={`flex items-end gap-2 ${isOutgoing ? 'justify-end' : 'justify-start'}`}>
-                  {!isOutgoing && (
-                    <UserAvatar
-                      name={senderName}
-                      photoUrl={senderPhoto || partner?.profilePhotoUrl || partner?.photoUrl}
-                      size="sm"
-                      className="ring-1 ring-slate-300 mb-0.5 shrink-0"
-                    />
+                <React.Fragment key={(item._id || item.createdAt) + "-" + index}>
+                  {showDateDivider && (
+                    <div className="w-full flex items-center justify-center my-4 py-1 select-none pointer-events-none">
+                      <div className="h-[1px] flex-1 bg-slate-300/60 max-w-[60px] sm:max-w-[100px]" />
+                      <span className="mx-2.5 rounded-full bg-slate-200/90 border border-slate-300/80 px-3.5 py-0.5 text-[10px] font-black text-slate-700 uppercase tracking-wider shadow-2xs">
+                        {dateLabel}
+                      </span>
+                      <div className="h-[1px] flex-1 bg-slate-300/60 max-w-[60px] sm:max-w-[100px]" />
+                    </div>
                   )}
-
-                  <div className={`max-w-[85%] sm:max-w-[75%] rounded-2xl ${
-                    isOutgoing 
-                      ? 'bg-emerald-600 text-white rounded-br-xs shadow-sm px-3.5 py-2' 
-                      : 'bg-white text-slate-900 border border-slate-200/90 rounded-bl-xs shadow-sm px-3.5 py-2'
-                  }`}>
-                    <p className={`text-[11px] font-bold mb-1 ${isOutgoing ? 'text-emerald-100' : 'text-emerald-700'}`}>
-                      {senderName}
-                    </p>
-
-                    {item.audioUrl ? (
-                      <AudioPlayer url={item.audioUrl} duration={item.audioDuration} isOutgoing={isOutgoing} />
-                    ) : (
-                      <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                        <span className="text-xs sm:text-sm leading-snug whitespace-pre-wrap break-words font-normal">
-                          {item.text}
-                        </span>
-                      </div>
+                  <div className={`flex items-end gap-2 my-1 ${isOutgoing ? 'justify-end' : 'justify-start'}`}>
+                    {!isOutgoing && (
+                      <UserAvatar
+                        name={senderName}
+                        photoUrl={senderPhoto || partner?.profilePhotoUrl || partner?.photoUrl}
+                        size="sm"
+                        className="ring-1 ring-slate-300 mb-0.5 shrink-0"
+                      />
                     )}
 
-                    <div className={`text-[10px] ml-auto shrink-0 flex items-center justify-end gap-1 mt-1 ${isOutgoing ? 'text-emerald-100' : 'text-slate-400'}`}>
-                      <span>{new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                      {isOutgoing && renderMessageTicks(item)}
-                    </div>
-                  </div>
+                    <div className={`max-w-[85%] sm:max-w-[75%] rounded-2xl ${
+                      isOutgoing 
+                        ? 'bg-emerald-600 text-white rounded-br-xs shadow-sm px-3.5 py-2' 
+                        : 'bg-white text-slate-900 border border-slate-200/90 rounded-bl-xs shadow-sm px-3.5 py-2'
+                    }`}>
+                      <p className={`text-[11px] font-bold mb-1 ${isOutgoing ? 'text-emerald-100' : 'text-emerald-700'}`}>
+                        {senderName}
+                      </p>
 
-                  {isOutgoing && (
-                    <UserAvatar
-                      name={currentUser?.fullName || currentUser?.username || 'You'}
-                      photoUrl={currentUser?.profilePhotoUrl || currentUser?.photoUrl || senderPhoto}
-                      size="sm"
-                      className="ring-1 ring-emerald-500/40 mb-0.5 shrink-0"
-                    />
-                  )}
-                </div>
+                      {item.audioUrl ? (
+                        <AudioPlayer url={item.audioUrl} duration={item.audioDuration} isOutgoing={isOutgoing} />
+                      ) : (
+                        <div className="flex flex-wrap items-baseline justify-between gap-x-3">
+                          <span className="text-xs sm:text-sm leading-snug whitespace-pre-wrap break-words font-normal">
+                            {item.text}
+                          </span>
+                        </div>
+                      )}
+
+                      <div className={`text-[10px] ml-auto shrink-0 flex items-center justify-end gap-1 mt-1 ${isOutgoing ? 'text-emerald-100' : 'text-slate-400'}`}>
+                        <span>{new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        {isOutgoing && renderMessageTicks(item)}
+                      </div>
+                    </div>
+
+                    {isOutgoing && (
+                      <UserAvatar
+                        name={currentUser?.fullName || currentUser?.username || 'You'}
+                        photoUrl={currentUser?.profilePhotoUrl || currentUser?.photoUrl || senderPhoto}
+                        size="sm"
+                        className="ring-1 ring-emerald-500/40 mb-0.5 shrink-0"
+                      />
+                    )}
+                  </div>
+                </React.Fragment>
               );
             })
           ) : (

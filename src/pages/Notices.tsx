@@ -440,10 +440,10 @@ function renderFormattedText(text: string, langMode?: "roman" | "urdu", isMayyat
             key={lineIndex}
             className={`${
               isArabicHeader
-                ? "text-center text-xl sm:text-2xl font-bold py-1 text-slate-950 font-serif leading-loose"
+                ? "text-center text-xl sm:text-2xl font-bold py-1 text-amber-300 font-serif leading-loose"
                 : isUrduMode
-                ? "text-slate-950 text-lg sm:text-xl font-bold leading-relaxed font-serif"
-                : "text-slate-900 text-base sm:text-lg font-semibold leading-relaxed tracking-wide"
+                ? "text-white text-lg sm:text-xl font-bold leading-relaxed font-serif"
+                : "text-slate-100 text-base sm:text-lg font-semibold leading-relaxed tracking-wide"
             }`}
           >
             {parts.map((part, partIndex) => {
@@ -454,8 +454,8 @@ function renderFormattedText(text: string, langMode?: "roman" | "urdu", isMayyat
                     key={partIndex}
                     className={
                       isMayyatNotice
-                        ? "font-extrabold text-slate-950"
-                        : "font-extrabold text-slate-950 underline decoration-teal-500 decoration-2 underline-offset-4"
+                        ? "font-black text-amber-300"
+                        : "font-black text-teal-300 underline decoration-teal-400 decoration-2 underline-offset-4"
                     }
                   >
                     {inner}
@@ -1213,44 +1213,49 @@ export default function NoticesPage() {
           return (
             <article
               key={notice.id}
-              className={`rounded-3xl border bg-white p-6 shadow-sm transition-all hover:shadow-md ${
+              className={`relative overflow-hidden rounded-3xl border p-6 shadow-xl transition-all duration-300 ${
                 isMayyat
-                  ? "border-2 border-slate-900 bg-slate-50/90 shadow-xl"
+                  ? "border-amber-500/60 bg-gradient-to-br from-slate-950 via-slate-900 to-amber-950/60 text-white"
                   : notice.pinned
-                  ? "border-amber-300 border-l-4 border-l-amber-500 bg-amber-50/20 shadow-md"
-                  : "border-slate-200 border-l-4 border-l-teal-600"
+                  ? "border-amber-400/60 bg-gradient-to-br from-slate-900 via-amber-950/50 to-slate-950 text-white"
+                  : "border-teal-500/30 bg-gradient-to-br from-slate-900 via-teal-950/40 to-slate-950 text-white"
               }`}
             >
+              <div className="absolute -right-10 -bottom-10 h-32 w-32 rounded-full bg-white/5 blur-2xl pointer-events-none" />
+
               {/* Header Bar */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-white/15">
                 <div className="flex items-start sm:items-center gap-3">
                   <div
-                    className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl font-extrabold text-base ${
-                      isMayyat ? "bg-slate-900 text-white" : notice.pinned ? "bg-amber-500 text-white" : "bg-teal-600 text-white"
+                    className={`grid h-10 w-10 shrink-0 place-items-center rounded-2xl font-extrabold text-base shadow-inner ${
+                      notice.pinned ? "bg-amber-500/30 border border-amber-400/50 text-amber-300" : isMayyat ? "bg-amber-500/20 border border-amber-400/40 text-amber-300" : "bg-teal-500/20 border border-teal-400/40 text-teal-300"
                     }`}
                   >
-                    {isMayyat ? "🕌" : notice.pinned ? "📌" : "📢"}
+                    {notice.pinned ? "📌" : isMayyat ? "🕌" : "📢"}
                   </div>
                   <div>
                     <div className="flex items-center gap-2 flex-wrap">
                       <span
-                        className={`rounded-full px-2.5 py-0.5 text-[11px] font-extrabold uppercase tracking-wider ${
+                        className={`rounded-full px-3 py-1 text-[10px] font-black uppercase tracking-wider ${
                           isMayyat
-                            ? "bg-slate-900 text-white"
-                            : notice.pinned
-                            ? "bg-amber-100 text-amber-800 border border-amber-200"
-                            : "bg-teal-50 text-teal-700 border border-teal-200"
+                            ? "bg-amber-500/20 text-amber-300 border border-amber-400/30"
+                            : "bg-teal-500/20 text-teal-300 border border-teal-400/30"
                         }`}
                       >
                         {isMayyat
                           ? (mayyatLangMode === "urdu" ? "اطلاعِ میّت" : t('mayyat_label'))
-                          : notice.pinned
-                          ? t('pinned_label')
                           : "Official Announcement"}
                       </span>
+
+                      {notice.pinned && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-amber-400 text-slate-950 px-2.5 py-0.5 text-[10px] font-black uppercase tracking-wider shadow-md">
+                          <span>📌</span>
+                          <span>{mayyatLangMode === "urdu" ? "پن شدہ" : t('pinned_label')}</span>
+                        </span>
+                      )}
                     </div>
                     {!isMayyat && (
-                      <h3 className="mt-1 text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight leading-snug">
+                      <h3 className="mt-1.5 text-lg sm:text-xl font-black text-white tracking-tight leading-snug">
                         {notice.title}
                       </h3>
                     )}
@@ -1258,19 +1263,19 @@ export default function NoticesPage() {
                 </div>
 
                 {/* Author & Timestamp */}
-                <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-100 self-start sm:self-auto shrink-0">
-                  <span className="font-bold text-slate-700">👤 {notice.author || "Admin"}</span>
+                <div className="flex items-center gap-2 text-xs text-slate-300 bg-white/10 px-3.5 py-1.5 rounded-xl border border-white/15 backdrop-blur-md self-start sm:self-auto shrink-0">
+                  <span className="font-bold text-white">👤 {notice.author || "Admin"}</span>
                   <span>•</span>
-                  <span>{new Date(notice.createdAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}</span>
+                  <span className="text-slate-300">{new Date(notice.createdAt).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}</span>
                 </div>
               </div>
 
               {/* Body Content Box */}
               <div
-                className={`mt-4 rounded-2xl p-4 sm:p-5 ${
+                className={`mt-4 rounded-2xl p-4 sm:p-6 backdrop-blur-md ${
                   isMayyat
-                    ? "bg-white border border-slate-200 shadow-sm"
-                    : "bg-slate-50/70 border border-slate-100 text-slate-800"
+                    ? "bg-slate-950/80 border border-amber-500/30 shadow-inner"
+                    : "bg-white/5 border border-white/10 text-slate-100"
                 }`}
               >
                 {renderFormattedText(

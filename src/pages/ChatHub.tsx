@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import { useNavigate, useParams } from "react-router-dom";
 import API from "../api/axios";
 import UserAvatar from "../components/UserAvatar";
-import { getPresenceStatus } from "../utils/presence";
+import { getPresenceStatus, getChatMessageDateLabel } from "../utils/presence";
 
 interface FriendUser {
   _id: string;
@@ -709,7 +709,27 @@ export default function ChatHub() {
     };
   }, [selectedFriendId, friends, activeChat]);
 
-  const activePartnerPresence = getPresenceStatus(activePartner?.isOnline, activePartner?.lastActive);
+  const activePartnerEffectiveLastActive = useMemo(() => {
+    if (!activePartner) return null;
+    let maxTime = activePartner.lastActive ? new Date(activePartner.lastActive).getTime() : 0;
+    if (isNaN(maxTime)) maxTime = 0;
+
+    if (activeChat?.messages) {
+      for (const msg of activeChat.messages) {
+        const senderId = msg.sender?._id ? String(msg.sender._id) : String(msg.sender || "");
+        if (senderId === String(activePartner._id) && msg.createdAt) {
+          const msgTime = new Date(msg.createdAt).getTime();
+          if (!isNaN(msgTime) && msgTime > maxTime) {
+            maxTime = msgTime;
+          }
+        }
+      }
+    }
+
+    return maxTime > 0 ? new Date(maxTime).toISOString() : activePartner.lastActive;
+  }, [activePartner, activeChat]);
+
+  const activePartnerPresence = getPresenceStatus(activePartner?.isOnline, activePartnerEffectiveLastActive);
 
   const emojis = ["😊", "😂", "❤️", "👍", "🔥", "🎉", "👋", "🙌", "😍", "✨", "🙏", "😎"];
 
@@ -1012,7 +1032,7 @@ export default function ChatHub() {
                 <div
                   id="chat-messages-container"
                   onScroll={handleScrollMessages}
-                  className="flex-1 overflow-y-auto bg-gradient-to-b from-slate-50 via-slate-100/50 to-emerald-50/20 p-4 space-y-3"
+                  className="flex-1 overflow-y-auto bg-gradient-to-b from-slate-50 via-slate-100/50 to-emerald-50/20 p-4 space-y-1.5"
                 >
                   {!activeChat?.messages?.length ? (
                     <div className="h-full flex flex-col items-center justify-center p-6 text-center">
@@ -1026,6 +1046,10 @@ export default function ChatHub() {
                     </div>
                   ) : (
                     activeChat.messages.map((item, idx) => {
+                      const dateLabel = getChatMessageDateLabel(item.createdAt);
+                      const prevDateLabel = idx > 0 ? getChatMessageDateLabel(activeChat.messages[idx - 1].createdAt) : null;
+                      const showDateDivider = Boolean(dateLabel && dateLabel !== prevDateLabel);
+
                       const senderId = typeof item.sender === "object" && item.sender?._id 
                         ? String(item.sender._id) 
                         : String(item.sender || "");
@@ -1047,108 +1071,118 @@ export default function ChatHub() {
                       const isSelectedMsg = selectedMsgIds.includes(msgId);
 
                       return (
-                        <div
-                          key={idx}
-                          onClick={() => isSelectionMode && toggleSelectMessage(msgId)}
-                          className={`flex items-end gap-2 ${isOutgoing ? "justify-end" : "justify-start"} ${isSelectionMode ? "cursor-pointer p-1 rounded-xl hover:bg-teal-50/50 transition" : ""}`}
-                        >
-                          {isSelectionMode && (
-                            <input
-                              type="checkbox"
-                              checked={isSelectedMsg}
-                              onChange={(e) => {
-                                e.stopPropagation();
-                                toggleSelectMessage(msgId);
-                              }}
-                              onClick={(e) => e.stopPropagation()}
-                              className="h-4 w-4 rounded text-teal-600 focus:ring-teal-500 cursor-pointer self-center shrink-0"
-                            />
+                        <React.Fragment key={msgId + "-" + idx}>
+                          {showDateDivider && (
+                            <div className="w-full flex items-center justify-center my-4 py-1 select-none pointer-events-none">
+                              <div className="h-[1px] flex-1 bg-slate-300/60 max-w-[80px] sm:max-w-[120px]" />
+                              <span className="mx-3 rounded-full bg-slate-200/90 border border-slate-300/80 px-3.5 py-0.5 text-[10px] font-black text-slate-700 uppercase tracking-wider shadow-2xs">
+                                {dateLabel}
+                              </span>
+                              <div className="h-[1px] flex-1 bg-slate-300/60 max-w-[80px] sm:max-w-[120px]" />
+                            </div>
                           )}
+                          <div
+                            onClick={() => isSelectionMode && toggleSelectMessage(msgId)}
+                            className={`flex items-end gap-2 my-1 ${isOutgoing ? "justify-end" : "justify-start"} ${isSelectionMode ? "cursor-pointer p-1 rounded-xl hover:bg-teal-50/50 transition" : ""}`}
+                          >
+                            {isSelectionMode && (
+                              <input
+                                type="checkbox"
+                                checked={isSelectedMsg}
+                                onChange={(e) => {
+                                  e.stopPropagation();
+                                  toggleSelectMessage(msgId);
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                                className="h-4 w-4 rounded text-teal-600 focus:ring-teal-500 cursor-pointer self-center shrink-0"
+                              />
+                            )}
 
-                          {!isOutgoing && (
-                            <UserAvatar
-                              name={senderName}
-                              photoUrl={senderPhoto || activePartner?.profilePhotoUrl || activePartner?.photoUrl}
-                              size="sm"
-                              className="ring-1 ring-slate-300 mb-0.5 shrink-0"
-                            />
-                          )}
+                            {!isOutgoing && (
+                              <UserAvatar
+                                name={senderName}
+                                photoUrl={senderPhoto || activePartner?.profilePhotoUrl || activePartner?.photoUrl}
+                                size="sm"
+                                className="ring-1 ring-slate-300 mb-0.5 shrink-0"
+                              />
+                            )}
 
-                          <div className="group relative flex items-center max-w-[82%] sm:max-w-[75%]">
-                            <div
-                              className={`w-full rounded-2xl ${isSelectedMsg ? "ring-2 ring-teal-500" : ""} ${
-                                isOutgoing
-                                  ? "bg-teal-600 text-white rounded-br-xs shadow-sm px-3.5 py-1.5"
-                                  : "bg-white text-slate-900 border border-slate-200/90 rounded-bl-xs shadow-sm px-3.5 py-1.5"
-                              }`}
-                            >
-                              <p className={`text-[11px] font-bold mb-0.5 ${isOutgoing ? 'text-teal-100' : 'text-teal-700'}`}>
-                                {senderName}
-                              </p>
-                              <div className="flex flex-col gap-1">
-                                {item.audioUrl ? (
-                                  <AudioPlayer url={item.audioUrl} duration={item.audioDuration} isOutgoing={isOutgoing} />
-                                ) : (
-                                  <span className={`text-xs sm:text-sm leading-snug whitespace-pre-wrap break-words font-normal ${item.isDeletedForEveryone ? 'italic opacity-80' : ''}`}>
-                                    {item.isDeletedForEveryone ? "🚫 " + item.text : item.text}
+                            <div className="group relative flex items-center max-w-[82%] sm:max-w-[75%]">
+                              <div
+                                className={`w-full rounded-2xl ${isSelectedMsg ? "ring-2 ring-teal-500" : ""} ${
+                                  isOutgoing
+                                    ? "bg-teal-600 text-white rounded-br-xs shadow-sm px-3.5 py-1.5"
+                                    : "bg-white text-slate-900 border border-slate-200/90 rounded-bl-xs shadow-sm px-3.5 py-1.5"
+                                }`}
+                              >
+                                <p className={`text-[11px] font-bold mb-0.5 ${isOutgoing ? 'text-teal-100' : 'text-teal-700'}`}>
+                                  {senderName}
+                                </p>
+                                <div className="flex flex-col gap-1">
+                                  {item.audioUrl ? (
+                                    <AudioPlayer url={item.audioUrl} duration={item.audioDuration} isOutgoing={isOutgoing} />
+                                  ) : (
+                                    <span className={`text-xs sm:text-sm leading-snug whitespace-pre-wrap break-words font-normal ${item.isDeletedForEveryone ? 'italic opacity-80' : ''}`}>
+                                      {item.isDeletedForEveryone ? "🚫 " + item.text : item.text}
+                                    </span>
+                                  )}
+                                  <span className={`text-[10px] ml-auto shrink-0 flex items-center gap-1 mt-0.5 ${isOutgoing ? 'text-teal-100' : 'text-slate-400'}`}>
+                                    {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    {isOutgoing && renderMessageTicks(item)}
                                   </span>
+                                </div>
+                              </div>
+
+                              <div className="relative">
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveMsgMenuId((prev) => (prev === msgId ? null : msgId));
+                                  }}
+                                  className={`opacity-0 group-hover:opacity-100 transition-opacity duration-150 p-1 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-200/60 font-bold text-xs ${isOutgoing ? 'order-first mr-1.5' : 'ml-1.5'}`}
+                                  title="Message options"
+                                >
+                                  ⋮
+                                </button>
+
+                                {activeMsgMenuId === msgId && (
+                                  <div className={`absolute bottom-6 z-50 w-36 rounded-xl bg-white p-1.5 shadow-xl border border-slate-200 text-slate-800 space-y-1 animate-in fade-in duration-100 ${isOutgoing ? 'right-0' : 'left-0'}`}>
+                                    {item.text && !item.isDeletedForEveryone && (
+                                      <button
+                                        type="button"
+                                        onClick={() => handleCopyMessageText(item.text)}
+                                        className="w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition text-left"
+                                      >
+                                        <span>📋</span> Copy Text
+                                      </button>
+                                    )}
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setActiveMsgMenuId(null);
+                                        setSelectedDeleteMsg(item);
+                                      }}
+                                      className="w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition text-left"
+                                    >
+                                      <span>🗑️</span> Delete Msg
+                                    </button>
+                                  </div>
                                 )}
-                                <span className={`text-[10px] ml-auto shrink-0 flex items-center gap-1 mt-0.5 ${isOutgoing ? 'text-teal-100' : 'text-slate-400'}`}>
-                                  {new Date(item.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                  {isOutgoing && renderMessageTicks(item)}
-                                </span>
                               </div>
                             </div>
 
-                            <div className="relative">
-                              <button
-                                type="button"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setActiveMsgMenuId((prev) => (prev === msgId ? null : msgId));
-                                }}
-                                className={`opacity-0 group-hover:opacity-100 transition-opacity duration-150 p-1 text-slate-400 hover:text-slate-700 rounded-full hover:bg-slate-200/60 font-bold text-xs ${isOutgoing ? 'order-first mr-1.5' : 'ml-1.5'}`}
-                                title="Message options"
-                              >
-                                ⋮
-                              </button>
-
-                              {activeMsgMenuId === msgId && (
-                                <div className={`absolute bottom-6 z-50 w-36 rounded-xl bg-white p-1.5 shadow-xl border border-slate-200 text-slate-800 space-y-1 animate-in fade-in duration-100 ${isOutgoing ? 'right-0' : 'left-0'}`}>
-                                  {item.text && !item.isDeletedForEveryone && (
-                                    <button
-                                      type="button"
-                                      onClick={() => handleCopyMessageText(item.text)}
-                                      className="w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition text-left"
-                                    >
-                                      <span>📋</span> Copy Text
-                                    </button>
-                                  )}
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      setActiveMsgMenuId(null);
-                                      setSelectedDeleteMsg(item);
-                                    }}
-                                    className="w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition text-left"
-                                  >
-                                    <span>🗑️</span> Delete...
-                                  </button>
-                                </div>
-                              )}
-                            </div>
+                            {isOutgoing && (
+                              <UserAvatar
+                                name={currentUser?.fullName || currentUser?.username || 'You'}
+                                photoUrl={currentUser?.profilePhotoUrl || currentUser?.photoUrl || senderPhoto}
+                                size="sm"
+                                className="ring-1 ring-emerald-500/40 mb-0.5 shrink-0"
+                              />
+                            )}
                           </div>
-
-                          {isOutgoing && (
-                            <UserAvatar
-                              name={currentUser?.fullName || currentUser?.username || 'You'}
-                              photoUrl={currentUser?.profilePhotoUrl || currentUser?.photoUrl || senderPhoto}
-                              size="sm"
-                              className="ring-1 ring-emerald-500/40 mb-0.5 shrink-0"
-                            />
-                          )}
-                        </div>
+                        </React.Fragment>
                       );
                     })
                   )}

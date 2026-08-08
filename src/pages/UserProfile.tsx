@@ -224,9 +224,7 @@ export default function UserProfile() {
       <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-lg">
         {/* Cover Background */}
         <div className="h-36 sm:h-48 bg-gradient-to-r from-slate-900 via-teal-900 to-slate-900 relative overflow-hidden">
-          {profile.coverPhotoUrl ? (
-            <img src={profile.coverPhotoUrl} alt="Cover Banner" className="w-full h-full object-cover" />
-          ) : null}
+          <img src={profile.coverPhotoUrl || "/cover.png"} alt="Cover Banner" className="w-full h-full object-cover" />
           <div className="absolute inset-0 bg-slate-900/20" />
           <button
             onClick={() => navigate(-1)}

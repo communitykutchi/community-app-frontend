@@ -215,10 +215,6 @@ export default function Navbar() {
   }, []);
 
   async function handleLogout() {
-    try {
-      await API.post('/users/presence', { status: 'inactive' }).catch(() => {});
-      await API.post('/auth/logout').catch(() => {});
-    } catch {}
     clearAuthToken();
     setAuthToken(null);
     setIsAuthenticated(false);
@@ -228,6 +224,10 @@ export default function Navbar() {
     setMobileOpen(false);
     setUserDropdownOpen(false);
     setFriendsDropdownOpen(false);
+
+    API.post('/users/presence', { status: 'inactive' }).catch(() => {});
+    API.post('/auth/logout').catch(() => {});
+
     navigate('/login');
   }
 
@@ -255,9 +255,9 @@ export default function Navbar() {
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
       </svg>
     ),
-    Jobs: (
+    Workers: (
       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H5a1 1 0 01-1-1v-3a1 1 0 011-1h1a2 2 0 100-4H5a1 1 0 01-1-1V7a1 1 0 011-1h3a1 1 0 001-1V4z" />
       </svg>
     ),
     Friends: (
@@ -287,11 +287,11 @@ export default function Navbar() {
     : isAuthenticated
     ? [
         { to: '/', label: 'Home', icon: Icons.Home },
+        { to: '/friends', label: 'Friends', icon: Icons.Friends, isDropdown: true, unreadCount: unreadChatCount },
         { to: '/feed', label: 'Feed', icon: Icons.Feed },
         { to: '/notices', label: 'Notices', icon: Icons.Notices, unreadCount: unreadNoticeCount },
         { to: '/polls', label: 'Polls', icon: Icons.Polls },
-        { to: '/jobs', label: 'Jobs', icon: Icons.Jobs },
-        { to: '/friends', label: 'Friends', icon: Icons.Friends, isDropdown: true, unreadCount: unreadChatCount },
+        { to: '/workers', label: 'Workers', icon: Icons.Workers },
         ...(currentUser?.role === 'super_admin'
           ? [{ to: '/super-admin', label: 'Super Admin', icon: Icons.Admin }]
           : isAdmin
@@ -302,7 +302,7 @@ export default function Navbar() {
         { to: '/', label: 'Home', icon: Icons.Home },
         { to: '/notices', label: 'Notices', icon: Icons.Notices },
         { to: '/polls', label: 'Polls', icon: Icons.Polls },
-        { to: '/jobs', label: 'Jobs', icon: Icons.Jobs },
+        { to: '/workers', label: 'Workers', icon: Icons.Workers },
       ];
 
   return (
@@ -380,7 +380,7 @@ export default function Navbar() {
                         >
                           <div className="flex items-center gap-2.5">
                             <span className="text-slate-400">{Icons.Chat}</span>
-                            <span>Chat & Messages</span>
+                            <span>Chat</span>
                           </div>
                           {unreadChatCount > 0 && (
                             <span className="inline-flex items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[9px] font-bold text-white leading-none">
@@ -578,7 +578,7 @@ export default function Navbar() {
                     >
                       <div className="flex items-center gap-3">
                         <span className={location.pathname === '/chats' ? 'text-teal-400' : 'text-slate-400'}>{Icons.Chat}</span>
-                        <span>Chat & Messages</span>
+                        <span>Chat</span>
                       </div>
                       {unreadChatCount > 0 && (
                         <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[9px] font-bold text-white">

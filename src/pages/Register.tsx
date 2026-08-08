@@ -1,10 +1,10 @@
-import { useMemo, useState, useEffect, type ChangeEvent, type FormEvent } from 'react';
+import { useMemo, useState, useEffect, useRef, type ChangeEvent, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 import { getAuthToken } from '../auth/session';
 import { PAKISTAN_CITIES } from '../utils/pakistanCities';
 
-const USERNAME_REGEX = /^[a-z0-9._-]+$/;
+const USERNAME_REGEX = /^[a-z][a-z0-9._-]*$/;
 
 type RegisterForm = {
   fullName: string;
@@ -41,7 +41,10 @@ export default function Register() {
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
 
   const [otpSent, setOtpSent] = useState(false);
-  const [otpCode, setOtpCode] = useState('');
+  const [otpDigits, setOtpDigits] = useState(['', '', '', '', '', '']);
+  const otpRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const otpCode = useMemo(() => otpDigits.join(''), [otpDigits]);
+
   const [otpVerified, setOtpVerified] = useState(false);
   const [sendingOtp, setSendingOtp] = useState(false);
   const [verifyingOtp, setVerifyingOtp] = useState(false);
@@ -52,14 +55,59 @@ export default function Register() {
     if (!form.username) return '';
     if (/\s/.test(form.username)) return 'Username cannot contain spaces.';
     if (/[A-Z]/.test(form.username)) return 'Username cannot contain capital letters.';
+    if (!/^[a-z]/.test(form.username)) return 'Username must start with an alphabet (a-z).';
     if (!USERNAME_REGEX.test(form.username)) return 'Use only lowercase letters, numbers, dot, underscore, or hyphen.';
     return '';
   }, [form.username]);
+
+  const canVerifyOtp = useMemo(() => Boolean(otpSent && otpCode.trim().length === 6 && !otpVerified), [otpSent, otpCode, otpVerified]);
 
   const isPasswordMatch = useMemo(() => {
     if (!form.confirmPassword) return null;
     return form.password === form.confirmPassword;
   }, [form.password, form.confirmPassword]);
+
+  function handleOtpDigitChange(index: number, value: string) {
+    const cleanVal = value.replace(/\D/g, '');
+    if (!cleanVal) {
+      const updated = [...otpDigits];
+      updated[index] = '';
+      setOtpDigits(updated);
+      return;
+    }
+
+    if (cleanVal.length > 1) {
+      const chars = cleanVal.slice(0, 6).split('');
+      const updated = [...otpDigits];
+      chars.forEach((c, idx) => {
+        if (idx < 6) updated[idx] = c;
+      });
+      setOtpDigits(updated);
+      const nextFocus = Math.min(chars.length, 5);
+      otpRefs.current[nextFocus]?.focus();
+      return;
+    }
+
+    const updated = [...otpDigits];
+    updated[index] = cleanVal.slice(-1);
+    setOtpDigits(updated);
+
+    if (index < 5) {
+      otpRefs.current[index + 1]?.focus();
+    }
+  }
+
+  function handleOtpKeyDown(index: number, e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
+      otpRefs.current[index - 1]?.focus();
+    }
+  }
+
+  function resetOtpState() {
+    setOtpSent(false);
+    setOtpVerified(false);
+    setOtpDigits(['', '', '', '', '', '']);
+  }
 
   useEffect(() => {
     if (!form.username || usernameError) {
@@ -83,9 +131,7 @@ export default function Register() {
 
     if (name === 'email') {
       value = rawValue.trim();
-      setOtpSent(false);
-      setOtpVerified(false);
-      setOtpCode('');
+      resetOtpState();
     }
 
     setForm((prev) => ({ ...prev, [name]: value }));
@@ -147,8 +193,9 @@ export default function Register() {
       if (res.data.success) {
         setOtpSent(true);
         setOtpVerified(false);
-        setOtpCode('');
+        setOtpDigits(['', '', '', '', '', '']);
         setMessage('OTP sent to your email. Please verify before registration.');
+        setTimeout(() => otpRefs.current[0]?.focus(), 100);
       } else {
         setMessage(res.data.message || 'Unable to send OTP.');
       }
@@ -245,9 +292,7 @@ export default function Register() {
           confirmPassword: '',
         });
         setUsernameAvailable(null);
-        setOtpSent(false);
-        setOtpVerified(false);
-        setOtpCode('');
+        resetOtpState();
       } else {
         setMessage(res.data.message || 'Something went wrong.');
       }
@@ -294,6 +339,41 @@ export default function Register() {
             <input name="fullName" value={form.fullName} onChange={handleChange} placeholder="Your full name" className="form-input" required />
           </div>
 
+          <div>
+            <label className="form-label">Username</label>
+            <input
+              name="username"
+              value={form.username}
+              onChange={handleChange}
+              onBlur={checkUsernameUnique}
+              placeholder="e.g. ali_khan"
+              className={`form-input w-full ${
+                usernameError || usernameAvailable === false
+                  ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-200'
+                  : usernameAvailable === true
+                  ? 'border-emerald-500 focus:border-emerald-500 focus:ring-emerald-200'
+                  : ''
+              }`}
+              required
+              autoComplete="off"
+            />
+            {form.username && (
+              <p className="mt-1.5 text-xs font-bold">
+                {checkingUsername ? (
+                  <span className="text-slate-500 font-medium">Checking username availability...</span>
+                ) : usernameError ? (
+                  <span className="text-rose-600 font-bold">{usernameError}</span>
+                ) : usernameAvailable === false ? (
+                  <span className="text-rose-600 font-bold">Username unavailable</span>
+                ) : usernameAvailable === true ? (
+                  <span className="text-emerald-600 font-bold">✓ Username available</span>
+                ) : (
+                  <span className="text-slate-500 font-medium">Must start with a letter (a-z), no spaces.</span>
+                )}
+              </p>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="form-label">Country</label>
@@ -324,79 +404,66 @@ export default function Register() {
           </div>
 
           <div>
-            <label className="form-label">Username</label>
-            <input
-              name="username"
-              value={form.username}
-              onChange={handleChange}
-              onBlur={checkUsernameUnique}
-              placeholder="e.g. ali_khan"
-              className={`form-input w-full ${
-                usernameError || usernameAvailable === false
-                  ? 'border-rose-500 focus:border-rose-500 focus:ring-rose-200'
-                  : usernameAvailable === true
-                  ? 'border-emerald-500 focus:border-emerald-500 focus:ring-emerald-200'
-                  : ''
-              }`}
-              required
-              autoComplete="off"
-            />
-            {form.username && (
-              <p className="mt-1.5 text-xs font-bold">
-                {checkingUsername ? (
-                  <span className="text-slate-500 font-medium">Checking username availability...</span>
-                ) : usernameError ? (
-                  <span className="text-rose-600 font-bold">{usernameError}</span>
-                ) : usernameAvailable === false ? (
-                  <span className="text-rose-600 font-bold">Username unavailable</span>
-                ) : usernameAvailable === true ? (
-                  <span className="text-emerald-600 font-bold">✓ Username available</span>
-                ) : (
-                  <span className="text-slate-500 font-medium">Use lowercase only, no spaces.</span>
-                )}
-              </p>
-            )}
-          </div>
-
-          <div>
             <label className="form-label">Email</label>
             <input name="email" value={form.email} onChange={handleChange} type="email" placeholder="you@example.com" className="form-input" required />
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-3">
               <button
                 type="button"
                 onClick={handleSendOtp}
                 disabled={sendingOtp || !form.email}
-                className="btn-primary rounded-lg px-3 py-2 text-sm font-semibold transition disabled:opacity-60"
+                className="btn-primary rounded-lg px-4 py-2 text-sm font-semibold transition disabled:opacity-60"
               >
-                {sendingOtp ? 'Sending...' : otpSent ? 'Resend OTP' : 'Send OTP'}
+                {sendingOtp ? 'Sending...' : otpSent ? 'Resend OTP Code' : 'Send OTP Code'}
               </button>
+            </div>
+
+            <div className="mt-3.5 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex gap-1.5 sm:gap-2">
+                {[0, 1, 2, 3, 4, 5].map((idx) => (
+                  <input
+                    key={idx}
+                    ref={(el) => {
+                      otpRefs.current[idx] = el;
+                    }}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={6}
+                    placeholder="0"
+                    value={otpDigits[idx]}
+                    onChange={(e) => handleOtpDigitChange(idx, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                    onFocus={(e) => e.target.select()}
+                    disabled={!otpSent || otpVerified}
+                    className={`h-11 w-10 sm:h-12 sm:w-11 rounded-xl border text-center text-lg font-black transition-all duration-200 outline-none ${
+                      otpVerified
+                        ? 'border-emerald-500 bg-emerald-50 text-emerald-900'
+                        : otpDigits[idx]
+                        ? 'border-teal-600 bg-teal-50/50 text-teal-900 shadow-sm ring-2 ring-teal-500/20'
+                        : 'border-slate-300 bg-white text-slate-800 focus:border-teal-600 focus:ring-2 focus:ring-teal-200'
+                    }`}
+                  />
+                ))}
+              </div>
+
               <button
                 type="button"
                 onClick={handleVerifyOtp}
-                disabled={verifyingOtp || !otpSent || !otpCode}
-                className="rounded-lg border border-emerald-300 bg-emerald-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-60"
+                disabled={!canVerifyOtp || verifyingOtp || otpVerified}
+                className={`rounded-xl px-4 py-2.5 text-sm font-semibold transition whitespace-nowrap disabled:opacity-60 shadow-sm ${
+                  otpVerified
+                    ? 'border border-emerald-600 bg-emerald-600 text-white cursor-default'
+                    : 'btn-primary'
+                }`}
               >
-                {verifyingOtp ? 'Verifying...' : 'Verify OTP'}
+                {verifyingOtp ? 'Verifying...' : otpVerified ? 'Verified ✓' : 'Verify OTP'}
               </button>
             </div>
-            <input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
-              maxLength={6}
-              autoComplete="one-time-code"
-              value={otpCode}
-              onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
-              placeholder="Enter 6-digit OTP"
-              className="form-input mt-3 font-mono font-bold tracking-widest text-center text-sm"
-            />
-            <p className="mt-2 text-xs font-bold">
-              {otpVerified ? (
-                <span className="text-emerald-600 font-bold">✓ Email verified.</span>
-              ) : (
-                <span className="text-rose-600 font-bold">Please verify your email before registering.</span>
-              )}
-            </p>
+            {otpVerified && (
+              <p className="mt-2 text-xs font-bold text-emerald-600">
+                ✓ Email verified.
+              </p>
+            )}
           </div>
 
           <div>

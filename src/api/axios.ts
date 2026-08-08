@@ -19,10 +19,12 @@ API.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      const data = error.response?.data;
-      const message = data?.message || "Your account was logged in on another device. You have been logged out.";
+      const url = String(error.config?.url || "");
+      const isLogoutOrPresence = url.includes("/auth/logout") || url.includes("/users/presence") || error.config?.skipAuthAlert;
       clearAuthToken();
-      if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+      if (!isLogoutOrPresence && typeof window !== "undefined" && window.location.pathname !== "/login") {
+        const data = error.response?.data;
+        const message = data?.message || "Your account was logged in on another device. You have been logged out.";
         alert(message);
         window.location.href = "/login";
       }

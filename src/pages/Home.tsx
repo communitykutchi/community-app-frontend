@@ -4,68 +4,108 @@ import { Link } from "react-router-dom";
 export default function Home() {
   const quickActions = [
     {
+      title: "Direct Chat & Messages",
+      description: "Chat 1-on-1 with confirmed friends in real time.",
+      icon: "💬",
+      to: "/chats",
+      badge: "⚡ Live Chat",
+      gradient: "from-teal-700 via-teal-800 to-slate-900 shadow-teal-800/30 border-teal-500/40",
+      badgeBg: "bg-emerald-500/20 text-emerald-300 border-emerald-400/30",
+      btnBg: "bg-emerald-500 hover:bg-emerald-400 text-slate-950",
+      btnText: "💬 Click to Chat",
+      subText: "Real-Time",
+      pulseColor: "bg-emerald-400",
+    },
+    {
       title: "Community Feed",
       description: "Follow posts, photos, and updates shared by members.",
       icon: "📰",
       to: "/feed",
-      badge: "Social",
-      badgeColor: "bg-teal-50 text-teal-700 border-teal-200",
+      badge: "📰 Social Feed",
+      gradient: "from-slate-900 via-teal-950 to-slate-950 shadow-teal-900/30 border-teal-500/30",
+      badgeBg: "bg-teal-500/20 text-teal-300 border-teal-400/30",
+      btnBg: "bg-teal-500 hover:bg-teal-400 text-slate-950",
+      btnText: "📰 Open Feed",
+      subText: "Updates",
+      pulseColor: "bg-teal-400",
     },
     {
       title: "Official Notices",
       description: "Mayyat announcements, Janaza timings, and Jamaat notices.",
       icon: "📢",
       to: "/notices",
-      badge: "Announcements",
-      badgeColor: "bg-amber-50 text-amber-700 border-amber-200",
+      badge: "📢 Important",
+      gradient: "from-amber-950 via-slate-900 to-amber-900 shadow-amber-900/30 border-amber-500/30",
+      badgeBg: "bg-amber-500/20 text-amber-300 border-amber-400/30",
+      btnBg: "bg-amber-500 hover:bg-amber-400 text-slate-950",
+      btnText: "📢 View Notices",
+      subText: "Jamaat",
+      pulseColor: "bg-amber-400",
     },
     {
       title: "Community Polls",
       description: "Vote on active community decisions and view live results.",
       icon: "🗳️",
       to: "/polls",
-      badge: "Voting",
-      badgeColor: "bg-purple-50 text-purple-700 border-purple-200",
+      badge: "🗳️ Active Vote",
+      gradient: "from-purple-950 via-slate-900 to-indigo-950 shadow-purple-900/30 border-purple-500/30",
+      badgeBg: "bg-purple-500/20 text-purple-300 border-purple-400/30",
+      btnBg: "bg-purple-500 hover:bg-purple-400 text-slate-950",
+      btnText: "🗳️ Vote Now",
+      subText: "Live Results",
+      pulseColor: "bg-purple-400",
     },
     {
-      title: "Jobs & Opportunities",
-      description: "Explore career vacancies or post job openings.",
-      icon: "💼",
-      to: "/jobs",
-      badge: "Careers",
-      badgeColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
+      title: "Local Workers (کاریگر)",
+      description: "Find local Electricians, Plumbers, Mistri, Painters & Mechanics in your area.",
+      icon: "🛠️",
+      to: "/workers",
+      badge: "🛠️ Local Workers",
+      gradient: "from-emerald-950 via-slate-900 to-teal-950 shadow-emerald-900/30 border-emerald-500/30",
+      badgeBg: "bg-emerald-500/20 text-emerald-300 border-emerald-400/30",
+      btnBg: "bg-emerald-500 hover:bg-emerald-400 text-slate-950",
+      btnText: "🛠️ Find Workers",
+      subText: "Workers",
+      pulseColor: "bg-emerald-400",
     },
     {
       title: "Friends & Members",
       description: "Search community members, add friends, and connect.",
       icon: "👥",
       to: "/friends",
-      badge: "Directory",
-      badgeColor: "bg-blue-50 text-blue-700 border-blue-200",
-    },
-    {
-      title: "Direct Messages",
-      description: "Chat 1-on-1 with confirmed friends in real time.",
-      icon: "💬",
-      to: "/chats",
-      badge: "Messaging",
-      badgeColor: "bg-indigo-50 text-indigo-700 border-indigo-200",
+      badge: "👥 Directory",
+      gradient: "from-blue-950 via-slate-900 to-indigo-950 shadow-blue-900/30 border-blue-500/30",
+      badgeBg: "bg-blue-500/20 text-blue-300 border-blue-400/30",
+      btnBg: "bg-blue-500 hover:bg-blue-400 text-slate-950",
+      btnText: "👥 Find Friends",
+      subText: "Members",
+      pulseColor: "bg-blue-400",
     },
     {
       title: "Help & Support",
       description: "Find FAQs, report issues, or contact Jamaat admins.",
       icon: "❓",
       to: "/help",
-      badge: "Guidance",
-      badgeColor: "bg-slate-100 text-slate-700 border-slate-200",
+      badge: "❓ Help Desk",
+      gradient: "from-slate-900 via-slate-950 to-slate-900 shadow-slate-900/40 border-slate-700/50",
+      badgeBg: "bg-slate-500/20 text-slate-300 border-slate-400/30",
+      btnBg: "bg-slate-200 hover:bg-white text-slate-950",
+      btnText: "❓ Get Support",
+      subText: "Guidance",
+      pulseColor: "",
     },
     {
       title: "My Profile",
       description: "Update personal details, family count, and CNIC.",
       icon: "👤",
       to: "/profile",
-      badge: "Account",
-      badgeColor: "bg-teal-50 text-teal-700 border-teal-200",
+      badge: "👤 Account",
+      gradient: "from-teal-950 via-slate-900 to-emerald-950 shadow-teal-900/30 border-teal-500/30",
+      badgeBg: "bg-teal-500/20 text-teal-300 border-teal-400/30",
+      btnBg: "bg-teal-500 hover:bg-teal-400 text-slate-950",
+      btnText: "👤 Open Profile",
+      subText: "Settings",
+      pulseColor: "",
     },
   ];
 
@@ -130,24 +170,42 @@ export default function Home() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {quickActions.map((item) => (
             <Link
-              key={item.title}
+              key={item.to}
               to={item.to}
-              className="group flex flex-col justify-between rounded-2xl border border-slate-200/90 bg-white p-5 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:border-teal-500/50 hover:shadow-md"
+              className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br ${item.gradient} p-5 text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border`}
             >
+              <div className="absolute -right-6 -bottom-6 h-28 w-28 rounded-full bg-white/10 blur-xl group-hover:scale-150 transition-transform duration-500" />
+
               <div>
                 <div className="flex items-center justify-between">
-                  <span className="text-2xl transition-transform group-hover:scale-110">{item.icon}</span>
-                  <span className={`rounded-md px-2 py-0.5 text-[10px] font-bold border ${item.badgeColor}`}>
+                  <div className="relative flex items-center justify-center h-10 w-10 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 text-2xl shadow-inner group-hover:scale-110 transition-transform">
+                    {item.icon}
+                    {item.pulseColor && (
+                      <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full ${item.pulseColor} opacity-75`}></span>
+                        <span className={`relative inline-flex rounded-full h-3 w-3 ${item.pulseColor}`}></span>
+                      </span>
+                    )}
+                  </div>
+                  <span className={`rounded-full px-2.5 py-1 text-[10px] font-black border uppercase tracking-wider ${item.badgeBg}`}>
                     {item.badge}
                   </span>
                 </div>
-                <h3 className="mt-3 text-sm font-extrabold text-slate-900 group-hover:text-teal-700 transition">{item.title}</h3>
-                <p className="mt-1 text-xs text-slate-500 leading-relaxed">{item.description}</p>
+
+                <h3 className="mt-4 text-base font-black text-white group-hover:text-teal-200 transition">
+                  {item.title}
+                </h3>
+                <p className="mt-1 text-xs text-slate-200 leading-relaxed font-medium">
+                  {item.description}
+                </p>
               </div>
 
-              <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs font-bold text-teal-600 group-hover:translate-x-1 transition">
-                <span>Access Module</span>
-                <span>→</span>
+              <div className="mt-5 pt-3 border-t border-white/15 flex items-center justify-between text-xs font-black text-white">
+                <span className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-extrabold shadow-md transition group-hover:scale-105 ${item.btnBg}`}>
+                  <span>{item.btnText}</span>
+                  <span>→</span>
+                </span>
+                <span className="text-xs text-slate-300 font-bold opacity-90">{item.subText}</span>
               </div>
             </Link>
           ))}
@@ -156,40 +214,59 @@ export default function Home() {
 
       {/* Why This Space & Tip Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 rounded-3xl border border-slate-200/90 bg-white p-6 shadow-sm">
-          <h2 className="text-lg font-extrabold text-slate-900">Why All Kutchi Community Portal?</h2>
-          <p className="mt-1 text-xs text-slate-500">Built to empower our community members and streamline Jamaat communication.</p>
+        {/* Why Community Card */}
+        <div className="lg:col-span-2 relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 p-6 sm:p-8 text-white shadow-xl">
+          <div className="absolute -top-12 -right-12 h-48 w-48 rounded-full bg-teal-500/10 blur-3xl pointer-events-none" />
 
-          <div className="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {highlights.map((h, i) => (
-              <div key={i} className="flex items-start gap-3 rounded-2xl border border-slate-100 bg-slate-50/70 p-4">
-                <span className="text-2xl">{h.icon}</span>
-                <div>
-                  <h4 className="text-xs font-bold text-slate-900">{h.title}</h4>
-                  <p className="mt-1 text-[11px] text-slate-500 leading-relaxed">{h.desc}</p>
+          <div className="relative z-10">
+            <div className="inline-flex items-center gap-2 rounded-full bg-teal-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-teal-300 border border-teal-500/30 mb-2">
+              <span>🛡️ COMMUNITY GUIDANCE</span>
+            </div>
+            <h2 className="text-xl font-black text-white">Why All Kutchi Community Portal?</h2>
+            <p className="mt-1 text-xs text-slate-300 font-medium">Built to empower our community members and streamline Jamaat communication.</p>
+
+            <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {highlights.map((h, i) => (
+                <div key={i} className="group flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md hover:bg-white/10 hover:border-teal-500/40 transition-all duration-200">
+                  <div className="h-10 w-10 shrink-0 rounded-xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-xl shadow-inner group-hover:scale-110 transition-transform">
+                    {h.icon}
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-black text-white group-hover:text-teal-300 transition">{h.title}</h4>
+                    <p className="mt-1 text-[11px] text-slate-300 leading-relaxed font-medium">{h.desc}</p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
 
         {/* Daily Tip Card */}
-        <div className="rounded-3xl border border-teal-200 bg-teal-50/60 p-6 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">💡</span>
-              <h3 className="text-sm font-bold text-teal-900">Jamaat Daily Tip</h3>
+        <div className="relative overflow-hidden rounded-3xl border border-teal-500/40 bg-gradient-to-br from-teal-900 via-emerald-950 to-slate-950 p-6 sm:p-8 text-white shadow-xl flex flex-col justify-between">
+          <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-emerald-500/15 blur-2xl pointer-events-none" />
+
+          <div className="relative z-10">
+            <div className="flex items-center justify-between">
+              <div className="h-10 w-10 rounded-xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-2xl shadow-inner">
+                💡
+              </div>
+              <span className="rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30 text-[10px] font-black uppercase tracking-wider px-3 py-1">
+                Daily Tip
+              </span>
             </div>
-            <p className="mt-3 text-xs text-teal-800 leading-relaxed font-medium">
+
+            <h3 className="mt-4 text-base font-black text-white">Jamaat Daily Tip</h3>
+            <p className="mt-2 text-xs text-slate-200 leading-relaxed font-medium">
               Keep your profile details up to date (occupations, family count, Jamaat branch). It helps Jamaat admins maintain accurate records and contact you during emergencies or event invitations.
             </p>
           </div>
 
           <Link
             to="/profile"
-            className="mt-6 block text-center rounded-xl bg-teal-600 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-600/20 hover:bg-teal-500 transition"
+            className="relative z-10 mt-6 block text-center rounded-xl bg-emerald-500 hover:bg-emerald-400 py-3 text-xs font-black text-slate-950 shadow-lg shadow-emerald-500/20 transition active:scale-95"
           >
-            Update My Profile
+            <span>👤 Update My Profile</span>
+            <span className="ml-1">→</span>
           </Link>
         </div>
       </div>

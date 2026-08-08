@@ -272,15 +272,17 @@ export default function Polls() {
             return (
               <div
                 key={poll._id}
-                className="overflow-hidden rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm transition hover:shadow-md"
+                className="relative overflow-hidden rounded-3xl border border-purple-500/30 bg-gradient-to-br from-slate-950 via-purple-950/60 to-slate-950 p-6 sm:p-8 text-white shadow-xl transition-all duration-300 hover:shadow-purple-900/20"
               >
+                <div className="absolute -right-10 -bottom-10 h-32 w-32 rounded-full bg-purple-500/10 blur-2xl pointer-events-none" />
+
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <UserAvatar name={poll.createdBy?.fullName || "Jamaat Admin"} photoUrl={poll.createdBy?.profilePhotoUrl} size="md" />
+                    <UserAvatar name={poll.createdBy?.fullName || "Jamaat Admin"} photoUrl={poll.createdBy?.profilePhotoUrl} size="md" className="ring-2 ring-purple-500/40" />
                     <div>
-                      <h4 className="text-xs font-bold text-slate-900">{poll.createdBy?.fullName || "Jamaat Admin"}</h4>
-                      <div className="flex items-center gap-2 text-[11px] text-slate-500">
-                        <span className="font-semibold text-teal-600">{poll.category || "General"}</span>
+                      <h4 className="text-xs font-black text-white">{poll.createdBy?.fullName || "Jamaat Admin"}</h4>
+                      <div className="flex items-center gap-2 text-[11px] text-slate-300 mt-0.5">
+                        <span className="font-bold text-purple-300 uppercase tracking-wider">{poll.category || "General"}</span>
                         <span>•</span>
                         <span>{new Date(poll.createdAt).toLocaleDateString()}</span>
                       </div>
@@ -290,8 +292,8 @@ export default function Polls() {
                   <div className="flex items-center gap-2">
                     {timeStatus && (
                       <span
-                        className={`rounded-full px-3 py-1 text-xs font-bold ${
-                          isExpired ? "bg-red-50 text-red-600 border border-red-200" : "bg-amber-50 text-amber-700 border border-amber-200"
+                        className={`rounded-full px-3 py-1 text-xs font-black uppercase tracking-wider ${
+                          isExpired ? "bg-rose-500/20 text-rose-300 border border-rose-400/30" : "bg-purple-500/20 text-purple-300 border border-purple-400/30"
                         }`}
                       >
                         {timeStatus}
@@ -301,7 +303,7 @@ export default function Polls() {
                     {isManager && (
                       <button
                         onClick={() => handleDeletePoll(poll._id)}
-                        className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition"
+                        className="rounded-lg p-1.5 text-slate-400 hover:bg-rose-950/60 hover:text-rose-300 transition"
                         title="Delete Poll"
                       >
                         🗑️
@@ -311,8 +313,8 @@ export default function Polls() {
                 </div>
 
                 {/* Poll Question */}
-                <h3 className="mt-4 text-base font-extrabold text-slate-900 md:text-lg">{poll.question}</h3>
-                {poll.description ? <p className="mt-1 text-xs text-slate-600">{poll.description}</p> : null}
+                <h3 className="mt-4 text-base font-black text-white md:text-lg">{poll.question}</h3>
+                {poll.description ? <p className="mt-1 text-xs text-slate-300 leading-relaxed">{poll.description}</p> : null}
 
                 {/* Poll Options */}
                 <div className="mt-5 space-y-3">
@@ -324,36 +326,36 @@ export default function Polls() {
                       <div
                         key={opt._id}
                         onClick={() => !isExpired && handleVote(poll._id, opt._id)}
-                        className={`relative overflow-hidden rounded-xl border p-4 transition ${
+                        className={`relative overflow-hidden rounded-2xl border p-4 transition ${
                           isExpired ? "cursor-not-allowed opacity-85" : "cursor-pointer active:scale-[0.99]"
                         } ${
                           isSelected
-                            ? "border-teal-500 bg-teal-50/40 ring-2 ring-teal-500/20"
-                            : "border-slate-200 bg-slate-50/50 hover:border-slate-300 hover:bg-slate-50"
+                            ? "border-purple-400 bg-purple-500/25 ring-2 ring-purple-400/30 text-white"
+                            : "border-white/10 bg-white/5 hover:border-purple-400/40 hover:bg-white/10 text-slate-200"
                         }`}
                       >
                         {/* Progress Fill Bar */}
                         <div
                           className={`absolute left-0 top-0 bottom-0 transition-all duration-500 ${
-                            isSelected ? "bg-teal-200/50" : "bg-slate-200/60"
+                            isSelected ? "bg-purple-600/40" : "bg-white/10"
                           }`}
                           style={{ width: `${pct}%` }}
                         />
 
-                        <div className="relative flex items-center justify-between gap-3 text-xs font-bold text-slate-800">
+                        <div className="relative flex items-center justify-between gap-3 text-xs font-black">
                           <div className="flex items-center gap-3">
                             <div
                               className={`flex h-5 w-5 items-center justify-center rounded-full border text-[10px] ${
-                                isSelected ? "border-teal-600 bg-teal-600 text-white" : "border-slate-400 bg-white"
+                                isSelected ? "border-purple-400 bg-purple-500 text-white" : "border-slate-500 bg-slate-900 text-slate-400"
                               }`}
                             >
                               {isSelected ? "✓" : ""}
                             </div>
-                            <span>{opt.text}</span>
+                            <span className="text-white">{opt.text}</span>
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-medium text-slate-500">({opt.voteCount} votes)</span>
-                            <span className="font-extrabold text-slate-900">{pct}%</span>
+                            <span className="text-[11px] font-semibold text-purple-200">({opt.voteCount} votes)</span>
+                            <span className="font-black text-amber-300 text-sm">{pct}%</span>
                           </div>
                         </div>
                       </div>
@@ -361,9 +363,9 @@ export default function Polls() {
                   })}
                 </div>
 
-                <div className="mt-4 flex items-center justify-between text-xs font-semibold text-slate-500 border-t border-slate-100 pt-3">
+                <div className="mt-4 flex items-center justify-between text-xs font-bold text-slate-300 border-t border-white/10 pt-3">
                   <span>{poll.totalVotes} total votes</span>
-                  {poll.userVotedOptionId ? <span className="text-teal-600 font-bold">✓ You voted</span> : null}
+                  {poll.userVotedOptionId ? <span className="text-purple-300 font-black">✓ You voted</span> : null}
                 </div>
               </div>
             );

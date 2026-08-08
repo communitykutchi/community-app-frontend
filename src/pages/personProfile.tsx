@@ -335,13 +335,11 @@ export default function PeopleProfile() {
       <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
         {/* Cover Photo Header */}
         <div className="relative h-40 sm:h-48 bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 overflow-hidden">
-          {(coverPreviewUrl || user?.coverPhotoUrl) && (
-            <img
-              src={coverPreviewUrl || user?.coverPhotoUrl}
-              alt="Cover Banner"
-              className="w-full h-full object-cover"
-            />
-          )}
+          <img
+            src={coverPreviewUrl || user?.coverPhotoUrl || "/cover.png"}
+            alt="Cover Banner"
+            className="w-full h-full object-cover"
+          />
           <div className="absolute inset-0 bg-slate-950/30" />
 
           {/* Upload Cover Photo Button */}

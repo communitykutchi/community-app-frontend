@@ -6,7 +6,7 @@ import Register from "./pages/Register";
 import Feed from "./pages/Feed";
 import Notices from "./pages/Notices";
 import Polls from "./pages/Polls";
-import Jobs from "./pages/Jobs";
+import Workers from "./pages/Workers";
 import Help from "./pages/Help";
 import Banned from "./pages/Banned";
 import SuperAdmin from "./pages/SuperAdmin";
@@ -70,7 +70,15 @@ function App() {
             path="/jobs"
             element={
               <PrivateRoute>
-                <Jobs />
+                <Workers />
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/workers"
+            element={
+              <PrivateRoute>
+                <Workers />
               </PrivateRoute>
             }
           />

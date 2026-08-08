@@ -135,8 +135,8 @@ export default function Feed() {
   const hasScrolledToTargetRef = useRef(false);
 
   const currentRole = normalizeRole(currentUser?.role);
-  const canCreatePosts = Boolean(currentUser);
   const canModeratePosts = currentRole === "super_admin" || currentRole === "moderator" || currentRole === "admin";
+  const canCreatePosts = canModeratePosts;
   const isSuperAdmin = currentRole === "super_admin";
   const [viewMode, setViewMode] = useState<"all" | "mine">("all");
   const postTextLength = text.trim().length;
@@ -586,8 +586,20 @@ export default function Feed() {
           </form>
         ) : (
           <div className="p-5 sm:p-6">
-            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm text-slate-600">
-              Only super admins and moderators can create posts. Members can view posts, like, comment, and share them.
+            <div className="relative overflow-hidden rounded-3xl border border-amber-500/40 bg-gradient-to-r from-slate-950 via-slate-900 to-amber-950/50 p-6 text-white shadow-xl">
+              <div className="flex items-center gap-4">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-500/20 text-2xl border border-amber-400/30 shrink-0">
+                  📢
+                </div>
+                <div>
+                  <h3 className="text-base font-black text-amber-300">
+                    Posting will be available soon for members
+                  </h3>
+                  <p className="mt-1 text-xs text-slate-300 font-serif leading-relaxed">
+                    تمام ممبران کے لیے پوسٹ کرنے کا آپشن جلد دستیاب ہو گا۔ فی الحال آپ ایڈمن پوسٹس دیکھ سکتے ہیں، کمنٹ اور لائک کر سکتے ہیں۔
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         )}
