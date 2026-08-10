@@ -63,6 +63,7 @@ export default function Polls() {
 
   // User role check
   const [userRole, setUserRole] = useState<string>("member");
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   // Create Poll Modal
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -80,9 +81,10 @@ export default function Polls() {
 
   const fetchUserRole = async () => {
     try {
-      const res = await API.get<{ user?: { role?: string } }>("/auth/me");
-      if (res.data?.user?.role) {
-        setUserRole(res.data.user.role);
+      const res = await API.get<{ user?: { _id?: string; role?: string } }>("/auth/me");
+      if (res.data?.user) {
+        setUserRole(res.data.user.role || "member");
+        setCurrentUserId(res.data.user._id || null);
       }
     } catch {
       // Ignore
@@ -290,41 +292,43 @@ export default function Polls() {
               >
                 <div className="absolute -right-10 -bottom-10 h-32 w-32 rounded-full bg-teal-50 blur-2xl pointer-events-none" />
 
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <UserAvatar name={poll.createdBy?.fullName || "Jamaat Admin"} photoUrl={poll.createdBy?.profilePhotoUrl} size="md" className="ring-2 ring-teal-500/20" />
-                    <div>
-                      <h4 className="text-xs sm:text-sm font-extrabold text-slate-900">{poll.createdBy?.fullName || "Jamaat Admin"}</h4>
-                      <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5 font-semibold">
-                        <span className="rounded-full bg-teal-50 text-teal-800 border border-teal-200 px-2.5 py-0.5 font-bold uppercase tracking-wider">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <UserAvatar name={poll.createdBy?.fullName || "Jamaat Admin"} photoUrl={poll.createdBy?.profilePhotoUrl} size="md" className="shrink-0 ring-2 ring-teal-500/20" />
+                    <div className="min-w-0 flex-1">
+                      <h4 className="text-xs sm:text-sm font-extrabold text-slate-900 truncate">{poll.createdBy?.fullName || "Jamaat Admin"}</h4>
+                      <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5 font-semibold flex-wrap">
+                        <span className="rounded-full bg-teal-50 text-teal-800 border border-teal-200 px-2 py-0.5 text-[10px] sm:text-[11px] font-bold uppercase tracking-wider shrink-0">
                           {poll.category || "General"}
                         </span>
-                        <span>•</span>
-                        <span>{new Date(poll.createdAt).toLocaleDateString()}</span>
+                        <span className="shrink-0">•</span>
+                        <span className="shrink-0">{new Date(poll.createdAt).toLocaleDateString()}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between sm:justify-end gap-2 pt-2.5 sm:pt-0 border-t border-slate-100 sm:border-0 shrink-0 w-full sm:w-auto">
                     {timeStatus && (
                       <span
-                        className={`rounded-full px-3 py-1 text-[11px] font-black uppercase tracking-wider ${
+                        className={`rounded-full px-2.5 sm:px-3 py-1 text-[10px] sm:text-[11px] font-black uppercase tracking-wider whitespace-nowrap ${
                           isExpired
                             ? "bg-rose-50 text-rose-700 border border-rose-200"
-                            : "bg-teal-50 text-teal-800 border border-teal-200"
+                            : "bg-teal-50 text-teal-800 border border-teal-200 shadow-2xs"
                         }`}
                       >
                         {timeStatus}
                       </span>
                     )}
 
-                    {isManager && (
+                    {(isManager || (currentUserId && poll.createdBy?._id === currentUserId)) && (
                       <button
+                        type="button"
                         onClick={() => setPollToDelete(poll)}
-                        className="rounded-xl p-2 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition cursor-pointer"
+                        className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-rose-200 bg-rose-50 hover:bg-rose-100 text-rose-700 px-2.5 py-1 text-xs font-bold transition cursor-pointer active:scale-95 shrink-0"
                         title="Delete Poll"
                       >
-                        🗑️
+                        <span>🗑️</span>
+                        <span className="text-[11px] font-extrabold sm:hidden">Delete</span>
                       </button>
                     )}
                   </div>
