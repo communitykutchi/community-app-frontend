@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import API from "../api/axios";
 import UserAvatar from "../components/UserAvatar";
 import Loader from "../components/Loader";
 import Toast from "../components/Toast";
+import ConfirmModal from "../components/ConfirmModal";
 
 const configuredApiBase = import.meta.env.VITE_API_URL || "https://backend.kutchicommunity.com";
 const apiOrigin = (() => {
@@ -91,7 +92,26 @@ export default function UserProfile() {
   const [reportReason, setReportReason] = useState("");
   const [submittingReport, setSubmittingReport] = useState(false);
 
+  const [showUnfriendConfirm, setShowUnfriendConfirm] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
+
+  const [showFriendsDropdown, setShowFriendsDropdown] = useState(false);
+  const [showMoreOptionsDropdown, setShowMoreOptionsDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const moreOptionsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowFriendsDropdown(false);
+      }
+      if (moreOptionsRef.current && !moreOptionsRef.current.contains(event.target as Node)) {
+        setShowMoreOptionsDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     if (userId) {
@@ -171,9 +191,9 @@ export default function UserProfile() {
     }
   };
 
-  const handleUnfriend = async () => {
+  const confirmUnfriend = async () => {
     if (!profile) return;
-    if (!window.confirm(`Are you sure you want to unfriend ${profile.fullName}?`)) return;
+    setShowUnfriendConfirm(false);
 
     setActionLoading(true);
     try {
@@ -226,7 +246,7 @@ export default function UserProfile() {
         <p className="text-sm text-slate-500 mt-1">The profile you are looking for does not exist or has been removed.</p>
         <button
           onClick={() => navigate(-1)}
-          className="mt-6 rounded-xl bg-slate-900 px-5 py-2.5 text-xs font-bold text-white shadow-sm hover:bg-slate-800"
+          className="mt-6 rounded-xl bg-teal-600 px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-teal-500 transition cursor-pointer"
         >
           ← Go Back
         </button>
@@ -246,9 +266,9 @@ export default function UserProfile() {
       {toast && <Toast message={toast.message} type={toast.type} isVisible={true} onClose={() => setToast(null)} />}
 
       {/* Top Banner & Profile Header Card */}
-      <div className="overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 text-slate-900 dark:text-white shadow-xl">
+      <div className="rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-xl relative z-10">
         {/* Cover Background */}
-        <div className="cover-banner relative h-36 sm:h-52 md:h-64 bg-slate-900 overflow-hidden">
+        <div className="cover-banner relative h-36 sm:h-52 md:h-64 bg-white overflow-hidden rounded-t-3xl">
           <img
             src={getMediaUrl(profile.coverPhotoUrl)}
             alt="Cover Banner"
@@ -260,17 +280,17 @@ export default function UserProfile() {
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-black/30 pointer-events-none" />
           <button
             onClick={() => navigate(-1)}
-            className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10 inline-flex items-center gap-1.5 rounded-full bg-slate-950/60 px-3 py-1.5 sm:px-3.5 text-[11px] sm:text-xs font-bold text-white backdrop-blur-md hover:bg-slate-900/80 transition"
+            className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10 inline-flex items-center gap-1.5 rounded-full bg-white px-3 py-1 sm:px-3.5 sm:py-1.5 text-[11px] sm:text-xs font-extrabold text-slate-900 shadow-md hover:bg-slate-100 transition cursor-pointer"
           >
             ← Back
           </button>
-          <span className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 rounded-full bg-teal-500/20 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-extrabold uppercase tracking-wider text-teal-300 border border-teal-500/30 backdrop-blur-md">
+          <span className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 inline-flex max-w-[150px] sm:max-w-none items-center rounded-full bg-teal-500/20 px-2.5 py-0.5 sm:px-3 sm:py-1 text-[10px] sm:text-xs font-extrabold uppercase tracking-wider text-teal-300 border border-teal-500/30 backdrop-blur-md truncate">
             ALL KUTCHI COMMUNITY
           </span>
         </div>
 
         {/* Profile Identity Bar */}
-        <div className="relative px-4 py-4 sm:px-6 sm:pb-6 sm:pt-0 bg-gradient-to-b from-slate-100/90 via-white to-white dark:from-slate-900/90 dark:via-slate-950 dark:to-slate-950 border-t border-slate-200/50 dark:border-slate-800/50">
+        <div className="relative px-4 py-4 sm:px-6 sm:pb-6 sm:pt-0 bg-gradient-to-b from-slate-100/90 via-white to-white border-t border-slate-200/50">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 -mt-12 sm:-mt-16 relative z-10">
             {/* Avatar with Online Ring */}
             <div className="relative inline-block shrink-0">
@@ -278,7 +298,7 @@ export default function UserProfile() {
                 src={profile.profilePhotoUrl}
                 name={profile.fullName}
                 size="xl"
-                className="rounded-3xl border-4 border-white dark:border-slate-900 shadow-2xl bg-white dark:bg-slate-950 object-cover"
+                className="rounded-3xl border-4 border-white shadow-2xl bg-white object-cover"
               />
               <span
                 className={`absolute bottom-2 right-2 h-4 w-4 sm:h-5 sm:w-5 rounded-full border-2 border-white shadow-md ${
@@ -289,33 +309,72 @@ export default function UserProfile() {
             </div>
 
             {/* Action Buttons Toolbar */}
-            <div className="flex flex-wrap items-center gap-2 pt-1 sm:pt-0">
+            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-1 sm:pt-0 max-w-full">
               {friendStatus === "self" ? (
                 <Link
                   to="/profile"
-                  className="rounded-xl bg-slate-900 dark:bg-white dark:text-slate-900 px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs font-bold text-white shadow-sm transition"
+                  className="rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold px-3.5 py-2 text-xs shadow-md shadow-teal-600/30 transition cursor-pointer whitespace-nowrap"
                 >
                   ✏️ Edit Profile
                 </Link>
               ) : (
                 <>
                   {friendStatus === "friends" && (
-                    <button
-                      onClick={handleUnfriend}
-                      disabled={actionLoading}
-                      className="rounded-xl border border-emerald-300 bg-emerald-50 px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs font-extrabold text-emerald-800 shadow-sm hover:bg-rose-50 hover:text-rose-700 hover:border-rose-300 transition"
-                    >
-                      ✓ Friends (Unfriend)
-                    </button>
+                    <div className="relative inline-block text-left shrink-0" ref={dropdownRef}>
+                      <button
+                        type="button"
+                        onClick={() => setShowFriendsDropdown((prev) => !prev)}
+                        disabled={actionLoading}
+                        className="rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-extrabold text-emerald-800 shadow-xs hover:bg-emerald-100 transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
+                      >
+                        <span>✓ Friends</span>
+                        <svg
+                          className={`h-3.5 w-3.5 transition-transform duration-200 ${showFriendsDropdown ? "rotate-180" : ""}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+
+                      {showFriendsDropdown && (
+                        <div className="absolute left-0 mt-2 w-48 sm:w-52 origin-top-left rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-100 whitespace-nowrap">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowFriendsDropdown(false);
+                              setShowUnfriendConfirm(true);
+                            }}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-extrabold text-rose-600 rounded-xl hover:bg-rose-50 transition cursor-pointer"
+                          >
+                            <span className="shrink-0 text-base">👤❌</span>
+                            <span>Unfriend</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowFriendsDropdown(false);
+                              setShowReportModal(true);
+                            }}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-extrabold text-slate-700 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+                          >
+                            <span className="shrink-0 text-base">🚩</span>
+                            <span>Report Profile</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   )}
 
                   {friendStatus === "request_sent" && (
                     <button
                       onClick={handleCancelRequest}
                       disabled={actionLoading}
-                      className="rounded-xl border border-amber-300 bg-amber-50 px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs font-bold text-amber-800 hover:bg-amber-100 transition"
+                      title="Click to cancel friend request"
+                      className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-extrabold text-amber-900 hover:bg-amber-100 transition whitespace-nowrap shrink-0 cursor-pointer"
                     >
-                      ⏳ Request Sent (Cancel)
+                      ⏳ Request Sent
                     </button>
                   )}
 
@@ -323,7 +382,7 @@ export default function UserProfile() {
                     <button
                       onClick={handleAcceptRequest}
                       disabled={actionLoading}
-                      className="rounded-xl bg-emerald-600 px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs font-bold text-white shadow-sm hover:bg-emerald-500 transition"
+                      className="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-extrabold text-white shadow-xs hover:bg-emerald-500 transition whitespace-nowrap shrink-0 cursor-pointer"
                     >
                       ✅ Accept Request
                     </button>
@@ -333,7 +392,7 @@ export default function UserProfile() {
                     <button
                       onClick={handleSendFriendRequest}
                       disabled={actionLoading}
-                      className="rounded-xl bg-teal-600 px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs font-bold text-white shadow-md shadow-teal-600/20 hover:bg-teal-500 transition"
+                      className="rounded-xl bg-teal-600 px-3 py-2 text-xs font-extrabold text-white shadow-md shadow-teal-600/20 hover:bg-teal-500 transition whitespace-nowrap shrink-0 cursor-pointer"
                     >
                       ➕ Add Friend
                     </button>
@@ -341,18 +400,39 @@ export default function UserProfile() {
 
                   <button
                     onClick={() => navigate(`/friends/${profile._id}/chat`)}
-                    className="rounded-xl bg-slate-900 dark:bg-white dark:text-slate-900 px-3.5 py-2 sm:px-4 sm:py-2.5 text-xs font-bold text-white shadow-sm transition flex items-center gap-1.5"
+                    className="rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold px-3 py-2 text-xs shadow-md shadow-emerald-600/30 transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
                   >
                     💬 Message
                   </button>
 
-                  <button
-                    onClick={() => setShowReportModal(true)}
-                    className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 sm:py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 transition"
-                    title="Report Profile"
-                  >
-                    🚩
-                  </button>
+                  {friendStatus !== "friends" && (
+                    <div className="relative inline-block text-left" ref={moreOptionsRef}>
+                      <button
+                        type="button"
+                        onClick={() => setShowMoreOptionsDropdown((prev) => !prev)}
+                        className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 sm:py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                        title="More Options"
+                      >
+                        ⋮
+                      </button>
+
+                      {showMoreOptionsDropdown && (
+                        <div className="absolute right-0 mt-2 w-48 sm:w-52 origin-top-right rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-100 whitespace-nowrap">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowMoreOptionsDropdown(false);
+                              setShowReportModal(true);
+                            }}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-extrabold text-slate-700 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+                          >
+                            <span className="shrink-0 text-base">🚩</span>
+                            <span>Report Profile</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </>
               )}
             </div>
@@ -361,15 +441,15 @@ export default function UserProfile() {
           {/* Name & Details Header */}
           <div className="mt-3 sm:mt-4 space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-950 dark:text-white tracking-tight break-words max-w-full">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-950 tracking-tight break-words max-w-full">
                 {profile.fullName}
               </h1>
-              <span className="inline-block shrink-0 rounded-full bg-slate-100 dark:bg-slate-800 px-3 py-0.5 text-[11px] font-extrabold text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+              <span className="inline-block shrink-0 rounded-full bg-slate-100 px-3 py-0.5 text-[11px] font-extrabold text-slate-700 border border-slate-200">
                 {roleLabel}
               </span>
             </div>
 
-            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 break-words">
+            <p className="text-xs font-semibold text-slate-600 break-words">
               @{profile.username} • {profile.friendsCount || 0} Friends • {profile.mutualFriendsCount || 0} Mutual Friends
             </p>
 
@@ -393,29 +473,29 @@ export default function UserProfile() {
 
         <div className="grid gap-4 sm:grid-cols-2 text-xs">
           <div>
-            <span className="text-slate-400 font-medium">Full Name</span>
+            <span className="text-slate-500 font-medium">Full Name</span>
             <p className="font-bold text-slate-800 text-sm">{profile.fullName}</p>
           </div>
 
           <div>
-            <span className="text-slate-400 font-medium">Username</span>
+            <span className="text-slate-500 font-medium">Username</span>
             <p className="font-mono font-bold text-teal-700">@{profile.username}</p>
           </div>
 
           <div>
-            <span className="text-slate-400 font-medium">Location</span>
+            <span className="text-slate-500 font-medium">Location</span>
             <p className="font-bold text-slate-800">📍 {profile.city || "Karachi"}, 🇵🇰 {profile.country || "Pakistan"}</p>
           </div>
 
           {profile.dob && (
             <div>
-              <span className="text-slate-400 font-medium">Date of Birth</span>
+              <span className="text-slate-500 font-medium">Date of Birth</span>
               <p className="font-bold text-slate-800">🎂 {profile.dob}</p>
             </div>
           )}
 
           <div>
-            <span className="text-slate-400 font-medium">Member Joined</span>
+            <span className="text-slate-500 font-medium">Member Joined</span>
             <p className="font-bold text-slate-800">
               📅 {profile.createdAt ? new Date(profile.createdAt).toLocaleDateString(undefined, { dateStyle: "long" }) : "Member"}
             </p>
@@ -474,7 +554,7 @@ export default function UserProfile() {
                   <UserAvatar name={post.authorName || profile.fullName} photoUrl={post.authorPhotoUrl || profile.profilePhotoUrl} size="md" />
                   <div className="min-w-0">
                     <p className="truncate text-sm font-extrabold text-slate-900">{post.authorName || profile.fullName}</p>
-                    <p className="text-[11px] font-semibold text-slate-400">
+                    <p className="text-[11px] font-semibold text-slate-500">
                       {post.createdAt ? new Date(post.createdAt).toLocaleDateString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }) : "Recently"}
                     </p>
                   </div>
@@ -484,7 +564,7 @@ export default function UserProfile() {
                 <p className="text-sm text-slate-800 whitespace-pre-line leading-relaxed">{post.content || (post as any).text}</p>
 
                 {post.mediaUrl && (
-                  <div className="rounded-2xl overflow-hidden border border-slate-200 max-h-96 bg-slate-900">
+                  <div className="rounded-2xl overflow-hidden border border-slate-200 max-h-96 bg-white">
                     {post.mediaType === "video" || post.mediaUrl.endsWith(".mp4") ? (
                       <video src={post.mediaUrl} controls className="w-full h-full object-contain" />
                     ) : (
@@ -542,6 +622,26 @@ export default function UserProfile() {
           </div>
         </div>
       )}
+
+      {/* Unfriend Confirm Modal */}
+      <ConfirmModal
+        isOpen={showUnfriendConfirm}
+        title="Unfriend Confirmation"
+        message={
+          profile ? (
+            <span>
+              Are you sure you want to unfriend{" "}
+              <strong className="text-slate-900">{profile.fullName}</strong>? They will be removed from your friends list.
+            </span>
+          ) : ""
+        }
+        confirmText="Unfriend"
+        cancelText="Cancel"
+        variant="danger"
+        loading={actionLoading}
+        onConfirm={confirmUnfriend}
+        onCancel={() => setShowUnfriendConfirm(false)}
+      />
     </div>
   );
 }

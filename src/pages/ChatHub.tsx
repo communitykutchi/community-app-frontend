@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import API from "../api/axios";
 import UserAvatar from "../components/UserAvatar";
+import AudioPlayer from "../components/AudioPlayer";
 import { getPresenceStatus, getChatMessageDateLabel } from "../utils/presence";
 
 interface FriendUser {
@@ -56,140 +57,6 @@ const getSupportedAudioMimeType = () => {
   }
   return "";
 };
-
-function AudioPlayer({ url, duration, isOutgoing }: { url: string; duration?: number; isOutgoing?: boolean }) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [audioDuration, setAudioDuration] = useState(duration || 0);
-  const [hasError, setHasError] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  const getAudioSrc = (srcUrl: string) => {
-    if (!srcUrl) return "";
-    if (srcUrl.startsWith("http://") || srcUrl.startsWith("https://") || srcUrl.startsWith("blob:")) {
-      return srcUrl;
-    }
-    const baseURL = (import.meta as any).env?.VITE_API_URL || "http://localhost:5000";
-    const cleanBase = baseURL.replace(/\/api\/?$/, "").replace(/\/$/, "");
-    return srcUrl.startsWith("/") ? `${cleanBase}${srcUrl}` : `${cleanBase}/${srcUrl}`;
-  };
-
-  const fullAudioSrc = getAudioSrc(url);
-
-  useEffect(() => {
-    if (duration && duration > 0) {
-      setAudioDuration(duration);
-    }
-  }, [duration]);
-
-  const togglePlay = async () => {
-    if (!audioRef.current) return;
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      setHasError(false);
-      setIsLoading(true);
-      try {
-        await audioRef.current.play();
-        setIsPlaying(true);
-      } catch (err: any) {
-        console.error("Audio playback error:", err);
-        setIsPlaying(false);
-        setHasError(true);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  };
-
-  const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime);
-      if (Number.isFinite(audioRef.current.duration) && audioRef.current.duration > 0 && !audioDuration) {
-        setAudioDuration(audioRef.current.duration);
-      }
-    }
-  };
-
-  const handleLoadedMetadata = () => {
-    if (audioRef.current && Number.isFinite(audioRef.current.duration) && audioRef.current.duration > 0) {
-      setAudioDuration(audioRef.current.duration);
-    }
-  };
-
-  const formatTime = (secs: number) => {
-    if (!Number.isFinite(secs) || secs < 0) return "0:00";
-    const m = Math.floor(secs / 60);
-    const s = Math.floor(secs % 60);
-    return `${m}:${s < 10 ? "0" : ""}${s}`;
-  };
-
-  return (
-    <div
-      className={`flex items-center gap-3 p-2 rounded-2xl min-w-[200px] sm:min-w-[230px] my-1 ${
-        isOutgoing ? "bg-teal-700/90 text-white" : "bg-slate-100 text-slate-900 border border-slate-200"
-      }`}
-    >
-      <audio
-        ref={audioRef}
-        src={fullAudioSrc}
-        preload="metadata"
-        onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={handleLoadedMetadata}
-        onDurationChange={handleLoadedMetadata}
-        onEnded={() => {
-          setIsPlaying(false);
-          setCurrentTime(0);
-        }}
-        onError={(e) => {
-          console.error("Audio playback error:", e);
-          setIsPlaying(false);
-          setHasError(true);
-        }}
-      />
-
-      <button
-        type="button"
-        onClick={togglePlay}
-        title={hasError ? "Audio load failed. Click to retry." : isPlaying ? "Pause" : "Play"}
-        className={`h-8 w-8 shrink-0 grid place-items-center rounded-full font-bold shadow-md transition ${
-          hasError
-            ? "bg-rose-500 text-white"
-            : isOutgoing
-            ? "bg-white text-teal-800 hover:bg-teal-50"
-            : "bg-teal-600 text-white hover:bg-teal-700"
-        }`}
-      >
-        {isLoading ? "⏳" : hasError ? "⚠️" : isPlaying ? "⏸" : "▶"}
-      </button>
-
-      <div className="flex-1 space-y-1 min-w-0">
-        <div
-          className="h-2 w-full rounded-full bg-black/10 overflow-hidden cursor-pointer relative"
-          onClick={(e) => {
-            if (!audioRef.current || !audioDuration) return;
-            const rect = e.currentTarget.getBoundingClientRect();
-            const pos = (e.clientX - rect.left) / rect.width;
-            const seekTime = pos * audioDuration;
-            audioRef.current.currentTime = seekTime;
-            setCurrentTime(seekTime);
-          }}
-        >
-          <div
-            className={`h-full rounded-full transition-all ${isOutgoing ? "bg-white" : "bg-teal-600"}`}
-            style={{ width: `${audioDuration ? Math.min(100, Math.max(0, (currentTime / audioDuration) * 100)) : 0}%` }}
-          />
-        </div>
-        <div className="flex justify-between text-[10px] font-mono opacity-80">
-          <span>{formatTime(currentTime)}</span>
-          <span>{hasError ? "Failed to load audio" : `🎙️ Voice Note • ${formatTime(audioDuration)}`}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function ChatHub() {
   const { friendId: paramFriendId } = useParams();
@@ -416,20 +283,46 @@ export default function ChatHub() {
   useEffect(() => {
     loadData();
     const timer = setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
       loadData();
-    }, 3000);
+    }, 4000);
     return () => clearInterval(timer);
   }, []);
 
   // Load specific active chat
   const loadActiveChat = async (friendId: string) => {
     try {
+      if (typeof document !== 'undefined' && document.hidden) return;
       const res = await API.get<{ success: boolean; chat: ChatItem }>(`/friends/chats/${encodeURIComponent(friendId)}`);
-      setActiveChat(res.data.chat);
-      setChatsMap((prev) => ({
-        ...prev,
-        [friendId]: res.data.chat,
-      }));
+      const nextChat = res.data.chat;
+      if (!nextChat) return;
+
+      setActiveChat((prev) => {
+        if (
+          prev &&
+          prev._id === nextChat._id &&
+          prev.messages?.length === nextChat.messages?.length &&
+          prev.messages?.[prev.messages.length - 1]?._id === nextChat.messages?.[nextChat.messages.length - 1]?._id
+        ) {
+          return prev;
+        }
+        return nextChat;
+      });
+
+      setChatsMap((prev) => {
+        const existing = prev[friendId];
+        if (
+          existing &&
+          existing._id === nextChat._id &&
+          existing.messages?.length === nextChat.messages?.length
+        ) {
+          return prev;
+        }
+        return {
+          ...prev,
+          [friendId]: nextChat,
+        };
+      });
     } catch (err: any) {
       setStatus(err.response?.data?.message || "Could not open chat with this friend.");
     }
@@ -439,15 +332,31 @@ export default function ChatHub() {
     if (selectedFriendId) {
       loadActiveChat(selectedFriendId);
 
-      // Auto poll every 3 seconds for active chat
       const timer = setInterval(() => {
         loadActiveChat(selectedFriendId);
-      }, 3000);
+      }, 3500);
 
       return () => clearInterval(timer);
     } else {
       setActiveChat(null);
     }
+  }, [selectedFriendId]);
+
+  // Intercept mobile hardware / browser back button when a chat is active
+  useEffect(() => {
+    if (!selectedFriendId) return;
+
+    window.history.pushState({ chatOpen: true, friendId: selectedFriendId }, "");
+
+    const handlePopState = () => {
+      setSelectedFriendId(null);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
   }, [selectedFriendId]);
 
   const userScrolledUpRef = useRef<boolean>(false);
@@ -682,14 +591,14 @@ export default function ChatHub() {
     }
     if (message.isDelivered) {
       return (
-        <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-slate-200 inline-block" fill="none" stroke="currentColor">
+        <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-slate-800 inline-block" fill="none" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M1 10l4 4L14 3" />
         </svg>
       );
     }
     return (
-      <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-slate-400 inline-block" fill="none" stroke="currentColor">
+      <svg viewBox="0 0 24 24" className="w-3.5 h-3.5 text-slate-500 inline-block" fill="none" stroke="currentColor">
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
       </svg>
     );
@@ -734,13 +643,13 @@ export default function ChatHub() {
   const emojis = ["😊", "😂", "❤️", "👍", "🔥", "🎉", "👋", "🙌", "😍", "✨", "🙏", "😎"];
 
   return (
-    <section className="flex h-[calc(100vh-8.5rem)] max-h-[640px] min-h-[460px] w-full flex-col overflow-hidden mx-auto my-auto text-white">
+    <section className="flex h-[calc(100vh-6rem)] sm:h-[calc(100vh-8.5rem)] sm:max-h-[640px] min-h-[460px] w-full flex-col overflow-hidden mx-auto my-auto text-slate-900">
       {/* Main Split Interface */}
       <div className="grid flex-1 grid-cols-1 lg:grid-cols-[320px_minmax(0,1fr)] gap-3 min-h-0 overflow-hidden">
         {/* Left Friends / Chats List Sidebar */}
-        <div className={`flex flex-col h-full min-h-0 rounded-2xl border border-slate-800 bg-slate-900/90 shadow-xl overflow-hidden ${selectedFriendId ? 'hidden lg:flex' : 'flex'}`}>
+        <div className={`flex flex-col h-full min-h-0 rounded-2xl border border-slate-200 bg-white shadow-xl overflow-hidden ${selectedFriendId ? 'hidden lg:flex' : 'flex'}`}>
           {/* Sidebar Header & Search */}
-          <div className="shrink-0 border-b border-slate-800 bg-slate-950 p-3">
+          <div className="shrink-0 border-b border-slate-200 bg-white p-3">
             <div className="relative">
               <span className="absolute inset-y-0 left-3 grid place-items-center text-slate-400">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -752,7 +661,7 @@ export default function ChatHub() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search friends..."
-                className="w-full rounded-xl border border-slate-700 bg-slate-900 pl-10 pr-4 py-2.5 text-xs text-white placeholder-slate-400 outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-500/20 transition"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-teal-500 focus:bg-white focus:ring-2 focus:ring-teal-500/20 transition"
               />
             </div>
 
@@ -763,7 +672,7 @@ export default function ChatHub() {
                 className={`flex-1 rounded-xl py-2 text-xs font-extrabold transition ${
                   filterTab === "all"
                     ? "bg-teal-600 !text-white shadow-md shadow-teal-600/30"
-                    : "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+                    : "bg-slate-100 text-slate-600 border border-slate-300 hover:bg-slate-200 hover:text-slate-900"
                 }`}
               >
                 All Friends ({friends.length})
@@ -774,7 +683,7 @@ export default function ChatHub() {
                 className={`flex-1 rounded-xl py-2 text-xs font-extrabold transition ${
                   filterTab === "recent"
                     ? "bg-teal-600 !text-white shadow-md shadow-teal-600/30"
-                    : "bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 border border-slate-300 dark:border-slate-800 hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white"
+                    : "bg-slate-100 text-slate-600 border border-slate-300 hover:bg-slate-200 hover:text-slate-900"
                 }`}
               >
                 Recent Chats
@@ -783,16 +692,16 @@ export default function ChatHub() {
           </div>
 
           {/* Friends List Scroll Area */}
-          <div className="flex-1 overflow-y-auto divide-y divide-slate-800/60 p-2">
+          <div className="flex-1 overflow-y-auto divide-y divide-slate-100 p-2">
             {loading ? (
-              <div className="p-8 text-center text-xs text-slate-400 animate-pulse">Loading friends...</div>
+              <div className="p-8 text-center text-xs text-slate-500 animate-pulse">Loading friends...</div>
             ) : filteredFriends.length === 0 ? (
               <div className="p-8 text-center">
-                <div className="mx-auto w-12 h-12 rounded-full bg-slate-800 grid place-items-center text-slate-400 mb-2">
+                <div className="mx-auto w-12 h-12 rounded-full bg-slate-50 grid place-items-center text-slate-500 mb-2">
                   💬
                 </div>
-                <p className="text-xs font-bold text-white">No friends found</p>
-                <p className="text-[11px] text-slate-400 mt-1">Search or add friends to start chatting.</p>
+                <p className="text-xs font-bold text-slate-800">No friends found</p>
+                <p className="text-[11px] text-slate-500 mt-1">Search or add friends to start chatting.</p>
               </div>
             ) : (
               filteredFriends.map((friend) => {
@@ -806,7 +715,7 @@ export default function ChatHub() {
                   <div
                     key={friend._id}
                     onClick={() => handleSelectFriend(friend._id)}
-                    className={`flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition ${isSelected ? "bg-slate-800/90 border border-teal-500/40 shadow-sm" : "hover:bg-slate-800/60"}`}
+                    className={`flex items-center gap-3 p-3 rounded-2xl cursor-pointer transition ${isSelected ? "bg-teal-50/80 border border-teal-200 shadow-xs" : "hover:bg-slate-50"}`}
                   >
                     <div className="relative">
                       <UserAvatar
@@ -815,12 +724,12 @@ export default function ChatHub() {
                         size="md"
                         className="ring-2 ring-teal-500/30"
                       />
-                      <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-slate-900 ${friendPresence.isOnline ? 'bg-emerald-400' : 'bg-slate-600'}`} />
+                      <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-white ${friendPresence.isOnline ? 'bg-emerald-500' : 'bg-slate-400'}`} />
                     </div>
 
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between gap-1">
-                        <h4 className="text-xs font-bold text-white truncate flex items-center gap-1">
+                        <h4 className="text-xs font-bold text-slate-900 truncate flex items-center gap-1">
                           {pinnedFriendIds.includes(friend._id) && <span className="text-[11px]" title="Pinned Chat">📌</span>}
                           <span className="truncate">{friend.fullName || friend.username || "Friend"}</span>
                         </h4>
@@ -830,13 +739,13 @@ export default function ChatHub() {
                           </span>
                         ) : (
                           lastMsg?.createdAt && (
-                            <span className="text-[10px] text-slate-400 shrink-0">
+                            <span className="text-[10px] text-slate-500 shrink-0">
                               {new Date(lastMsg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           )
                         )}
                       </div>
-                      <p className="text-[11px] text-slate-400 truncate mt-0.5">
+                      <p className="text-[11px] text-slate-500 truncate mt-0.5">
                         {lastMsg ? lastMsg.text : "@" + (friend.username || "friend")}
                       </p>
                     </div>
@@ -848,34 +757,26 @@ export default function ChatHub() {
         </div>
 
         {/* Right Active Chat Pane */}
-        <div className={`flex-1 flex flex-col rounded-3xl border border-slate-800 bg-slate-900/90 shadow-xl overflow-hidden ${!selectedFriendId ? 'hidden lg:flex' : 'flex'}`}>
+        <div className={`flex-1 flex flex-col rounded-2xl sm:rounded-3xl border border-slate-200 bg-white shadow-xl overflow-hidden min-w-0 w-full ${!selectedFriendId ? 'hidden lg:flex' : 'flex'}`}>
           {selectedFriendId && activePartner ? (
             <>
               {/* Chat View Header */}
-              <div className="shrink-0 flex items-center justify-between border-b border-slate-800 bg-slate-950 px-5 py-3 text-white">
-                <div className="flex items-center gap-3">
-                  <button
-                    onClick={() => setSelectedFriendId(null)}
-                    className="lg:hidden p-1.5 rounded-lg bg-slate-800 text-white hover:bg-slate-700"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
+              <div className="shrink-0 flex items-center justify-between border-b border-slate-200 bg-white px-3.5 py-2.5 sm:px-5 sm:py-3">
+                <div className="flex items-center gap-2.5 min-w-0">
                   <div className="relative">
                     <UserAvatar
                       name={activePartner.fullName || activePartner.username}
                       photoUrl={activePartner.profilePhotoUrl || activePartner.photoUrl}
                       size="md"
-                      className={activePartnerPresence.isOnline ? "ring-2 ring-emerald-400" : "ring-2 ring-slate-600"}
+                      className={activePartnerPresence.isOnline ? "ring-2 ring-emerald-500" : "ring-2 ring-slate-300"}
                     />
-                    <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-slate-950 ${activePartnerPresence.isOnline ? 'bg-emerald-400' : 'bg-slate-500'}`}></span>
+                    <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-white ${activePartnerPresence.isOnline ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
                   </div>
                   <div>
-                    <h3 className="text-sm font-black text-white leading-tight">
+                    <h3 className="text-sm font-black text-slate-900 leading-tight">
                       {activePartner.fullName || activePartner.username || "Friend"}
                     </h3>
-                    <p className={`text-[11px] font-semibold ${activePartnerPresence.isOnline ? 'text-emerald-400' : 'text-slate-400'}`}>
+                    <p className={`text-[11px] font-semibold ${activePartnerPresence.isOnline ? 'text-emerald-600 font-bold' : 'text-slate-500'}`}>
                       {activePartnerPresence.text}
                     </p>
                   </div>
@@ -884,21 +785,21 @@ export default function ChatHub() {
                 <div className="flex items-center gap-2 relative">
                   <button
                     onClick={() => setShowHeaderMenu((prev) => !prev)}
-                    className="p-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white transition font-black text-sm grid place-items-center"
+                    className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition font-black text-sm grid place-items-center"
                     title="Chat Options"
                   >
                     ⋮
                   </button>
 
                   {showHeaderMenu && (
-                    <div className="absolute right-0 top-11 z-50 w-52 rounded-2xl bg-slate-900 p-2 shadow-2xl border border-slate-700 text-white space-y-1 animate-in fade-in duration-150">
+                    <div className="absolute right-0 top-11 z-50 w-52 rounded-2xl bg-white p-2 shadow-2xl border border-slate-200 text-slate-800 space-y-1 animate-in fade-in duration-150">
                       <button
                         type="button"
                         onClick={() => {
                           setShowHeaderMenu(false);
                           setIsSelectionMode(true);
                         }}
-                        className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 hover:bg-slate-800 transition text-left"
+                        className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 hover:bg-slate-50 transition text-left"
                       >
                         <span>☑️</span> Select Messages
                       </button>
@@ -906,7 +807,7 @@ export default function ChatHub() {
                       <button
                         type="button"
                         onClick={handleSelectAllMessages}
-                        className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 hover:bg-slate-800 transition text-left"
+                        className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 hover:bg-slate-50 transition text-left"
                       >
                         <span>☑️</span> Select All
                       </button>
@@ -914,7 +815,7 @@ export default function ChatHub() {
                       <button
                         type="button"
                         onClick={handleTogglePin}
-                        className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 hover:bg-slate-800 transition text-left"
+                        className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 hover:bg-slate-50 transition text-left"
                       >
                         <span>📌</span> {selectedFriendId && pinnedFriendIds.includes(selectedFriendId) ? "Unpin Chat" : "Pin Chat"}
                       </button>
@@ -925,12 +826,12 @@ export default function ChatHub() {
                           setShowHeaderMenu(false);
                           setShowReportModal(true);
                         }}
-                        className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-rose-400 hover:bg-rose-950/40 transition text-left"
+                        className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 transition text-left"
                       >
                         <span>🚩</span> Report User
                       </button>
 
-                      <div className="border-t border-slate-800 my-1" />
+                      <div className="border-t border-slate-200 my-1" />
 
                       <button
                         type="button"
@@ -938,7 +839,7 @@ export default function ChatHub() {
                           setShowHeaderMenu(false);
                           if (activePartner?._id) navigate(`/user/${activePartner._id}`);
                         }}
-                        className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-200 hover:bg-slate-800 transition text-left"
+                        className="w-full flex items-center gap-2.5 rounded-xl px-3 py-2 text-xs font-bold text-slate-800 hover:bg-slate-50 transition text-left"
                       >
                         <span>👤</span> View Profile
                       </button>
@@ -949,15 +850,15 @@ export default function ChatHub() {
 
               {/* Selection Mode Action Header Bar */}
               {isSelectionMode && (
-                <div className="bg-slate-950 px-4 py-2 text-xs font-bold text-white flex items-center justify-between border-b border-slate-800 shrink-0 gap-2">
+                <div className="bg-teal-50 px-4 py-2 text-xs font-bold text-teal-900 flex items-center justify-between border-b border-teal-200 shrink-0 gap-2">
                   <div className="flex items-center gap-2.5">
-                    <span className="bg-teal-600 px-2.5 py-0.5 rounded-full text-[11px] font-black">
+                    <span className="bg-teal-600 px-2.5 py-0.5 rounded-full text-[11px] font-black text-white">
                       {selectedMsgIds.length} Selected
                     </span>
                     <button
                       type="button"
                       onClick={handleSelectAllMessages}
-                      className="text-teal-300 hover:text-white transition underline text-[11px]"
+                      className="text-teal-700 hover:text-teal-900 transition underline text-[11px]"
                     >
                       Select All
                     </button>
@@ -969,7 +870,7 @@ export default function ChatHub() {
                       <button
                         type="button"
                         onClick={handlePinSelectedMessage}
-                        className="flex items-center gap-1 px-3 py-1 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black transition shadow-sm text-[11px]"
+                        className="flex items-center gap-1 px-3 py-1 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black transition shadow-xs text-[11px]"
                         title="Pin this message"
                       >
                         <span>📌</span> Pin Message
@@ -981,7 +882,7 @@ export default function ChatHub() {
                       <button
                         type="button"
                         onClick={triggerDeleteSelected}
-                        className="flex items-center gap-1 px-3 py-1 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold transition shadow-sm text-[11px]"
+                        className="flex items-center gap-1 px-3 py-1 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-extrabold transition shadow-xs text-[11px]"
                         title="Delete selected messages"
                       >
                         <span>🗑️</span> Delete ({selectedMsgIds.length})
@@ -994,7 +895,7 @@ export default function ChatHub() {
                         setIsSelectionMode(false);
                         setSelectedMsgIds([]);
                       }}
-                      className="px-2.5 py-1 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 transition text-[11px]"
+                      className="px-2.5 py-1 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-slate-700 transition text-[11px]"
                     >
                       ✕ Cancel
                     </button>
@@ -1004,9 +905,9 @@ export default function ChatHub() {
 
               {/* Pinned Message Banner */}
               {selectedFriendId && pinnedMsgMap[selectedFriendId] && (
-                <div className="bg-amber-950/60 border-b border-amber-800/80 px-4 py-1.5 flex items-center justify-between text-xs text-amber-200 shrink-0">
+                <div className="bg-amber-50 border-b border-amber-200 px-4 py-1.5 flex items-center justify-between text-xs text-amber-900 shrink-0">
                   <div className="flex items-center gap-2 min-w-0">
-                    <span className="font-black text-amber-400">📌 Pinned Message:</span>
+                    <span className="font-black text-amber-800">📌 Pinned Message:</span>
                     <span className="truncate max-w-md italic font-medium">
                       "{getPinnedMsgText(pinnedMsgMap[selectedFriendId])}"
                     </span>
@@ -1021,7 +922,7 @@ export default function ChatHub() {
                         return copy;
                       });
                     }}
-                    className="text-amber-400 hover:text-amber-300 font-extrabold text-[11px] ml-2 shrink-0"
+                    className="text-amber-800 hover:text-amber-950 font-extrabold text-[11px] ml-2 shrink-0"
                     title="Unpin message"
                   >
                     ✕ Unpin
@@ -1031,9 +932,9 @@ export default function ChatHub() {
 
               {/* Status Notice */}
               {status && (
-                <div className="bg-rose-950/60 px-4 py-2 text-xs font-semibold text-rose-300 border-b border-rose-800/80 flex items-center justify-between shrink-0">
+                <div className="bg-rose-50 px-4 py-2 text-xs font-semibold text-rose-800 border-b border-rose-200 flex items-center justify-between shrink-0">
                   <span>{status}</span>
-                  <button onClick={() => setStatus(null)} className="text-rose-400 hover:text-white">✕</button>
+                  <button onClick={() => setStatus(null)} className="text-rose-600 hover:text-rose-900 font-bold">✕</button>
                 </div>
               )}
 
@@ -1042,15 +943,15 @@ export default function ChatHub() {
                 <div
                   id="chat-messages-container"
                   onScroll={handleScrollMessages}
-                  className="flex-1 overflow-y-auto bg-gradient-to-b from-slate-950 via-slate-900 to-teal-950/40 p-4 space-y-1.5"
+                  className="flex-1 overflow-y-auto bg-slate-50 p-4 space-y-1.5"
                 >
                   {!activeChat?.messages?.length ? (
                     <div className="h-full flex flex-col items-center justify-center p-6 text-center">
-                      <div className="w-16 h-16 rounded-full bg-teal-500/20 text-teal-300 grid place-items-center text-2xl shadow-inner mb-3 border border-teal-500/30">
+                      <div className="w-16 h-16 rounded-full bg-teal-100 text-teal-700 grid place-items-center text-2xl shadow-xs mb-3 border border-teal-200">
                         👋
                       </div>
-                      <h3 className="text-sm font-bold text-white">Say Hello to {activePartner.fullName || activePartner.username}!</h3>
-                      <p className="text-xs text-slate-400 max-w-xs mt-1">
+                      <h3 className="text-sm font-bold text-slate-900">Say Hello to {activePartner.fullName || activePartner.username}!</h3>
+                      <p className="text-xs text-slate-500 max-w-xs mt-1">
                         Start your conversation by sending a message below.
                       </p>
                     </div>
@@ -1084,16 +985,16 @@ export default function ChatHub() {
                         <React.Fragment key={msgId + "-" + idx}>
                           {showDateDivider && (
                             <div className="w-full flex items-center justify-center my-4 py-1 select-none pointer-events-none">
-                              <div className="h-[1px] flex-1 bg-slate-800 max-w-[80px] sm:max-w-[120px]" />
-                              <span className="mx-3 rounded-full bg-slate-950 border border-slate-800 px-3.5 py-0.5 text-[10px] font-black text-teal-300 uppercase tracking-wider shadow-2xs">
+                              <div className="h-[1px] flex-1 bg-slate-200 max-w-[80px] sm:max-w-[120px]" />
+                              <span className="mx-3 rounded-full bg-white border border-slate-200 px-3.5 py-0.5 text-[10px] font-black text-teal-700 uppercase tracking-wider shadow-xs">
                                 {dateLabel}
                               </span>
-                              <div className="h-[1px] flex-1 bg-slate-800 max-w-[80px] sm:max-w-[120px]" />
+                              <div className="h-[1px] flex-1 bg-slate-200 max-w-[80px] sm:max-w-[120px]" />
                             </div>
                           )}
                           <div
                             onClick={() => isSelectionMode && toggleSelectMessage(msgId)}
-                            className={`flex items-end gap-2 my-1 ${isOutgoing ? "justify-end" : "justify-start"} ${isSelectionMode ? "cursor-pointer p-1 rounded-xl hover:bg-slate-800/50 transition" : ""}`}
+                            className={`flex items-end gap-2 my-1 ${isOutgoing ? "justify-end" : "justify-start"} ${isSelectionMode ? "cursor-pointer p-1 rounded-xl hover:bg-slate-100 transition" : ""}`}
                           >
                             {isSelectionMode && (
                               <input
@@ -1113,26 +1014,26 @@ export default function ChatHub() {
                                 name={senderName}
                                 photoUrl={senderPhoto || activePartner?.profilePhotoUrl || activePartner?.photoUrl}
                                 size="sm"
-                                className="ring-1 ring-slate-700 mb-0.5 shrink-0"
+                                className="ring-1 ring-slate-300 mb-0.5 shrink-0"
                               />
                             )}
 
                             <div className="group relative flex items-center max-w-[82%] sm:max-w-[75%]">
                               <div
-                                className={`w-full rounded-2xl ${isSelectedMsg ? "ring-2 ring-teal-400" : ""} ${
+                                className={`w-full rounded-2xl ${isSelectedMsg ? "ring-2 ring-teal-500" : ""} ${
                                   isOutgoing
-                                    ? "bg-teal-600 text-white rounded-br-xs shadow-sm px-3.5 py-1.5"
-                                    : "bg-slate-800/90 text-white border border-slate-700/80 rounded-bl-xs shadow-sm px-3.5 py-1.5"
+                                    ? "bg-teal-600 text-white rounded-br-xs shadow-xs px-3.5 py-1.5"
+                                    : "bg-white text-slate-900 border border-slate-200/90 rounded-bl-xs shadow-xs px-3.5 py-1.5"
                                 }`}
                               >
-                                <p className={`text-[11px] font-bold mb-0.5 ${isOutgoing ? 'text-teal-100' : 'text-teal-300'}`}>
+                                <p className={`text-[11px] font-bold mb-0.5 ${isOutgoing ? 'text-teal-100' : 'text-teal-700'}`}>
                                   {senderName}
                                 </p>
                                 <div className="flex flex-col gap-1">
                                   {item.audioUrl ? (
                                     <AudioPlayer url={item.audioUrl} duration={item.audioDuration} isOutgoing={isOutgoing} />
                                   ) : (
-                                    <span className={`text-xs sm:text-sm leading-snug whitespace-pre-wrap break-words font-normal ${item.isDeletedForEveryone ? 'italic opacity-80' : ''}`}>
+                                    <span className={`text-xs sm:text-sm leading-snug whitespace-pre-wrap break-words font-normal ${isOutgoing ? 'text-white' : 'text-slate-800'} ${item.isDeletedForEveryone ? 'italic opacity-80' : ''}`}>
                                       {item.isDeletedForEveryone ? "🚫 " + item.text : item.text}
                                     </span>
                                   )}
@@ -1150,19 +1051,19 @@ export default function ChatHub() {
                                     e.stopPropagation();
                                     setActiveMsgMenuId((prev) => (prev === msgId ? null : msgId));
                                   }}
-                                  className={`opacity-0 group-hover:opacity-100 transition-opacity duration-150 p-1 text-slate-400 hover:text-white rounded-full hover:bg-slate-800 font-bold text-xs ${isOutgoing ? 'order-first mr-1.5' : 'ml-1.5'}`}
+                                  className={`opacity-0 group-hover:opacity-100 transition-opacity duration-150 p-1 text-slate-500 hover:text-slate-900 rounded-full hover:bg-slate-200 font-bold text-xs ${isOutgoing ? 'order-first mr-1.5' : 'ml-1.5'}`}
                                   title="Message options"
                                 >
                                   ⋮
                                 </button>
 
                                 {activeMsgMenuId === msgId && (
-                                  <div className={`absolute bottom-6 z-50 w-36 rounded-xl bg-slate-900 p-1.5 shadow-2xl border border-slate-700 text-white space-y-1 animate-in fade-in duration-100 ${isOutgoing ? 'right-0' : 'left-0'}`}>
+                                  <div className={`absolute bottom-6 z-50 w-36 rounded-xl bg-white p-1.5 shadow-2xl border border-slate-200 text-slate-800 space-y-1 animate-in fade-in duration-100 ${isOutgoing ? 'right-0' : 'left-0'}`}>
                                     {item.text && !item.isDeletedForEveryone && (
                                       <button
                                         type="button"
                                         onClick={() => handleCopyMessageText(item.text)}
-                                        className="w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-800 transition text-left"
+                                        className="w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-800 hover:bg-slate-100 transition text-left"
                                       >
                                         <span>📋</span> Copy Text
                                       </button>
@@ -1174,7 +1075,7 @@ export default function ChatHub() {
                                         setActiveMsgMenuId(null);
                                         setSelectedDeleteMsg(item);
                                       }}
-                                      className="w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-rose-400 hover:bg-rose-950/40 transition text-left"
+                                      className="w-full flex items-center gap-2 rounded-lg px-2.5 py-1.5 text-xs font-semibold text-rose-600 hover:bg-rose-50 transition text-left"
                                     >
                                       <span>🗑️</span> Delete Msg
                                     </button>
@@ -1215,7 +1116,7 @@ export default function ChatHub() {
 
               {/* Emoji Picker Popup */}
               {showEmojiPicker && (
-                <div className="bg-slate-900 border-t border-slate-800 px-4 py-2 flex flex-wrap gap-2 shadow-inner">
+                <div className="bg-white border-t border-slate-200 px-4 py-2 flex flex-wrap gap-2 shadow-inner">
                   {emojis.map((e) => (
                     <button
                       key={e}
@@ -1230,12 +1131,12 @@ export default function ChatHub() {
               )}
 
               {/* Message Input Box */}
-              <div className="shrink-0 p-3 bg-slate-950 border-t border-slate-800">
+              <div className="shrink-0 p-3 bg-white border-t border-slate-200">
                 {isRecording ? (
-                  <div className="flex items-center justify-between gap-3 bg-rose-950/80 border border-rose-800/80 p-2.5 rounded-xl animate-pulse">
+                  <div className="flex items-center justify-between gap-3 bg-rose-50 border border-rose-200 p-2.5 rounded-xl animate-pulse">
                     <div className="flex items-center gap-2.5">
                       <span className="h-3 w-3 rounded-full bg-rose-500 animate-ping" />
-                      <span className="text-xs font-extrabold text-rose-200 uppercase tracking-wider">
+                      <span className="text-xs font-extrabold text-rose-800 uppercase tracking-wider">
                         Recording ({formatRecordingTime(recordingTime)})
                       </span>
                     </div>
@@ -1244,7 +1145,7 @@ export default function ChatHub() {
                       <button
                         type="button"
                         onClick={cancelRecording}
-                        className="rounded-lg border border-rose-700 bg-slate-900 px-3 py-1 text-xs font-bold text-rose-300 hover:bg-rose-950/60 transition"
+                        className="rounded-lg border border-rose-200 bg-white px-3 py-1 text-xs font-bold text-rose-700 hover:bg-rose-100 transition"
                       >
                         🗑️ Cancel
                       </button>
@@ -1263,7 +1164,7 @@ export default function ChatHub() {
                     <button
                       type="button"
                       onClick={() => setShowEmojiPicker((v) => !v)}
-                      className="p-2 rounded-xl text-slate-400 hover:text-teal-400 hover:bg-slate-900 transition"
+                      className="p-2 rounded-xl text-slate-500 hover:text-teal-600 hover:bg-slate-100 transition"
                       title="Emoji"
                     >
                       😊
@@ -1273,9 +1174,9 @@ export default function ChatHub() {
                       value={messageText}
                       onChange={(e) => setMessageText(e.target.value)}
                       onKeyDown={handleKeyDown}
-                      placeholder="Type a message... (Press Enter to send)"
+                      placeholder="Type a message..."
                       rows={1}
-                      className="flex-1 resize-none rounded-xl border border-slate-700/80 bg-slate-900 px-4 py-2.5 text-xs text-white placeholder-slate-400 outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-500/20 transition min-h-[38px] max-h-[100px]"
+                      className="flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-teal-500 focus:bg-white focus:ring-2 focus:ring-teal-500/20 transition min-h-[38px] max-h-[100px]"
                     />
 
                     {messageText.trim() ? (
@@ -1283,7 +1184,7 @@ export default function ChatHub() {
                         type="button"
                         onClick={handleSendMessage}
                         disabled={sending}
-                        className="inline-flex items-center justify-center rounded-xl bg-teal-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-900/40 transition hover:bg-teal-500 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                        className="inline-flex items-center justify-center rounded-xl bg-teal-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-600/30 transition hover:bg-teal-500 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
                       >
                         {sending ? (
                           <svg className="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
@@ -1303,7 +1204,7 @@ export default function ChatHub() {
                       <button
                         type="button"
                         onClick={startRecording}
-                        className="inline-flex items-center justify-center rounded-xl bg-teal-600 p-2.5 text-white shadow-md shadow-teal-900/40 transition hover:bg-teal-500 hover:scale-105 active:scale-95 shrink-0"
+                        className="inline-flex items-center justify-center rounded-xl bg-teal-600 p-2.5 text-white shadow-md shadow-teal-600/30 transition hover:bg-teal-500 hover:scale-105 active:scale-95 shrink-0"
                         title="Record Voice Note"
                       >
                         <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1317,28 +1218,28 @@ export default function ChatHub() {
             </>
           ) : (
             /* Unselected Hero View */
-            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-gradient-to-br from-slate-950 via-slate-900 to-teal-950/80 text-center text-white">
-              <div className="w-20 h-20 rounded-full bg-gradient-to-tr from-teal-500 to-emerald-600 text-white grid place-items-center text-3xl shadow-xl shadow-teal-500/20 mb-4 animate-bounce">
+            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-gradient-to-b from-slate-50 via-teal-50/40 to-slate-100 text-center text-slate-900">
+              <div className="w-20 h-20 rounded-full bg-teal-100 text-teal-700 grid place-items-center text-3xl shadow-md border border-teal-200/80 mb-4 animate-bounce">
                 💬
               </div>
-              <h2 className="text-xl font-black text-white">Your Chat Space</h2>
-              <p className="text-xs text-slate-400 max-w-sm mt-2 leading-relaxed">
+              <h2 className="text-xl font-black text-slate-900">Your Chat Space</h2>
+              <p className="text-xs font-semibold text-slate-600 max-w-sm mt-2 leading-relaxed">
                 Select any friend from the sidebar to view their messages or start a new conversation.
               </p>
 
               {friends.length > 0 && (
-                <div className="mt-6 w-full max-w-md bg-white dark:bg-slate-950/90 rounded-2xl p-4 border border-slate-200 dark:border-slate-800 shadow-xl text-left">
-                  <h4 className="text-xs font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-3">Quick Start Chat</h4>
+                <div className="mt-6 w-full max-w-md bg-white rounded-2xl p-4 border border-slate-200 shadow-sm text-left">
+                  <h4 className="text-xs font-extrabold text-teal-800 uppercase tracking-wider mb-3">Quick Start Chat</h4>
                   <div className="flex flex-wrap gap-2">
                     {friends.slice(0, 5).map((f) => (
                       <button
                         key={f._id}
                         type="button"
                         onClick={() => handleSelectFriend(f._id)}
-                        className="inline-flex items-center gap-2 rounded-xl bg-slate-100 dark:bg-slate-900 hover:bg-teal-50 dark:hover:bg-teal-500/20 border border-slate-300 dark:border-slate-800 hover:border-teal-400 dark:hover:border-teal-500/40 text-slate-900 dark:text-white px-3.5 py-2 text-xs font-extrabold transition shadow-sm"
+                        className="inline-flex items-center gap-2 rounded-xl bg-slate-50 hover:bg-teal-50 border border-slate-200 hover:border-teal-300 text-slate-900 px-3.5 py-2 text-xs font-extrabold transition shadow-xs cursor-pointer"
                       >
                         <UserAvatar name={f.fullName || f.username} photoUrl={f.profilePhotoUrl} size="sm" />
-                        <span className="text-slate-900 dark:text-white font-extrabold">{f.fullName || f.username}</span>
+                        <span className="text-slate-900 font-extrabold">{f.fullName || f.username}</span>
                       </button>
                     ))}
                   </div>
@@ -1350,22 +1251,22 @@ export default function ChatHub() {
       </div>
       {/* Delete Message Modal */}
       {selectedDeleteMsg && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
-          <div className="relative overflow-hidden w-full max-w-sm rounded-3xl border border-rose-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-rose-950/95 p-6 text-white shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
-            <h3 className="text-base font-black text-white">Delete Message</h3>
-            <p className="mt-1 text-xs text-slate-300">Choose how you would like to delete this message.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4">
+          <div className="relative overflow-hidden w-full max-w-sm rounded-3xl border border-slate-200 bg-white p-6 text-slate-900 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
+            <h3 className="text-base font-black text-slate-900">Delete Message</h3>
+            <p className="mt-1 text-xs font-semibold text-slate-600">Choose how you would like to delete this message.</p>
 
             <div className="mt-4 space-y-2.5">
               {/* Delete for Me Button */}
               <button
                 type="button"
                 onClick={() => handleDeleteMessage("me")}
-                className="w-full flex items-center gap-3 rounded-2xl bg-slate-900 border border-slate-800 p-3 text-left hover:bg-slate-800 transition"
+                className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-left hover:bg-slate-100 transition cursor-pointer"
               >
                 <span className="text-xl">🗑️</span>
                 <div>
-                  <h4 className="text-xs font-bold text-white">Delete for Me</h4>
-                  <p className="text-[11px] text-slate-400">Remove from your chat view</p>
+                  <h4 className="text-xs font-black text-slate-900">Delete for Me</h4>
+                  <p className="text-[11px] font-semibold text-slate-500">Remove from your chat view</p>
                 </div>
               </button>
 
@@ -1393,12 +1294,12 @@ export default function ChatHub() {
                   <button
                     type="button"
                     onClick={() => handleDeleteMessage("everyone")}
-                    className="w-full flex items-center gap-3 rounded-2xl bg-rose-950/60 border border-rose-800 p-3 text-left hover:bg-rose-900/80 transition"
+                    className="w-full flex items-center gap-3 rounded-2xl bg-rose-50 border border-rose-200 p-3 text-left hover:bg-rose-100 transition cursor-pointer"
                   >
                     <span className="text-xl">🌐</span>
                     <div>
-                      <h4 className="text-xs font-bold text-rose-300">Delete for Everyone</h4>
-                      <p className="text-[11px] text-rose-400">Remove for both participants</p>
+                      <h4 className="text-xs font-black text-rose-800">Delete for Everyone</h4>
+                      <p className="text-[11px] font-semibold text-rose-600">Remove for both participants</p>
                     </div>
                   </button>
                 );
@@ -1408,7 +1309,7 @@ export default function ChatHub() {
             <button
               type="button"
               onClick={() => setSelectedDeleteMsg(null)}
-              className="mt-4 w-full py-2 text-center text-xs font-bold text-slate-400 hover:text-white transition"
+              className="mt-4 w-full py-2.5 text-center text-xs font-black text-slate-600 rounded-xl bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
             >
               Cancel
             </button>
@@ -1418,33 +1319,33 @@ export default function ChatHub() {
 
       {/* Bulk Delete Modal */}
       {showBulkDeleteModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
-          <div className="relative overflow-hidden w-full max-w-sm rounded-3xl border border-rose-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-rose-950/95 p-6 text-white shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
-            <h3 className="text-base font-black text-white">Delete {selectedMsgIds.length} Messages</h3>
-            <p className="mt-1 text-xs text-slate-300">Choose how you would like to delete the selected messages.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4">
+          <div className="relative overflow-hidden w-full max-w-sm rounded-3xl border border-slate-200 bg-white p-6 text-slate-900 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
+            <h3 className="text-base font-black text-slate-900">Delete {selectedMsgIds.length} Messages</h3>
+            <p className="mt-1 text-xs font-semibold text-slate-600">Choose how you would like to delete the selected messages.</p>
 
             <div className="mt-4 space-y-2.5">
               <button
                 type="button"
                 onClick={() => handleDeleteSelectedMessages("me")}
-                className="w-full flex items-center gap-3 rounded-2xl bg-slate-900 border border-slate-800 p-3 text-left hover:bg-slate-800 transition"
+                className="w-full flex items-center gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-left hover:bg-slate-100 transition cursor-pointer"
               >
                 <span className="text-xl">🗑️</span>
                 <div>
-                  <h4 className="text-xs font-bold text-white">Delete for Me</h4>
-                  <p className="text-[11px] text-slate-400">Remove selected messages from your chat view</p>
+                  <h4 className="text-xs font-black text-slate-900">Delete for Me</h4>
+                  <p className="text-[11px] font-semibold text-slate-500">Remove selected messages from your chat view</p>
                 </div>
               </button>
 
               <button
                 type="button"
                 onClick={() => handleDeleteSelectedMessages("everyone")}
-                className="w-full flex items-center gap-3 rounded-2xl bg-rose-950/60 border border-rose-800 p-3 text-left hover:bg-rose-900/80 transition"
+                className="w-full flex items-center gap-3 rounded-2xl bg-rose-50 border border-rose-200 p-3 text-left hover:bg-rose-100 transition cursor-pointer"
               >
                 <span className="text-xl">🌐</span>
                 <div>
-                  <h4 className="text-xs font-bold text-rose-300">Delete for Everyone</h4>
-                  <p className="text-[11px] text-rose-400">Remove your outgoing messages for both participants</p>
+                  <h4 className="text-xs font-black text-rose-800">Delete for Everyone</h4>
+                  <p className="text-[11px] font-semibold text-rose-600">Remove your outgoing messages for both participants</p>
                 </div>
               </button>
             </div>
@@ -1452,7 +1353,7 @@ export default function ChatHub() {
             <button
               type="button"
               onClick={() => setShowBulkDeleteModal(false)}
-              className="mt-4 w-full py-2 text-center text-xs font-bold text-slate-400 hover:text-white transition"
+              className="mt-4 w-full py-2.5 text-center text-xs font-black text-slate-600 rounded-xl bg-slate-100 hover:bg-slate-200 transition cursor-pointer"
             >
               Cancel
             </button>
@@ -1462,38 +1363,38 @@ export default function ChatHub() {
 
       {/* Report User Modal */}
       {showReportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
-          <div className="relative overflow-hidden w-full max-w-sm rounded-3xl border border-rose-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-rose-950/95 p-6 text-white shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between">
-              <h3 className="text-base font-black text-rose-400 flex items-center gap-2">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4">
+          <div className="relative overflow-hidden w-full max-w-sm rounded-3xl border border-slate-200 bg-white p-6 text-slate-900 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 className="text-base font-black text-rose-700 flex items-center gap-2">
                 <span>🚩</span> Report User
               </h3>
-              <button onClick={() => setShowReportModal(false)} className="text-slate-400 hover:text-white text-sm font-bold">✕</button>
+              <button onClick={() => setShowReportModal(false)} className="text-slate-400 hover:text-slate-700 text-sm font-bold p-1 cursor-pointer">✕</button>
             </div>
-            <p className="mt-1 text-xs text-slate-300">
+            <p className="mt-1 text-xs font-semibold text-slate-600">
               Report {activePartner?.fullName || activePartner?.username || "this user"} for inappropriate behavior or policy violations.
             </p>
 
-            <div className="mt-4 space-y-2">
-              <label className="text-xs font-bold text-slate-300">Reason for report:</label>
+            <div className="mt-4 space-y-1.5">
+              <label className="text-xs font-black uppercase tracking-wider text-slate-700">Reason for report:</label>
               <select
                 value={reportReason}
                 onChange={(e) => setReportReason(e.target.value)}
-                className="w-full rounded-xl border border-slate-700 bg-slate-950 p-2.5 text-xs text-white outline-none focus:border-rose-400 transition"
+                className="w-full rounded-xl border border-slate-300 bg-white p-2.5 text-xs sm:text-sm font-semibold text-slate-900 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition"
               >
-                <option value="Spam or suspicious behavior" className="bg-slate-900 text-white">Spam or suspicious behavior</option>
-                <option value="Harassment or hate speech" className="bg-slate-900 text-white">Harassment or hate speech</option>
-                <option value="Inappropriate content or media" className="bg-slate-900 text-white">Inappropriate content or media</option>
-                <option value="Fake profile or impersonation" className="bg-slate-900 text-white">Fake profile or impersonation</option>
-                <option value="Other policy violation" className="bg-slate-900 text-white">Other policy violation</option>
+                <option value="Spam or suspicious behavior" className="bg-white text-slate-900">Spam or suspicious behavior</option>
+                <option value="Harassment or hate speech" className="bg-white text-slate-900">Harassment or hate speech</option>
+                <option value="Inappropriate content or media" className="bg-white text-slate-900">Inappropriate content or media</option>
+                <option value="Fake profile or impersonation" className="bg-white text-slate-900">Fake profile or impersonation</option>
+                <option value="Other policy violation" className="bg-white text-slate-900">Other policy violation</option>
               </select>
             </div>
 
-            <div className="mt-5 flex gap-2">
+            <div className="mt-5 flex gap-2 border-t border-slate-100 pt-3">
               <button
                 type="button"
                 onClick={() => setShowReportModal(false)}
-                className="flex-1 rounded-xl border border-slate-700 bg-slate-900 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-800 transition"
+                className="flex-1 rounded-xl border border-slate-300 bg-slate-100 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-200 transition cursor-pointer"
               >
                 Cancel
               </button>
@@ -1501,7 +1402,7 @@ export default function ChatHub() {
                 type="button"
                 onClick={handleSendReport}
                 disabled={reporting}
-                className="flex-1 rounded-xl bg-rose-600 py-2.5 text-xs font-extrabold text-white shadow-md hover:bg-rose-500 transition disabled:opacity-50"
+                className="flex-1 rounded-xl active-green-btn btn-primary bg-rose-600 hover:bg-rose-700 text-white py-2.5 text-xs font-black uppercase tracking-wider shadow-md shadow-rose-600/30 transition disabled:opacity-50 cursor-pointer"
               >
                 {reporting ? "Submitting..." : "Submit Report"}
               </button>

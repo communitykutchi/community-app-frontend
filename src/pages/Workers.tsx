@@ -3,6 +3,8 @@ import API from "../api/axios";
 import Loader from "../components/Loader";
 import Toast from "../components/Toast";
 import UserAvatar from "../components/UserAvatar";
+import SEO from "../components/SEO";
+import ConfirmModal from "../components/ConfirmModal";
 
 export type WorkerCategory =
   | "All"
@@ -433,7 +435,8 @@ export default function Workers() {
   });
 
   return (
-    <div className="w-full space-y-6 sm:space-y-8 py-2 text-slate-900 dark:text-slate-100">
+    <div className="w-full space-y-6 sm:space-y-8 py-2 text-slate-900">
+      <SEO pageKey="workers" />
       {toast.isVisible && (
         <Toast
           message={toast.message}
@@ -444,45 +447,48 @@ export default function Workers() {
 
       <div className="mx-auto w-full max-w-7xl space-y-6 sm:space-y-8">
         {/* Sleek Hero Header */}
-        <div className="page-hero-banner relative overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-800 bg-gradient-to-r from-slate-950 via-slate-900 to-teal-950/60 p-5 sm:p-8 shadow-2xl">
+        <div className="page-hero-banner relative overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200 bg-gradient-to-r from-slate-950 via-slate-900 to-teal-950/60 p-5 sm:p-8 shadow-2xl">
           <div className="flex flex-col items-start justify-between gap-5 md:flex-row md:items-center">
-            <div className="space-y-2.5">
-              <div className="inline-flex items-center gap-2 rounded-full border border-teal-500/30 bg-teal-500/10 px-3 py-1 text-[11px] sm:text-xs font-black tracking-widest text-teal-400 uppercase">
-                🛠️ LOCAL WORKERS & SERVICES DIRECTORY
+            <div className="space-y-2.5 min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2 min-w-0">
+                <span className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-teal-500/30 bg-teal-500/10 px-3 py-1 text-[10px] sm:text-xs font-black tracking-wider text-teal-400 uppercase backdrop-blur-md">
+                  <span className="shrink-0">🛠️</span>
+                  <span className="truncate">LOCAL WORKERS & SERVICES DIRECTORY</span>
+                </span>
               </div>
-              <h1 className="text-xl font-black text-white sm:text-3xl lg:text-4xl leading-tight">
+              <h1 className="text-lg sm:text-3xl lg:text-4xl font-black text-white leading-tight break-words tracking-tight">
                 Maqami Karigar Aur Khidmat (Local Workers Directory)
               </h1>
-              <p className="max-w-2xl text-xs font-medium text-slate-300 sm:text-base leading-relaxed">
+              <p className="max-w-2xl text-xs sm:text-base font-medium text-slate-300 leading-relaxed">
                 Apnay ilaqay kay ba-aitmad electrician, plumber, mistri, painter aur mechanic se 1-click mein rabta karein. WhatsApp checking aur customer rating kay sath.
               </p>
             </div>
 
             <button
               onClick={() => setIsModalOpen(true)}
-              className="inline-flex w-full sm:w-auto shrink-0 items-center justify-center gap-2.5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-3.5 text-xs sm:text-sm font-black text-slate-950 shadow-lg transition hover:scale-[1.02] hover:from-emerald-400 hover:to-teal-500 active:scale-95"
+              className="inline-flex w-auto shrink-0 items-center justify-center gap-1.5 rounded-xl bg-white text-teal-950 px-3.5 py-2 text-xs font-bold shadow-md hover:bg-teal-50 active:scale-95 transition cursor-pointer border border-white/40 self-start whitespace-nowrap"
             >
-              <span className="text-base sm:text-lg">➕</span>
+              <span>➕</span>
               List a Worker / Karigar Darj Karein
             </button>
           </div>
         </div>
 
         {/* Search Input & Category Wrap Grid */}
-        <div className="space-y-4 rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 p-4 backdrop-blur sm:p-6 shadow-lg">
+        <div className="space-y-4 rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-4 backdrop-blur sm:p-6 shadow-lg">
           <div className="relative">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by worker name, electrician, plumber, mistri, area... (Karigar ka naam ya shuba talash karein)"
-              className="w-full rounded-2xl border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-950 py-3 pr-4 pl-11 text-xs sm:text-sm text-slate-900 dark:text-white placeholder-slate-400 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+              className="w-full rounded-2xl border border-slate-300 bg-slate-50 py-3 pr-4 pl-11 text-xs sm:text-sm text-slate-900 placeholder-slate-400 outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
             />
-            <span className="absolute top-1/2 left-4 -translate-y-1/2 text-base sm:text-lg text-slate-400">🔍</span>
+            <span className="absolute top-1/2 left-4 -translate-y-1/2 text-base sm:text-lg text-slate-500">🔍</span>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-400">
+            <label className="text-xs font-black uppercase tracking-wider text-slate-600">
               🛠️ Select Profession Category (شعبہ منتخب کریں):
             </label>
             <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
@@ -494,8 +500,8 @@ export default function Workers() {
                     onClick={() => setSelectedCategory(cat.id)}
                     className={`flex items-center justify-center sm:justify-start gap-1.5 sm:gap-2 min-w-0 rounded-xl border px-2.5 py-2 sm:py-2.5 text-xs font-bold transition cursor-pointer ${
                       isSelected
-                        ? "border-teal-500 bg-teal-50 dark:bg-teal-500/20 text-teal-800 dark:text-teal-300 font-extrabold shadow-sm"
-                        : "border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-slate-950 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-900"
+                        ? "border-teal-500 bg-teal-50 text-teal-800 font-extrabold shadow-sm"
+                        : "border-slate-200 bg-slate-100 text-slate-700 hover:border-slate-300 hover:bg-slate-200"
                     }`}
                   >
                     <span className="text-sm sm:text-base shrink-0">{cat.icon}</span>
@@ -513,10 +519,10 @@ export default function Workers() {
             <Loader />
           </div>
         ) : filteredWorkers.length === 0 ? (
-          <div className="rounded-2xl sm:rounded-3xl border border-slate-800 bg-slate-900/50 p-8 sm:p-12 text-center shadow-xl">
+          <div className="rounded-2xl sm:rounded-3xl border border-slate-200 bg-slate-50 p-8 sm:p-12 text-center shadow-xl">
             <span className="text-4xl sm:text-5xl">🛠️</span>
             <h3 className="mt-4 text-base sm:text-lg font-black text-white">No Workers Found</h3>
-            <p className="mt-1 text-xs sm:text-sm text-slate-400">اس کیٹیگری میں فی الحال کوئی کاریگر نہیں ملا۔ نیا کاریگر شامل کریں۔</p>
+            <p className="mt-1 text-xs sm:text-sm text-slate-500">اس کیٹیگری میں فی الحال کوئی کاریگر نہیں ملا۔ نیا کاریگر شامل کریں۔</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
@@ -533,7 +539,7 @@ export default function Workers() {
               return (
                 <div
                   key={worker._id}
-                  className="flex flex-col justify-between min-w-0 w-full overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-gradient-to-b dark:from-slate-900 dark:via-slate-900/90 dark:to-slate-950 p-4 sm:p-5 shadow-xl transition text-slate-900 dark:text-white"
+                  className="flex flex-col justify-between min-w-0 w-full overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-4 sm:p-5 shadow-xl transition text-slate-900"
                 >
                   <div className="space-y-3.5 sm:space-y-4">
                     {/* Header: Photo, Name & Delete Button */}
@@ -552,11 +558,11 @@ export default function Workers() {
                         )}
 
                         <div className="min-w-0 flex-1">
-                          <h3 className="text-base sm:text-lg font-extrabold text-slate-950 dark:text-white leading-snug break-words">
+                          <h3 className="text-base sm:text-lg font-extrabold text-slate-950 leading-snug break-words">
                             {worker.company || worker.title}
                           </h3>
                           {worker.title && (worker.company || worker.title) !== worker.title ? (
-                            <p className="text-xs font-bold text-teal-700 dark:text-teal-400 leading-tight break-words mt-0.5">
+                            <p className="text-xs font-bold text-teal-700 leading-tight break-words mt-0.5">
                               {worker.title}
                             </p>
                           ) : null}
@@ -565,7 +571,7 @@ export default function Workers() {
 
                       <button
                         onClick={() => setDeleteTargetWorker(worker)}
-                        className="shrink-0 rounded-xl border border-red-500/30 bg-red-50 dark:bg-red-500/10 p-2 text-xs text-red-600 dark:text-red-400 transition hover:bg-red-100 dark:hover:bg-red-500/20 active:scale-95 cursor-pointer"
+                        className="shrink-0 rounded-xl border border-red-500/30 bg-red-50 p-2 text-xs text-red-600 transition hover:bg-red-100 active:scale-95 cursor-pointer"
                         title="Delete listing"
                       >
                         🗑️
@@ -574,40 +580,40 @@ export default function Workers() {
 
                     {/* Category, Rating & Location Badges */}
                     <div className="flex flex-wrap items-center gap-2 pt-0.5">
-                      <span className="inline-block rounded-full border border-teal-500/30 bg-teal-50 dark:bg-teal-500/10 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-teal-800 dark:text-teal-400">
+                      <span className="inline-block rounded-full border border-teal-500/30 bg-teal-50 px-2.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-teal-800">
                         {worker.category || "Service Worker"}
                       </span>
 
                       <button
                         onClick={() => setReviewTargetWorker(worker)}
-                        className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-50 dark:bg-amber-500/20 px-2.5 py-0.5 text-[10px] sm:text-[11px] font-extrabold text-amber-800 dark:text-amber-300 hover:scale-105 transition shrink-0 cursor-pointer"
+                        className="inline-flex items-center gap-1 rounded-full border border-amber-500/40 bg-amber-50 px-2.5 py-0.5 text-[10px] sm:text-[11px] font-extrabold text-amber-800 hover:scale-105 transition shrink-0 cursor-pointer"
                       >
                         ⭐ {avgRating} ({totalRevs})
                       </button>
 
                       {worker.location ? (
-                        <span className="text-xs font-semibold text-slate-600 dark:text-slate-400 leading-tight">
+                        <span className="text-xs font-semibold text-slate-600 leading-tight">
                           📍 Area: {worker.location}
                         </span>
                       ) : null}
                     </div>
 
                     {/* Work Description */}
-                    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/60 p-3 sm:p-3.5 text-xs text-slate-800 dark:text-slate-300 font-sans leading-relaxed break-words [overflow-wrap:anywhere]">
+                    <div className="rounded-2xl border border-slate-200 bg-slate-50 p-3 sm:p-3.5 text-xs text-slate-800 font-sans leading-relaxed break-words [overflow-wrap:anywhere]">
                       {worker.description}
                     </div>
 
                     {/* Reviews Strip */}
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950/40 p-2.5 text-xs text-slate-800 dark:text-slate-300">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 p-2.5 text-xs text-slate-800">
                       <div className="flex items-center gap-1.5 min-w-0">
                         <span className="shrink-0">💬</span>
-                        <span className="font-semibold text-slate-700 dark:text-slate-400 truncate text-[11px] sm:text-xs">
+                        <span className="font-semibold text-slate-700 truncate text-[11px] sm:text-xs">
                           {totalRevs > 0 ? `${totalRevs} Customer Reviews` : "No reviews yet"}
                         </span>
                       </div>
                       <button
                         onClick={() => setReviewTargetWorker(worker)}
-                        className="w-full sm:w-auto shrink-0 text-center rounded-lg border border-amber-500/40 bg-amber-50 dark:bg-amber-500/10 px-2.5 py-1 text-[11px] font-extrabold text-amber-800 dark:text-amber-300 transition hover:bg-amber-100 dark:hover:bg-amber-500/20 active:scale-95 cursor-pointer"
+                        className="w-full sm:w-auto shrink-0 text-center rounded-lg border border-amber-500/40 bg-amber-50 px-2.5 py-1 text-[11px] font-extrabold text-amber-800 transition hover:bg-amber-100 active:scale-95 cursor-pointer"
                       >
                         ⭐ Rate & Review
                       </button>
@@ -615,7 +621,7 @@ export default function Workers() {
                   </div>
 
                   {/* Contact Buttons: Real-Time WhatsApp Verification */}
-                  <div className="mt-4 sm:mt-5 pt-3 border-t border-slate-200 dark:border-slate-800/80">
+                  <div className="mt-4 sm:mt-5 pt-3 border-t border-slate-200">
                     {isWhatsApp ? (
                       <div className="grid grid-cols-2 gap-2 sm:gap-3">
                         <a
@@ -651,19 +657,19 @@ export default function Workers() {
 
       {/* Review & Star Rating Modal */}
       {reviewTargetWorker && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-3 sm:p-4 backdrop-blur-md overflow-y-auto">
-          <div className="w-full max-w-lg space-y-4 sm:space-y-5 rounded-2xl sm:rounded-3xl border border-slate-800 bg-slate-900 p-4 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3 sm:pb-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-3 sm:p-4 backdrop-blur-md overflow-y-auto">
+          <div className="w-full max-w-lg space-y-4 sm:space-y-5 rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-2xl max-h-[90vh] overflow-y-auto text-slate-900">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3 sm:pb-4">
               <div>
-                <h3 className="text-base sm:text-lg font-black text-white">⭐ Customer Reviews & Rating</h3>
-                <p className="text-xs font-bold text-teal-400 truncate max-w-[220px] sm:max-w-xs">{reviewTargetWorker.company || reviewTargetWorker.title}</p>
+                <h3 className="text-base sm:text-lg font-black text-slate-900">⭐ Customer Reviews & Rating</h3>
+                <p className="text-xs font-extrabold text-teal-700 truncate max-w-[220px] sm:max-w-xs">{reviewTargetWorker.company || reviewTargetWorker.title}</p>
               </div>
-              <button onClick={() => setReviewTargetWorker(null)} className="text-xl font-bold text-slate-400 hover:text-white p-1">✕</button>
+              <button onClick={() => setReviewTargetWorker(null)} className="text-xl font-bold text-slate-400 hover:text-slate-700 p-1 cursor-pointer">✕</button>
             </div>
 
             {/* Add Review Form */}
-            <form onSubmit={handleAddReview} className="space-y-3 sm:space-y-4 rounded-2xl border border-slate-800 bg-slate-950/60 p-3.5 sm:p-4">
-              <label className="text-xs font-black uppercase tracking-wider text-teal-400">Write Your Review (اپنی رائے دیں)</label>
+            <form onSubmit={handleAddReview} className="space-y-3 sm:space-y-4 rounded-2xl border border-slate-200 bg-slate-50 p-3.5 sm:p-4">
+              <label className="text-xs font-black uppercase tracking-wider text-slate-700">Write Your Review (اپنی رائے دیں)</label>
 
               {/* Star Rating selector */}
               <div className="flex items-center gap-2">
@@ -672,7 +678,7 @@ export default function Workers() {
                     type="button"
                     key={star}
                     onClick={() => setUserRating(star)}
-                    className="text-2xl transition hover:scale-110"
+                    className="text-2xl transition hover:scale-110 cursor-pointer"
                   >
                     {star <= userRating ? "⭐" : "☆"}
                   </button>
@@ -684,13 +690,13 @@ export default function Workers() {
                 onChange={(e) => setUserComment(e.target.value)}
                 rows={2}
                 placeholder="Write your feedback... (کام کی تفصیل اور تجربہ لکھیں)"
-                className="w-full rounded-xl border border-slate-800 bg-slate-900 p-3 text-xs text-white placeholder-slate-500 outline-none focus:border-teal-500"
+                className="w-full rounded-xl border border-slate-300 bg-white p-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition"
               />
 
               <button
                 type="submit"
                 disabled={submittingReview}
-                className="w-full rounded-xl bg-amber-500 py-2.5 text-xs font-black text-slate-950 hover:bg-amber-400 transition active:scale-95"
+                className="w-full rounded-xl bg-amber-500 py-2.5 text-xs font-black text-slate-950 hover:bg-amber-400 transition active:scale-95 shadow-md shadow-amber-500/20 cursor-pointer"
               >
                 {submittingReview ? "Submitting..." : "Submit Review (رائے جمع کریں)"}
               </button>
@@ -698,17 +704,17 @@ export default function Workers() {
 
             {/* Existing Reviews List */}
             <div className="max-h-60 space-y-3 overflow-y-auto pr-1">
-              <h4 className="text-xs font-black uppercase text-slate-400">💬 Previous Reviews ({reviewTargetWorker.reviews?.length || 0})</h4>
+              <h4 className="text-xs font-black uppercase text-slate-500">💬 Previous Reviews ({reviewTargetWorker.reviews?.length || 0})</h4>
               {(!reviewTargetWorker.reviews || reviewTargetWorker.reviews.length === 0) ? (
                 <p className="py-4 text-center text-xs font-semibold text-slate-500">No reviews yet for this worker.</p>
               ) : (
                 reviewTargetWorker.reviews.map((rev, idx) => (
-                  <div key={idx} className="rounded-xl border border-slate-800 bg-slate-950/40 p-3 text-xs">
+                  <div key={idx} className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-xs">
                     <div className="flex items-center justify-between">
-                      <span className="font-bold text-white">{rev.userName}</span>
-                      <span className="text-amber-300">{"⭐".repeat(rev.rating)}</span>
+                      <span className="font-extrabold text-slate-900">{rev.userName}</span>
+                      <span className="text-amber-500">{"⭐".repeat(rev.rating)}</span>
                     </div>
-                    <p className="mt-1 text-slate-300 break-words">{rev.comment}</p>
+                    <p className="mt-1 text-slate-700 break-words font-medium">{rev.comment}</p>
                   </div>
                 ))
               )}
@@ -717,111 +723,139 @@ export default function Workers() {
         </div>
       )}
 
-      {/* Delete Modal */}
-      {deleteTargetWorker && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
-          <div className="w-full max-w-sm space-y-4 rounded-2xl sm:rounded-3xl border border-red-500/40 bg-slate-900 p-5 sm:p-6 text-center shadow-2xl">
-            <span className="text-4xl">🗑️</span>
-            <h3 className="text-lg font-black text-white">Delete Worker Record?</h3>
-            <p className="text-xs text-slate-400">کیا آپ اس کاریگر کا ریکارڈ ختم کرنا چاہتے ہیں؟</p>
-
-            <div className="flex gap-3 pt-2">
-              <button
-                onClick={() => setDeleteTargetWorker(null)}
-                disabled={isDeleting}
-                className="flex-1 rounded-xl border border-slate-700 bg-slate-800 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-700 transition"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleConfirmDelete}
-                disabled={isDeleting}
-                className="flex-1 rounded-xl bg-red-600 py-2.5 text-xs font-black text-white hover:bg-red-500 transition"
-              >
-                {isDeleting ? "Deleting..." : "Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={Boolean(deleteTargetWorker)}
+        title="Delete Worker Listing"
+        message={
+          deleteTargetWorker ? (
+            <span>
+              Are you sure you want to delete worker listing for{" "}
+              <strong className="text-slate-900">
+                "{deleteTargetWorker.company || deleteTargetWorker.title}"
+              </strong>
+              ? (کیا آپ اس کاریگر کا ریکارڈ ختم کرنا چاہتے ہیں؟)
+            </span>
+          ) : ""
+        }
+        confirmText="Delete"
+        cancelText="Cancel"
+        variant="danger"
+        loading={isDeleting}
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteTargetWorker(null)}
+      />
 
       {/* List Worker Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-3 sm:p-4 backdrop-blur-md overflow-y-auto">
-          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl sm:rounded-3xl border border-slate-800 bg-slate-900 p-4 sm:p-6 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3 sm:pb-4">
-              <h3 className="text-base sm:text-lg font-black text-white">➕ List a Worker (کاریگر درج کریں)</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-xl font-bold text-slate-400 hover:text-white p-1">✕</button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-3 sm:p-4 backdrop-blur-md overflow-y-auto">
+          <div className="w-full max-w-lg max-h-[90vh] overflow-y-auto rounded-2xl sm:rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 shadow-2xl text-slate-900">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-3 sm:pb-4">
+              <h3 className="text-base sm:text-lg font-black text-slate-900">➕ List a Worker (کاریگر درج کریں)</h3>
+              <button onClick={() => setIsModalOpen(false)} className="text-xl font-bold text-slate-400 hover:text-slate-700 p-1 cursor-pointer">✕</button>
             </div>
 
             <form onSubmit={handleCreateWorker} className="mt-4 space-y-3.5 sm:space-y-4">
               {/* Photo Field Top */}
-              <div className="space-y-1">
-                <label className="text-xs font-black uppercase text-teal-400">Worker Passport Photo (پاسپورٹ تصویر)</label>
-                <div className="flex items-center gap-4 pt-1">
+              <div className="space-y-1.5">
+                <label className="text-xs font-black uppercase tracking-wider text-slate-700">
+                  Worker Passport Photo (پاسپورٹ سائز تصویر)
+                </label>
+                <div className="flex items-center gap-3.5 pt-1">
                   {passportPhotoUrl ? (
-                    <img src={passportPhotoUrl} alt="Preview" className="h-20 w-16 rounded-xl border-2 border-teal-500 object-cover" />
+                    <div className="relative shrink-0">
+                      <img
+                        src={passportPhotoUrl}
+                        alt="Preview"
+                        className="h-20 w-20 rounded-2xl border-2 border-teal-500 object-cover shadow-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setPassportPhotoUrl("")}
+                        className="absolute -top-1.5 -right-1.5 grid h-5 w-5 place-items-center rounded-full bg-rose-500 text-white text-[10px] font-black shadow-sm hover:bg-rose-600 cursor-pointer"
+                        title="Remove photo"
+                      >
+                        ✕
+                      </button>
+                    </div>
                   ) : (
-                    <div className="flex h-20 w-16 items-center justify-center rounded-xl border-2 border-dashed border-slate-700 bg-slate-950 text-xs text-slate-500">No Photo</div>
+                    <div className="flex flex-col items-center justify-center gap-1 h-20 w-20 shrink-0 rounded-2xl border-2 border-dashed border-teal-300 bg-teal-50/60 text-teal-800 p-2 text-center">
+                      <span className="text-xl leading-none">📷</span>
+                      <span className="text-[10px] font-black uppercase tracking-wider">Photo</span>
+                    </div>
                   )}
-                  <input type="file" accept="image/*" onChange={handlePhotoUpload} className="text-xs text-slate-400 w-full" />
+
+                  <div className="flex-1 space-y-1">
+                    <label className="inline-flex items-center gap-2 rounded-xl border border-slate-300 bg-slate-50 px-3.5 py-2 text-xs font-bold text-slate-700 hover:bg-teal-50 hover:border-teal-400 hover:text-teal-900 transition cursor-pointer shadow-2xs">
+                      <span>{uploadingPhoto ? "⏳ Uploading..." : "📁 Select Photo"}</span>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoUpload}
+                        disabled={uploadingPhoto}
+                        className="hidden"
+                      />
+                    </label>
+                    <p className="text-[11px] font-semibold text-slate-500">
+                      {uploadingPhoto ? "Uploading image to server..." : "Upload clear passport or work photo (PNG/JPG)"}
+                    </p>
+                  </div>
                 </div>
               </div>
 
               <div>
-                <label className="text-xs font-black uppercase text-teal-400">Worker / Master Name *</label>
-                <input type="text" value={workerName} onChange={(e) => setWorkerName(e.target.value)} required placeholder="e.g. Ustad Muhammad Siddique" className="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950 p-3 text-xs text-white outline-none focus:border-teal-500" />
+                <label className="text-xs font-black uppercase tracking-wider text-slate-700">Worker / Master Name *</label>
+                <input type="text" value={workerName} onChange={(e) => setWorkerName(e.target.value)} required placeholder="e.g. Ustad Muhammad Siddique" className="mt-1 w-full rounded-xl border border-slate-300 bg-white p-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition" />
               </div>
 
               <div>
-                <label className="text-xs font-black uppercase text-teal-400">Category *</label>
-                <select value={category} onChange={(e) => setCategory(e.target.value as WorkerCategory)} className="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950 p-3 text-xs text-white outline-none focus:border-teal-500">
+                <label className="text-xs font-black uppercase tracking-wider text-slate-700">Category *</label>
+                <select value={category} onChange={(e) => setCategory(e.target.value as WorkerCategory)} className="mt-1 w-full rounded-xl border border-slate-300 bg-white p-3 text-xs sm:text-sm font-semibold text-slate-900 outline-none focus:border-teal-500 transition">
                   {CATEGORIES.filter((c) => c.id !== "All").map((c) => (
-                    <option key={c.id} value={c.id}>{c.icon} {c.labelEn}</option>
+                    <option key={c.id} value={c.id} className="bg-white text-slate-900">{c.icon} {c.labelEn}</option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="text-xs font-black uppercase text-teal-400">Skill Title</label>
-                <input type="text" value={professionTitle} onChange={(e) => setProfessionTitle(e.target.value)} placeholder="e.g. Master Electrician & UPS Specialist" className="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950 p-3 text-xs text-white outline-none focus:border-teal-500" />
+                <label className="text-xs font-black uppercase tracking-wider text-slate-700">Skill Title</label>
+                <input type="text" value={professionTitle} onChange={(e) => setProfessionTitle(e.target.value)} placeholder="e.g. Master Electrician & UPS Specialist" className="mt-1 w-full rounded-xl border border-slate-300 bg-white p-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition" />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-black uppercase text-teal-400">Phone *</label>
-                  <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} required placeholder="03001234567" className="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950 p-3 text-xs text-white outline-none focus:border-teal-500" />
+                  <label className="text-xs font-black uppercase tracking-wider text-slate-700">Phone *</label>
+                  <input type="text" value={phone} onChange={(e) => setPhone(e.target.value)} required placeholder="03001234567" className="mt-1 w-full rounded-xl border border-slate-300 bg-white p-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition" />
                 </div>
                 <div>
-                  <label className="text-xs font-black uppercase text-teal-400">Area *</label>
-                  <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} required placeholder="Kharadar / Lyari" className="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950 p-3 text-xs text-white outline-none focus:border-teal-500" />
+                  <label className="text-xs font-black uppercase tracking-wider text-slate-700">Area *</label>
+                  <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} required placeholder="Kharadar / Lyari" className="mt-1 w-full rounded-xl border border-slate-300 bg-white p-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition" />
                 </div>
               </div>
 
               {/* WhatsApp Checkbox */}
-              <div className="rounded-xl border border-slate-800 bg-slate-950/60 p-3 space-y-1">
+              <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-1">
                 <label className="flex items-center gap-2.5 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={hasWhatsAppInput}
                     onChange={(e) => setHasWhatsAppInput(e.target.checked)}
-                    className="h-4 w-4 rounded border-slate-700 bg-slate-900 text-teal-500 focus:ring-teal-500/20"
+                    className="h-4 w-4 rounded border-slate-300 bg-white text-teal-600 focus:ring-teal-500 accent-teal-600"
                   />
-                  <span className="text-xs font-bold text-white">WhatsApp available on this number (واٹس ایپ کی سہولت موجود ہے)</span>
+                  <span className="text-xs font-extrabold text-slate-800">WhatsApp available on this number (واٹس ایپ کی سہولت موجود ہے)</span>
                 </label>
-                <p className="text-[11px] text-slate-400 pl-6">
+                <p className="text-[11px] font-semibold text-slate-500 pl-6">
                   {hasWhatsAppInput ? "💬 WhatsApp button will be visible on card" : "📞 Only Call Now button will be shown centered on card"}
                 </p>
               </div>
 
               <div>
-                <label className="text-xs font-black uppercase text-teal-400">Work Details *</label>
-                <textarea value={description} onChange={(e) => setDescription(e.target.value)} required rows={3} placeholder="Wiring, UPS repair, Breaker Box, Fan installation." className="mt-1 w-full rounded-xl border border-slate-800 bg-slate-950 p-3 text-xs text-white outline-none focus:border-teal-500" />
+                <label className="text-xs font-black uppercase tracking-wider text-slate-700">Work Details *</label>
+                <textarea value={description} onChange={(e) => setDescription(e.target.value)} required rows={3} placeholder="Wiring, UPS repair, Breaker Box, Fan installation." className="mt-1 w-full rounded-xl border border-slate-300 bg-white p-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition" />
               </div>
 
-              <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5 pt-3 border-t border-slate-800">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="w-full sm:w-auto rounded-xl px-4 py-2.5 text-xs font-bold text-slate-400 hover:text-white border border-slate-800 sm:border-none">Cancel</button>
-                <button type="submit" disabled={submitting} className="w-full sm:w-auto rounded-xl bg-emerald-500 px-6 py-2.5 text-xs font-black text-slate-950 hover:bg-emerald-400 transition">{submitting ? "Saving..." : "Save Worker"}</button>
+              <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2.5 pt-3 border-t border-slate-200">
+                <button type="button" onClick={() => setIsModalOpen(false)} className="w-full sm:w-auto rounded-xl border border-slate-300 bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-200 transition cursor-pointer">Cancel</button>
+                <button type="submit" disabled={submitting} className="w-full sm:w-auto rounded-xl active-green-btn btn-primary bg-teal-600 !text-white px-6 py-2.5 text-xs font-black uppercase tracking-wider shadow-lg shadow-teal-600/30 hover:bg-teal-700 active:scale-95 disabled:opacity-50 transition cursor-pointer">{submitting ? "Saving..." : "Save Worker"}</button>
               </div>
             </form>
           </div>

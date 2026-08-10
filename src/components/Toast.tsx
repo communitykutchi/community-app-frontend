@@ -28,9 +28,9 @@ export default function Toast({
   if (!isVisible || !message) return null;
 
   const bgStyles = {
-    success: "bg-emerald-900/90 text-emerald-100 border-emerald-500/30 shadow-emerald-950/20",
-    error: "bg-rose-900/90 text-rose-100 border-rose-500/30 shadow-rose-950/20",
-    info: "bg-slate-900/90 text-slate-100 border-slate-700/50 shadow-slate-950/30",
+    success: "bg-slate-900 text-white border-emerald-500/80 shadow-2xl shadow-emerald-950/40",
+    error: "bg-slate-900 text-white border-rose-500/80 shadow-2xl shadow-rose-950/40",
+    info: "bg-slate-900 text-white border-teal-500/80 shadow-2xl shadow-teal-950/40",
   }[type];
 
   const icons = {
@@ -45,22 +45,22 @@ export default function Toast({
       </svg>
     ),
     info: (
-      <svg className="w-5 h-5 text-amber-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
+      <svg className="w-5 h-5 text-teal-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.5">
         <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     ),
   }[type];
 
   return (
-    <div className="fixed bottom-6 right-6 z-[9999] pointer-events-none animate-in fade-in slide-in-from-bottom-4 duration-200 ease-out">
+    <div className="fixed bottom-5 left-4 right-4 sm:left-auto sm:right-6 z-[9999] pointer-events-none animate-in fade-in slide-in-from-bottom-4 duration-200 ease-out flex justify-center sm:block">
       <div
-        className={`flex items-center gap-3 px-4 py-3 rounded-xl border backdrop-blur-md shadow-xl text-sm font-medium transition-all transform active:scale-95 pointer-events-auto max-w-sm ${bgStyles}`}
+        className={`flex items-center gap-3 px-4 py-3 rounded-2xl border backdrop-blur-md shadow-2xl text-xs sm:text-sm font-black transition-all transform active:scale-95 pointer-events-auto w-full sm:max-w-md ${bgStyles}`}
       >
         {icons}
-        <span className="truncate">{message}</span>
+        <span className="flex-1 leading-snug break-words">{message}</span>
         <button
           onClick={onClose}
-          className="ml-auto text-slate-400 hover:text-white p-1 rounded-md transition-colors"
+          className="ml-auto text-slate-400 hover:text-white p-1 rounded-lg transition-colors cursor-pointer shrink-0"
           aria-label="Close notification"
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">

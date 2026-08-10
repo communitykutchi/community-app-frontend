@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 import { getAuthToken } from '../auth/session';
 import { PAKISTAN_CITIES } from '../utils/pakistanCities';
+import SEO from '../components/SEO';
 
 const USERNAME_REGEX = /^[a-z][a-z0-9._-]*$/;
 
@@ -36,6 +37,13 @@ export default function Register() {
   });
 
   const [message, setMessage] = useState('');
+  const [messageType, setMessageType] = useState<'success' | 'error'>('error');
+
+  const showMsg = (msg: string, type: 'success' | 'error' = 'error') => {
+    setMessage(msg);
+    setMessageType(type);
+  };
+
   const [loading, setLoading] = useState(false);
   const [checkingUsername, setCheckingUsername] = useState(false);
   const [usernameAvailable, setUsernameAvailable] = useState<boolean | null>(null);
@@ -175,13 +183,13 @@ export default function Register() {
 
   async function handleSendOtp() {
     if (!form.email) {
-      setMessage('Please enter your email first.');
+      showMsg('Please enter your email first.', 'error');
       return;
     }
 
     try {
       setSendingOtp(true);
-      setMessage('');
+      showMsg('', 'error');
 
       const res = await API.post('/auth/otp/send', {
         email: form.email,
@@ -194,13 +202,13 @@ export default function Register() {
         setOtpSent(true);
         setOtpVerified(false);
         setOtpDigits(['', '', '', '', '', '']);
-        setMessage('OTP sent to your email. Please verify before registration.');
+        showMsg(res.data.message || 'OTP sent to your email. Please verify before registration.', 'success');
         setTimeout(() => otpRefs.current[0]?.focus(), 100);
       } else {
-        setMessage(res.data.message || 'Unable to send OTP.');
+        showMsg(res.data.message || 'Unable to send OTP.', 'error');
       }
     } catch (err: any) {
-      setMessage(err.response?.data?.message || 'Unable to send OTP.');
+      showMsg(err.response?.data?.message || 'Unable to send OTP.', 'error');
     } finally {
       setSendingOtp(false);
     }
@@ -208,13 +216,13 @@ export default function Register() {
 
   async function handleVerifyOtp() {
     if (!form.email || !otpCode) {
-      setMessage('Please enter OTP sent to your email.');
+      showMsg('Please enter OTP sent to your email.', 'error');
       return;
     }
 
     try {
       setVerifyingOtp(true);
-      setMessage('');
+      showMsg('', 'error');
 
       const res = await API.post('/auth/otp/verify', {
         email: form.email,
@@ -224,14 +232,14 @@ export default function Register() {
 
       if (res.data.success) {
         setOtpVerified(true);
-        setMessage('Email verified successfully.');
+        showMsg(res.data.message || 'Email verified successfully.', 'success');
       } else {
         setOtpVerified(false);
-        setMessage(res.data.message || 'OTP verification failed.');
+        showMsg(res.data.message || 'OTP verification failed.', 'error');
       }
     } catch (err: any) {
       setOtpVerified(false);
-      setMessage(err.response?.data?.message || 'OTP verification failed.');
+      showMsg(err.response?.data?.message || 'OTP verification failed.', 'error');
     } finally {
       setVerifyingOtp(false);
     }
@@ -241,22 +249,22 @@ export default function Register() {
     e.preventDefault();
 
     if (!form.fullName || !form.username || !form.email || !form.password || !form.confirmPassword) {
-      setMessage('Please fill all required fields.');
+      showMsg('Please fill all required fields.', 'error');
       return;
     }
 
     if (usernameError) {
-      setMessage(usernameError);
+      showMsg(usernameError, 'error');
       return;
     }
 
     if (form.password !== form.confirmPassword) {
-      setMessage('Password and confirm password must match.');
+      showMsg('Password and confirm password must match.', 'error');
       return;
     }
 
     if (!otpVerified) {
-      setMessage('Please verify your email with OTP before registering.');
+      showMsg('Please verify your email with OTP before registering.', 'error');
       return;
     }
 
@@ -267,7 +275,7 @@ export default function Register() {
 
     try {
       setLoading(true);
-      setMessage('');
+      showMsg('', 'error');
 
       const payload = {
         fullName: form.fullName,
@@ -281,7 +289,7 @@ export default function Register() {
       const res = await API.post('/auth/register', payload);
 
       if (res.data.success) {
-        setMessage('Registration successful!');
+        showMsg(res.data.message || 'Registration successful!', 'success');
         setForm({
           fullName: '',
           username: '',
@@ -294,7 +302,7 @@ export default function Register() {
         setUsernameAvailable(null);
         resetOtpState();
       } else {
-        setMessage(res.data.message || 'Something went wrong.');
+        showMsg(res.data.message || 'Something went wrong.', 'error');
       }
     } catch (err: any) {
       const errorMessage = err.response?.data?.message || 'Server error.';
@@ -302,22 +310,22 @@ export default function Register() {
       if (duplicateUsername) {
         setUsernameAvailable(false);
       }
-      setMessage(errorMessage);
+      showMsg(errorMessage, 'error');
     } finally {
       setLoading(false);
     }
   }
 
   const isSuccessMessage =
-    message.toLowerCase().includes('successful') ||
-    message.toLowerCase().includes('verified') ||
-    message.toLowerCase().includes('sent');
+    messageType === 'success' ||
+    /success|successful|successfully|verified|sent|complete|completed|created|done/i.test(message);
 
   return (
     <div className="flex min-h-[85vh] items-center justify-center px-4 py-10">
+      <SEO pageKey="register" />
       <div className="w-full max-w-2xl overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 sm:p-10 shadow-xl">
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-slate-900 p-2 shadow-lg shadow-teal-600/20 border border-teal-500/30">
+          <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-white p-2 shadow-lg shadow-teal-600/20 border border-teal-500/30">
             <img src="/logo.png" alt="All Kutchi Community Logo" className="h-full w-full object-contain" />
           </div>
           <span className="inline-flex rounded-full bg-teal-50 px-3.5 py-1 text-[11px] font-extrabold uppercase tracking-widest text-teal-700 border border-teal-200">
@@ -328,8 +336,15 @@ export default function Register() {
         </div>
 
         {message && (
-          <div className={`mb-6 rounded-xl border px-4 py-3 text-sm ${isSuccessMessage ? 'border-emerald-300 bg-emerald-50 text-emerald-800' : 'border-rose-300 bg-rose-50 text-rose-700'}`}>
-            {message}
+          <div
+            className={`mb-6 flex items-center gap-2.5 rounded-xl border px-4 py-3.5 text-sm font-bold shadow-sm ${
+              isSuccessMessage
+                ? 'border-emerald-300 bg-emerald-50 text-emerald-800'
+                : 'border-rose-300 bg-rose-50 text-rose-700'
+            }`}
+          >
+            <span className="text-base shrink-0">{isSuccessMessage ? '✅' : '⚠️'}</span>
+            <span>{message}</span>
           </div>
         )}
 

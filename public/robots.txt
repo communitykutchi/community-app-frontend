@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Allow: /feed
+Allow: /notices
+Allow: /polls
+Allow: /jobs
+Allow: /workers
+Allow: /help
+
+Disallow: /admin/
+Disallow: /super-admin/
+Disallow: /banned
+Disallow: /api/
+
+Sitemap: https://kutchicommunity.com/sitemap.xml

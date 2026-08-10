@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from "react";
 import API from "../api/axios";
 import Toast from "../components/Toast";
+import SEO from "../components/SEO";
 
 type FaqCategory = "all" | "getting_started" | "notices" | "chat" | "jobs" | "polls" | "account";
 
@@ -128,35 +129,38 @@ export default function Help() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 md:px-6">
+      <SEO pageKey="help" />
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       {/* Hero Banner */}
-      <div className="page-hero-banner relative overflow-hidden rounded-3xl bg-slate-900 p-6 text-white shadow-xl md:p-8">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+      <div className="relative overflow-hidden rounded-3xl border border-teal-200 bg-gradient-to-br from-teal-600 via-emerald-600 to-teal-700 text-white shadow-xl p-6 md:p-8">
+        <div className="absolute -right-10 -bottom-10 h-40 w-40 rounded-full bg-white/10 blur-3xl pointer-events-none" />
+
+        <div className="relative flex flex-col md:flex-row md:items-center md:justify-between gap-6 text-left">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <span className="rounded-full bg-teal-500/20 px-3 py-1 text-xs font-bold uppercase tracking-wider text-teal-400 border border-teal-500/30">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-[11px] font-extrabold uppercase tracking-wider text-white border border-white/30 backdrop-blur-md">
                 ❓ SUPPORT & GUIDANCE
               </span>
             </div>
-            <h1 className="text-2xl font-extrabold text-white md:text-3xl">Help & Support Center</h1>
-            <p className="text-sm text-slate-300 max-w-xl">
+            <h1 className="text-2xl font-black text-white md:text-3xl tracking-tight">Help & Support Center</h1>
+            <p className="text-xs md:text-sm font-medium text-teal-50 max-w-xl leading-relaxed">
               Have questions about using the portal, job postings, Mayyat announcements, or account settings? Find answers below or contact Jamaat Admin support.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-col items-start gap-2 pt-2 md:pt-0">
             <a
               href="https://wa.me/923001234567?text=Hello%20Jamaat%20Admin%20Support"
               target="_blank"
               rel="noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-emerald-600/30 hover:bg-emerald-500 transition"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-white text-emerald-900 px-3.5 py-2 text-xs font-bold shadow-md hover:bg-emerald-50 active:scale-95 transition cursor-pointer whitespace-nowrap"
             >
               <span>💬</span> WhatsApp Support
             </a>
             <button
               onClick={() => setShowReportModal(true)}
-              className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-600/30 hover:bg-teal-500 transition"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-teal-800 text-white px-3.5 py-2 text-xs font-bold shadow-md hover:bg-teal-900 active:scale-95 transition cursor-pointer border border-teal-400/40 whitespace-nowrap"
             >
               <span>🛠️</span> Report Issue
             </button>
@@ -167,13 +171,13 @@ export default function Help() {
       {/* Search & Category Pills */}
       <div className="mt-8 space-y-4">
         <div className="relative">
-          <span className="absolute left-4 top-3.5 text-slate-400">🔍</span>
+          <span className="absolute left-4 top-3.5 text-slate-400 text-sm">🔍</span>
           <input
             type="text"
             placeholder="Search help topics, FAQs, questions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full rounded-2xl border border-slate-700/80 bg-slate-950 py-3 pl-11 pr-4 text-sm text-white placeholder-slate-400 shadow-inner outline-none focus:border-teal-400 focus:ring-2 focus:ring-teal-500/20 transition"
+            className="w-full rounded-2xl border border-slate-300 bg-white py-3 pl-11 pr-4 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 shadow-sm outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition"
           />
         </div>
 
@@ -190,13 +194,13 @@ export default function Help() {
             <button
               key={cat.id}
               onClick={() => setSelectedCategory(cat.id as FaqCategory)}
-              className={`rounded-xl px-4 py-2 text-xs font-bold transition whitespace-nowrap ${
+              className={`rounded-xl px-4 py-2.5 text-xs font-extrabold transition whitespace-nowrap cursor-pointer ${
                 selectedCategory === cat.id
-                  ? "bg-teal-500 text-slate-950 font-black shadow-md shadow-teal-500/20"
-                  : "bg-slate-900 text-slate-300 border border-slate-800 hover:bg-slate-800 hover:text-white"
+                  ? "active-green-btn bg-teal-600 !text-white shadow-md shadow-teal-600/30"
+                  : "bg-white text-slate-700 border border-slate-200 hover:border-teal-400 hover:bg-teal-50/40 hover:text-slate-900"
               }`}
             >
-              {cat.label}
+              <span className={selectedCategory === cat.id ? "!text-white font-extrabold" : ""}>{cat.label}</span>
             </button>
           ))}
         </div>
@@ -205,30 +209,30 @@ export default function Help() {
       {/* FAQ Accordions */}
       <div className="mt-6 space-y-3">
         {filteredFaqs.length === 0 ? (
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/90 p-10 text-center shadow-sm text-white">
+          <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center shadow-sm text-slate-800">
             <span className="text-3xl">🔍</span>
-            <p className="mt-2 text-xs font-bold text-slate-300">No help items match your search.</p>
+            <p className="mt-2 text-xs sm:text-sm font-bold text-slate-600">No help items match your search.</p>
           </div>
         ) : (
           filteredFaqs.map((faq) => {
             const isExpanded = expandedFaqId === faq.id;
             return (
-              <div key={faq.id} className="overflow-hidden rounded-2xl border border-slate-800 bg-slate-900/90 text-white shadow-lg transition duration-200">
+              <div key={faq.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white text-slate-900 shadow-md transition duration-200 hover:border-teal-200 hover:shadow-lg">
                 <button
                   onClick={() => setExpandedFaqId(isExpanded ? null : faq.id)}
-                  className="flex w-full items-center justify-between p-5 text-left transition hover:bg-slate-800/60"
+                  className="flex w-full items-center justify-between p-5 text-left transition hover:bg-slate-50/80 cursor-pointer"
                 >
                   <div className="flex items-center gap-3">
                     <span className="text-xl">{faq.icon}</span>
-                    <span className="text-sm font-black text-white">{faq.question}</span>
+                    <span className="text-xs sm:text-sm font-extrabold text-slate-900">{faq.question}</span>
                   </div>
-                  <span className={`text-lg font-bold text-teal-400 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}>
+                  <span className={`text-base font-black text-teal-600 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`}>
                     ▾
                   </span>
                 </button>
 
                 {isExpanded && (
-                  <div className="border-t border-slate-800 bg-slate-950/90 p-5 text-xs text-slate-300 leading-relaxed font-medium">
+                  <div className="border-t border-slate-100 bg-slate-50/60 p-5 text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
                     {faq.answer}
                   </div>
                 )}
@@ -242,89 +246,101 @@ export default function Help() {
       <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-4">
         <a
           href="tel:+923001234567"
-          className="group relative overflow-hidden flex items-center gap-4 rounded-2xl border border-teal-500/30 bg-gradient-to-br from-slate-900 via-teal-950/70 to-slate-950 p-5 text-white shadow-xl transition hover:-translate-y-1 hover:border-teal-400"
+          className="group relative overflow-hidden flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-slate-900 shadow-lg transition hover:-translate-y-1 hover:shadow-xl hover:border-teal-300 cursor-pointer"
         >
-          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-teal-500/20 text-2xl text-teal-300 border border-teal-400/30 shadow-inner group-hover:scale-110 transition">📞</div>
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-teal-50 text-2xl text-teal-700 border border-teal-200 shadow-xs group-hover:scale-110 transition">📞</div>
           <div>
-            <h4 className="text-[10px] font-black uppercase tracking-wider text-teal-300">Phone Hotline</h4>
-            <p className="text-sm font-black text-white">+92 300 1234567</p>
+            <h4 className="text-[10px] font-black uppercase tracking-wider text-teal-700">Phone Hotline</h4>
+            <p className="text-xs sm:text-sm font-extrabold text-slate-900">+92 300 1234567</p>
           </div>
         </a>
 
         <a
-          href="mailto:support@kutchicommunity.com"
-          className="group relative overflow-hidden flex items-center gap-4 rounded-2xl border border-teal-500/30 bg-gradient-to-br from-slate-900 via-teal-950/70 to-slate-950 p-5 text-white shadow-xl transition hover:-translate-y-1 hover:border-teal-400"
+          href="mailto:support@kutchicommunity.com?subject=Support%20Request%20-%20Kutchi%20Community"
+          onClick={async (e) => {
+            const email = "support@kutchicommunity.com";
+            if (navigator.clipboard) {
+              try {
+                await navigator.clipboard.writeText(email);
+                setToast({ message: `✉️ Email copied (${email})! Opening mail...`, type: "success" });
+              } catch {
+                // Ignore
+              }
+            }
+            window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${email}&su=Support+Request+-+Kutchi+Community`, "_blank");
+          }}
+          className="group relative overflow-hidden flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-slate-900 shadow-lg transition hover:-translate-y-1 hover:shadow-xl hover:border-teal-300 cursor-pointer"
         >
-          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-teal-500/20 text-2xl text-teal-300 border border-teal-400/30 shadow-inner group-hover:scale-110 transition">✉️</div>
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-teal-50 text-2xl text-teal-700 border border-teal-200 shadow-xs group-hover:scale-110 transition">✉️</div>
           <div>
-            <h4 className="text-[10px] font-black uppercase tracking-wider text-teal-300">Email Support</h4>
-            <p className="text-xs font-black text-white truncate max-w-[180px]">support@kutchicommunity.com</p>
+            <h4 className="text-[10px] font-black uppercase tracking-wider text-teal-700">Email Support</h4>
+            <p className="text-xs font-extrabold text-slate-900 truncate max-w-[180px]">support@kutchicommunity.com</p>
           </div>
         </a>
 
         <button
           type="button"
           onClick={() => setShowReportModal(true)}
-          className="group relative overflow-hidden flex items-center gap-4 rounded-2xl border border-teal-500/30 bg-gradient-to-br from-slate-900 via-teal-950/70 to-slate-950 p-5 text-white shadow-xl transition hover:-translate-y-1 hover:border-teal-400 text-left"
+          className="group relative overflow-hidden flex items-center gap-4 rounded-2xl border border-slate-200 bg-white p-5 text-slate-900 shadow-lg transition hover:-translate-y-1 hover:shadow-xl hover:border-teal-300 text-left cursor-pointer"
         >
-          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-teal-500/20 text-2xl text-teal-300 border border-teal-400/30 shadow-inner group-hover:scale-110 transition">🛡️</div>
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-teal-50 text-2xl text-teal-700 border border-teal-200 shadow-xs group-hover:scale-110 transition">🛡️</div>
           <div>
-            <h4 className="text-[10px] font-black uppercase tracking-wider text-teal-300">Admin Help Desk</h4>
-            <p className="text-sm font-black text-white">Submit Ticket →</p>
+            <h4 className="text-[10px] font-black uppercase tracking-wider text-teal-700">Admin Help Desk</h4>
+            <p className="text-xs sm:text-sm font-extrabold text-slate-900">Submit Ticket →</p>
           </div>
         </button>
       </div>
 
       {/* Report Issue Modal */}
       {showReportModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4">
-          <div className="relative overflow-hidden w-full max-w-lg rounded-3xl border border-teal-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-teal-950/95 p-6 text-white shadow-2xl md:p-8 space-y-4 animate-in fade-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-              <h3 className="text-lg font-bold text-white">Report an Issue / Feedback</h3>
-              <button onClick={() => setShowReportModal(false)} className="rounded-lg p-1.5 text-slate-400 hover:text-white hover:bg-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4">
+          <div className="relative overflow-hidden w-full max-w-lg rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 text-slate-900 shadow-2xl space-y-4 animate-in fade-in zoom-in-95">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <h3 className="text-lg font-black text-slate-900">Report an Issue / Feedback</h3>
+              <button onClick={() => setShowReportModal(false)} className="rounded-xl p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition cursor-pointer">
                 ✕
               </button>
             </div>
 
             <form onSubmit={handleSubmitReport} className="mt-4 space-y-4">
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Issue Category</label>
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1">Issue Category</label>
                 <select
                   value={issueType}
                   onChange={(e) => setIssueType(e.target.value as any)}
-                  className="mt-1 w-full rounded-xl border border-slate-700/80 bg-slate-950 px-3.5 py-2.5 text-sm font-semibold text-white focus:border-teal-400 outline-none transition"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-slate-900 focus:border-teal-500 focus:outline-none transition"
                 >
-                  <option value="bug" className="bg-slate-900 text-white">Technical Bug / App Error</option>
-                  <option value="account" className="bg-slate-900 text-white">Account / Login Issue</option>
-                  <option value="moderation" className="bg-slate-900 text-white">Content / Rules Violation</option>
-                  <option value="other" className="bg-slate-900 text-white">General Feedback</option>
+                  <option value="bug" className="bg-white text-slate-900">Technical Bug / App Error</option>
+                  <option value="account" className="bg-white text-slate-900">Account / Login Issue</option>
+                  <option value="moderation" className="bg-white text-slate-900">Content / Rules Violation</option>
+                  <option value="other" className="bg-white text-slate-900">General Feedback</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 uppercase tracking-wider">Description *</label>
+                <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1">Description *</label>
                 <textarea
                   rows={4}
                   required
                   placeholder="Please describe the issue or feedback in detail..."
                   value={issueDescription}
                   onChange={(e) => setIssueDescription(e.target.value)}
-                  className="mt-1 w-full rounded-xl border border-slate-700/80 bg-slate-950 px-3.5 py-2.5 text-sm text-white placeholder-slate-400 focus:border-teal-400 outline-none transition"
+                  className="w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition"
                 />
               </div>
 
-              <div className="mt-6 flex items-center justify-end gap-3 pt-3 border-t border-slate-800">
+              <div className="mt-6 flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setShowReportModal(false)}
-                  className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-800 hover:text-white transition"
+                  className="rounded-xl border border-slate-300 bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-200 transition cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={submittingReport}
-                  className="rounded-xl bg-teal-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-900/40 hover:bg-teal-500 disabled:opacity-50 transition"
+                  className="rounded-xl active-green-btn btn-primary bg-teal-600 !text-white px-5 py-2.5 text-xs font-black uppercase tracking-wider shadow-md shadow-teal-600/30 hover:bg-teal-700 disabled:opacity-50 transition cursor-pointer"
                 >
                   {submittingReport ? "Submitting..." : "Submit Report"}
                 </button>

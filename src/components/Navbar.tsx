@@ -3,7 +3,6 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import API from '../api/axios';
 import { AUTH_CHANGED_EVENT, clearAuthToken, getAuthToken } from '../auth/session';
 import UserAvatar from './UserAvatar';
-import { useTheme } from '../context/ThemeContext';
 
 const NOTICE_ACTIVITY_EVENT = 'community-notice-activity';
 const PROFILE_UPDATED_EVENT = 'community-profile-updated';
@@ -39,7 +38,6 @@ function normalizeRole(role?: string) {
 }
 
 export default function Navbar() {
-  const { theme, toggleTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [friendsDropdownOpen, setFriendsDropdownOpen] = useState(false);
@@ -70,7 +68,8 @@ export default function Navbar() {
       if (typeof document !== 'undefined' && document.hidden) return;
       API.get<{ unreadCount?: number }>('/friends/unread-chat-count')
         .then((response) => {
-          setUnreadChatCount(Number(response.data?.unreadCount || 0));
+          const newCount = Number(response.data?.unreadCount || 0);
+          setUnreadChatCount((prev) => (prev === newCount ? prev : newCount));
         })
         .catch(() => {
           setUnreadChatCount(0);
@@ -78,7 +77,7 @@ export default function Navbar() {
     };
 
     fetchUnreadChatCount();
-    const timer = setInterval(fetchUnreadChatCount, 10000);
+    const timer = setInterval(fetchUnreadChatCount, 20000);
     return () => clearInterval(timer);
   }, [authToken, location.pathname]);
 
@@ -163,18 +162,25 @@ export default function Navbar() {
       return;
     }
 
-    API.get<{ unreadCount?: number }>('/notices/unread-count')
-      .then((response) => {
-        if (cancelled) return;
-        setUnreadNoticeCount(Number(response.data?.unreadCount || 0));
-      })
-      .catch(() => {
-        if (cancelled) return;
-        setUnreadNoticeCount(0);
-      });
+    const fetchUnreadNoticeCount = () => {
+      if (typeof document !== 'undefined' && document.hidden) return;
+      API.get<{ unreadCount?: number }>('/notices/unread-count')
+        .then((response) => {
+          if (cancelled) return;
+          setUnreadNoticeCount(Number(response.data?.unreadCount || 0));
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setUnreadNoticeCount(0);
+        });
+    };
+
+    fetchUnreadNoticeCount();
+    const timer = setInterval(fetchUnreadNoticeCount, 20000);
 
     return () => {
       cancelled = true;
+      clearInterval(timer);
     };
   }, [authToken, location.pathname]);
 
@@ -308,21 +314,21 @@ export default function Navbar() {
       ];
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-slate-200 dark:border-slate-800/80 bg-white/95 dark:bg-slate-950/90 text-slate-900 dark:text-white backdrop-blur-md transition-all gpu-smooth py-1 sm:py-1.5 shadow-sm">
-      <div className="mx-auto flex min-h-[60px] sm:min-h-[76px] max-w-7xl items-center justify-between px-3 py-2 sm:px-6 lg:px-8 gap-2">
+    <header className="sticky top-0 z-50 w-full border-b border-emerald-200/80 bg-gradient-to-r from-emerald-50/95 via-teal-50/90 to-emerald-50/95 text-slate-900 py-1 sm:py-1.5 shadow-sm">
+      <div className="mx-auto flex min-h-[60px] sm:min-h-[76px] max-w-7xl items-center justify-between px-4 py-2 sm:px-6 lg:px-8 gap-2">
         
         {/* Brand Section */}
         <Link to="/" className="flex items-center gap-2 sm:gap-3 transition hover:opacity-90 py-1 shrink min-w-0">
           <div className="relative flex h-8 w-8 sm:h-10 sm:w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-teal-600 p-0.5 shadow-md shadow-teal-500/20">
-            <div className="h-full w-full rounded-[10px] bg-slate-950 p-1 flex items-center justify-center">
+            <div className="h-full w-full rounded-[10px] bg-white p-1 flex items-center justify-center border border-teal-100">
               <img src="/logo.png" alt="Logo" className="h-full w-full object-contain" />
             </div>
           </div>
           <div className="min-w-0">
-            <h1 className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white tracking-tight leading-tight truncate">
+            <h1 className="text-xs sm:text-sm font-extrabold text-slate-900 tracking-tight leading-tight truncate">
               All Kutchi Community
             </h1>
-            <p className="text-[9px] sm:text-[10px] text-emerald-500 font-medium tracking-wide mt-0.5 leading-none hidden xs:block truncate">
+            <p className="text-[9px] sm:text-[10px] text-emerald-600 font-bold tracking-wide mt-0.5 leading-none hidden xs:block truncate">
               Official Portal
             </p>
           </div>
@@ -338,13 +344,13 @@ export default function Navbar() {
                   <div className="relative" key={item.to} ref={friendsDropdownRef}>
                     <button
                       onClick={() => setFriendsDropdownOpen((s) => !s)}
-                      className={`relative flex items-center gap-2 px-4 py-3 text-xs font-semibold rounded-xl transition-all duration-200 ${
+                      className={`nav-item-btn relative flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-200 cursor-pointer bg-transparent border border-transparent ${
                         isFriendsActive
-                          ? 'text-teal-400 bg-teal-500/10'
-                          : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                          ? 'text-teal-600 font-extrabold'
+                          : 'text-slate-700 hover:text-teal-600'
                       }`}
                     >
-                      <span className={isFriendsActive ? 'text-teal-400' : 'text-slate-400'}>
+                      <span className={isFriendsActive ? 'text-teal-600' : 'text-slate-500'}>
                         {item.icon}
                       </span>
                       <span>{item.label}</span>
@@ -354,8 +360,8 @@ export default function Navbar() {
                         </span>
                       )}
                       <svg
-                        className={`h-3.5 w-3.5 text-slate-400 transition-transform duration-200 ${
-                          friendsDropdownOpen ? 'rotate-180 text-teal-400' : ''
+                        className={`h-3.5 w-3.5 text-slate-500 transition-transform duration-200 ${
+                          friendsDropdownOpen ? 'rotate-180 text-teal-600' : ''
                         }`}
                         fill="none"
                         viewBox="0 0 24 24"
@@ -366,30 +372,30 @@ export default function Navbar() {
                     </button>
 
                     {friendsDropdownOpen && (
-                      <div className="absolute left-0 mt-2 w-52 overflow-hidden rounded-xl border border-slate-800 bg-slate-950/95 backdrop-blur-md p-1.5 text-xs shadow-2xl animate-in fade-in zoom-in-95 duration-150 z-50">
+                      <div className="absolute left-0 mt-2 w-52 overflow-hidden rounded-2xl border border-slate-200 bg-white/95 backdrop-blur-md p-1.5 text-xs shadow-xl animate-in fade-in zoom-in-95 duration-150 z-50">
                         <Link
                           to="/friends"
                           onClick={() => setFriendsDropdownOpen(false)}
-                          className={`flex items-center gap-2.5 rounded-lg px-3 py-2 transition-all font-semibold ${
+                          className={`flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all font-semibold bg-transparent ${
                             location.pathname === '/friends'
-                              ? 'bg-teal-500/20 text-teal-400 font-extrabold'
-                              : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
+                              ? 'text-teal-600 font-bold'
+                              : 'text-slate-700 hover:text-teal-600'
                           }`}
                         >
-                          <span className={location.pathname === '/friends' ? 'text-teal-400' : 'text-slate-400'}>{Icons.Friends}</span>
+                          <span className={location.pathname === '/friends' ? 'text-teal-600' : 'text-slate-500'}>{Icons.Friends}</span>
                           <span>Friends</span>
                         </Link>
                         <Link
                           to="/chats"
                           onClick={() => setFriendsDropdownOpen(false)}
-                          className={`flex items-center justify-between rounded-lg px-3 py-2 transition-all font-semibold ${
+                          className={`flex items-center justify-between px-3 py-2 rounded-xl transition-all font-semibold bg-transparent ${
                             location.pathname === '/chats'
-                              ? 'bg-teal-500/20 text-teal-400 font-extrabold'
-                              : 'text-slate-300 hover:bg-slate-800/60 hover:text-white'
+                              ? 'text-teal-600 font-bold'
+                              : 'text-slate-700 hover:text-teal-600'
                           }`}
                         >
                           <div className="flex items-center gap-2.5">
-                            <span className={location.pathname === '/chats' ? 'text-teal-400' : 'text-slate-400'}>{Icons.Chat}</span>
+                            <span className={location.pathname === '/chats' ? 'text-teal-600' : 'text-slate-500'}>{Icons.Chat}</span>
                             <span>Chat</span>
                           </div>
                           {unreadChatCount > 0 && (
@@ -409,13 +415,13 @@ export default function Navbar() {
                 <Link
                   key={item.to}
                   to={item.to}
-                  className={`relative flex items-center gap-2 px-4 py-3 text-xs font-semibold rounded-xl transition-all duration-200 ${
+                  className={`nav-item-btn relative flex items-center gap-2 px-3 py-2 text-xs font-semibold rounded-xl transition-all duration-200 bg-transparent border border-transparent ${
                     active
-                      ? 'text-teal-400 bg-teal-500/10'
-                      : 'text-slate-300 hover:text-white hover:bg-slate-800/60'
+                      ? 'text-teal-600 font-extrabold'
+                      : 'text-slate-700 hover:text-teal-600'
                   }`}
                 >
-                  <span className={`${active ? 'text-teal-400' : 'text-slate-400'}`}>
+                  <span className={`${active ? 'text-teal-600' : 'text-slate-500'}`}>
                     {item.icon}
                   </span>
                   <span>{item.label}</span>
@@ -436,84 +442,101 @@ export default function Navbar() {
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setUserDropdownOpen((s) => !s)}
-                className="flex items-center gap-2.5 rounded-xl border border-teal-500/30 bg-teal-500/10 hover:bg-teal-500/20 text-teal-300 px-3.5 py-2 text-xs font-semibold transition-all duration-200 active:scale-95 shadow-sm shadow-teal-500/10"
+                className="user-menu-btn group flex items-center gap-2.5 rounded-2xl bg-transparent hover:bg-slate-100/60 text-slate-800 px-2 sm:px-2.5 py-1.5 text-xs font-semibold transition-all duration-200 active:scale-95 cursor-pointer border border-transparent shadow-none"
               >
-                <UserAvatar name={formattedName} photoUrl={currentUser?.profilePhotoUrl} size="sm" className="ring-1 ring-teal-500/40" />
+                <div className="relative shrink-0">
+                  <UserAvatar name={formattedName} photoUrl={currentUser?.profilePhotoUrl} size="sm" className="ring-2 ring-emerald-500/40 group-hover:ring-emerald-500/70 group-hover:scale-105 transition-all duration-200" />
+                  <span className="absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
+                </div>
                 
-                <div className="hidden sm:block text-left">
-                  <p className="max-w-[110px] truncate text-xs font-bold text-white leading-tight">
+                <div className="hidden sm:block text-left min-w-0">
+                  <p className="max-w-[110px] truncate text-xs font-extrabold text-slate-900 leading-tight group-hover:text-emerald-600 transition-colors">
                     {formattedName}
                   </p>
-                  <p className="text-[9px] font-semibold text-teal-300 leading-tight capitalize">
+                  <p className="text-[9px] font-extrabold text-emerald-600 leading-tight uppercase tracking-wider mt-0.5">
                     {currentUser?.role?.replace('_', ' ') || 'Member'}
                   </p>
                 </div>
 
                 <svg
-                  className={`h-3.5 w-3.5 text-teal-400 transition-transform duration-200 ${userDropdownOpen ? 'rotate-180 text-emerald-300' : ''}`}
+                  className={`h-4 w-4 text-slate-500 group-hover:text-emerald-500 transition-all duration-200 ${userDropdownOpen ? 'rotate-180 text-emerald-500' : ''}`}
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
 
-              {/* Seamless Theme Dropdown */}
+              {/* Elevated Profile Dropdown */}
               {userDropdownOpen && (
-                <div className="absolute right-0 mt-2 w-56 overflow-hidden rounded-xl border border-slate-800 bg-slate-950/95 backdrop-blur-md p-1.5 text-xs shadow-2xl animate-in fade-in zoom-in-95 duration-150">
-                  <div className="px-3 py-2 border-b border-slate-800/80 mb-1">
-                    <p className="font-semibold text-white truncate text-xs">{formattedName}</p>
-                    <p className="text-[10px] text-slate-400 truncate mt-0.5">Jamaat: {currentUser?.jamaat || 'General'}</p>
+                <div className="absolute right-0 mt-2.5 w-64 overflow-hidden rounded-2xl border border-slate-200/80 bg-white/95 text-slate-900 backdrop-blur-xl p-2 text-xs shadow-xl animate-in fade-in zoom-in-95 duration-150 z-50">
+                  {/* User Profile Summary Header */}
+                  <div className="flex items-center gap-3 p-2.5 rounded-xl bg-slate-50 border border-slate-100 mb-1.5">
+                    <UserAvatar name={formattedName} photoUrl={currentUser?.profilePhotoUrl} size="md" className="ring-2 ring-emerald-500/40 shrink-0" />
+                    <div className="min-w-0 flex-1">
+                      <p className="font-extrabold text-slate-900 truncate text-xs leading-snug">{formattedName}</p>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        <span className="inline-flex items-center rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-[9px] font-extrabold text-emerald-600 capitalize">
+                          {currentUser?.role?.replace('_', ' ') || 'Member'}
+                        </span>
+                        <span className="text-[10px] text-slate-500 truncate">Jamaat: {currentUser?.jamaat || 'General'}</span>
+                      </div>
+                    </div>
                   </div>
 
-                  <Link
-                    to="/profile"
-                    onClick={() => setUserDropdownOpen(false)}
-                    className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all font-medium"
-                  >
-                    <span className="text-slate-400">{Icons.Home}</span>
-                    <span>My Profile</span>
-                  </Link>
-
-                  <Link
-                    to="/help"
-                    onClick={() => setUserDropdownOpen(false)}
-                    className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-slate-300 hover:bg-slate-800/60 hover:text-white transition-all font-medium"
-                  >
-                    <span className="text-slate-400">{Icons.Help}</span>
-                    <span>Help & Guidance</span>
-                  </Link>
-
-                  {currentUser?.role === 'super_admin' ? (
+                  {/* Existing Menu Options */}
+                  <div className="space-y-0.5">
                     <Link
-                      to="/super-admin"
+                      to="/profile"
                       onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-amber-300 hover:bg-amber-950/40 hover:text-amber-200 transition-all font-medium my-0.5 border border-amber-500/20"
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-emerald-600 hover:bg-emerald-500/10 transition-all font-semibold"
                     >
-                      <span className="text-amber-400">{Icons.Admin}</span>
-                      <span>Super Admin</span>
+                      <span className="text-slate-500 group-hover:text-emerald-500">{Icons.Home}</span>
+                      <span>My Profile</span>
                     </Link>
-                  ) : isAdmin ? (
-                    <Link
-                      to="/admin"
-                      onClick={() => setUserDropdownOpen(false)}
-                      className="flex items-center gap-2.5 rounded-lg px-3 py-2 text-teal-300 hover:bg-teal-950/40 hover:text-teal-200 transition-all font-medium my-0.5 border border-teal-500/20"
-                    >
-                      <span className="text-teal-400">{Icons.Admin}</span>
-                      <span>Admin Control</span>
-                    </Link>
-                  ) : null}
 
-                  <button
-                    onClick={handleLogout}
-                    className="flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-rose-400 hover:bg-rose-950/40 hover:text-rose-300 transition-all font-medium mt-1 border-t border-slate-800/80"
-                  >
-                    <svg className="w-4 h-4 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    <span>Sign Out</span>
-                  </button>
+                    <Link
+                      to="/help"
+                      onClick={() => setUserDropdownOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-emerald-600 hover:bg-emerald-500/10 transition-all font-semibold"
+                    >
+                      <span className="text-slate-500">{Icons.Help}</span>
+                      <span>Help & Guidance</span>
+                    </Link>
+
+                    {currentUser?.role === 'super_admin' ? (
+                      <Link
+                        to="/super-admin"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-amber-600 hover:bg-amber-500/10 transition-all font-semibold"
+                      >
+                        <span className="text-amber-500">{Icons.Admin}</span>
+                        <span>Super Admin</span>
+                      </Link>
+                    ) : isAdmin ? (
+                      <Link
+                        to="/admin"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-emerald-600 hover:bg-emerald-500/10 transition-all font-semibold"
+                      >
+                        <span className="text-emerald-500">{Icons.Admin}</span>
+                        <span>Admin Control</span>
+                      </Link>
+                    ) : null}
+
+                    <div className="pt-1 mt-1 border-t border-slate-100">
+                      <button
+                        onClick={handleLogout}
+                        className="flex w-full items-center gap-2.5 px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-500/10 transition-all font-semibold cursor-pointer"
+                      >
+                        <svg className="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                        </svg>
+                        <span>Sign Out</span>
+                      </button>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
@@ -521,20 +544,20 @@ export default function Navbar() {
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
               <Link
                 to="/login"
-                className={`rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-xs transition whitespace-nowrap shrink-0 border ${
+                className={`rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-xs transition whitespace-nowrap shrink-0 border border-transparent bg-transparent ${
                   location.pathname === '/login'
-                    ? 'nav-btn-active font-extrabold'
-                    : 'nav-btn-inactive font-bold'
+                    ? 'text-teal-600 font-extrabold'
+                    : 'text-slate-700 hover:text-teal-600 font-bold'
                 }`}
               >
                 Sign In
               </Link>
               <Link
                 to="/register"
-                className={`rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-xs transition whitespace-nowrap shrink-0 border ${
-                  location.pathname === '/register' || location.pathname !== '/login'
-                    ? 'nav-btn-active font-extrabold'
-                    : 'nav-btn-inactive font-bold'
+                className={`rounded-xl px-3 py-1.5 sm:px-4 sm:py-2 text-[11px] sm:text-xs transition whitespace-nowrap shrink-0 border border-transparent bg-transparent ${
+                  location.pathname === '/register'
+                    ? 'text-teal-600 font-extrabold'
+                    : 'text-slate-700 hover:text-teal-600 font-bold'
                 }`}
               >
                 Register
@@ -546,9 +569,15 @@ export default function Navbar() {
           {navItems.length > 0 && (
             <button
               onClick={() => setMobileOpen((s) => !s)}
-              className="mobile-menu-btn rounded-xl border border-slate-300 dark:border-slate-800 bg-slate-100 dark:bg-slate-900 p-2 text-slate-800 dark:text-slate-200 transition hover:bg-slate-200 dark:hover:bg-slate-800 hover:text-slate-950 dark:hover:text-white lg:hidden shadow-sm"
+              className="mobile-menu-btn relative rounded-xl border border-transparent bg-transparent p-2 text-slate-800 transition hover:text-teal-600 lg:hidden shadow-none cursor-pointer"
               aria-label="Toggle Menu"
             >
+              {(unreadChatCount > 0 || unreadNoticeCount > 0) && !mobileOpen && (
+                <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500 ring-2 ring-white" />
+                </span>
+              )}
               {mobileOpen ? (
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -565,7 +594,7 @@ export default function Navbar() {
 
       {/* Mobile Drawer */}
       {mobileOpen && (
-        <div className="border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950 px-4 py-3 lg:hidden animate-in fade-in slide-in-from-top-2 shadow-2xl text-slate-900 dark:text-white">
+        <div className="border-t border-emerald-200/80 bg-emerald-50/95 px-4 py-3 lg:hidden animate-in fade-in slide-in-from-top-2 shadow-2xl text-slate-900">
           <div className="flex flex-col gap-1">
             {navItems.map((item) => {
               if (item.isDropdown) {
@@ -576,12 +605,12 @@ export default function Navbar() {
                       onClick={() => setMobileOpen(false)}
                       className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold transition ${
                         location.pathname === '/friends'
-                          ? 'bg-teal-500/15 text-teal-700 dark:text-teal-400 font-extrabold'
-                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-950 dark:hover:text-white'
+                          ? 'bg-teal-50 text-teal-700 font-extrabold'
+                          : 'text-slate-700 hover:bg-slate-100 hover:text-slate-950'
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className={location.pathname === '/friends' ? 'text-teal-600 dark:text-teal-400' : 'text-slate-500 dark:text-slate-400'}>{Icons.Friends}</span>
+                        <span className={location.pathname === '/friends' ? 'text-teal-600' : 'text-slate-500'}>{Icons.Friends}</span>
                         <span>Friends</span>
                       </div>
                     </Link>
@@ -590,12 +619,12 @@ export default function Navbar() {
                       onClick={() => setMobileOpen(false)}
                       className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold transition ${
                         location.pathname === '/chats'
-                          ? 'bg-teal-500/15 text-teal-700 dark:text-teal-400 font-extrabold'
-                          : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-950 dark:hover:text-white'
+                          ? 'bg-teal-50 text-teal-700 font-extrabold'
+                          : 'text-slate-700 hover:bg-slate-100 hover:text-slate-950'
                       }`}
                     >
                       <div className="flex items-center gap-3">
-                        <span className={location.pathname === '/chats' ? 'text-teal-600 dark:text-teal-400' : 'text-slate-500 dark:text-slate-400'}>{Icons.Chat}</span>
+                        <span className={location.pathname === '/chats' ? 'text-teal-600' : 'text-slate-500'}>{Icons.Chat}</span>
                         <span>Chat</span>
                       </div>
                       {unreadChatCount > 0 && (
@@ -616,12 +645,12 @@ export default function Navbar() {
                   onClick={() => setMobileOpen(false)}
                   className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-semibold transition ${
                     active
-                      ? 'bg-teal-500/15 text-teal-700 dark:text-teal-400 font-extrabold'
-                      : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-900 hover:text-slate-950 dark:hover:text-white'
+                      ? 'bg-teal-50 text-teal-700 font-extrabold'
+                      : 'text-slate-700 hover:bg-slate-100 hover:text-slate-950'
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className={active ? 'text-teal-600 dark:text-teal-400' : 'text-slate-500 dark:text-slate-400'}>{item.icon}</span>
+                    <span className={active ? 'text-teal-600' : 'text-slate-500'}>{item.icon}</span>
                     <span>{item.label}</span>
                   </div>
                   {item.unreadCount && item.unreadCount > 0 ? (
@@ -633,11 +662,11 @@ export default function Navbar() {
               );
             })}
 
-            <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-800 space-y-1.5">
+            <div className="mt-2 pt-2 border-t border-slate-200 space-y-1.5">
               {isAuthenticated && (
                 <button
                   onClick={handleLogout}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-rose-50 dark:bg-rose-950/30 border border-rose-200 dark:border-rose-900/40 py-2.5 text-xs font-bold text-rose-700 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-950/60 transition"
+                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-rose-50 border border-rose-200 py-2.5 text-xs font-bold text-rose-700 hover:bg-rose-100 transition"
                 >
                   Sign Out Account
                 </button>

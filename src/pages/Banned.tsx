@@ -27,8 +27,8 @@ export default function Banned({ banDuration, bannedUntil, message }: BannedProp
     : null;
 
   return (
-    <div className="flex min-h-[85vh] items-center justify-center px-4 py-12 bg-slate-950 text-white">
-      <div className="w-full max-w-md overflow-hidden rounded-3xl border border-red-500/40 bg-slate-900 p-6 sm:p-8 shadow-2xl shadow-red-500/10 text-center animate-in fade-in zoom-in">
+    <div className="flex min-h-[85vh] items-center justify-center px-4 py-12 bg-white text-white">
+      <div className="w-full max-w-md overflow-hidden rounded-3xl border border-red-500/40 bg-white p-6 sm:p-8 shadow-2xl shadow-red-500/10 text-center animate-in fade-in zoom-in">
         {/* Shield Icon Box */}
         <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full border-2 border-red-500/50 bg-red-950/60 shadow-lg shadow-red-500/20">
           <span className="text-4xl">🛡️</span>
@@ -41,7 +41,7 @@ export default function Banned({ banDuration, bannedUntil, message }: BannedProp
         </div>
 
         {/* Reason Box */}
-        <div className="mt-5 rounded-2xl border border-slate-800 bg-slate-950/80 p-4 text-xs leading-relaxed text-slate-300 font-medium">
+        <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 text-xs leading-relaxed text-slate-700 font-medium">
           {message ||
             "Aapka account community rules aur guidelines violation ki waja se suspend kar diya gaya hai. Jab tak ban duration khatam nahi hoti, access restricted rahega."}
         </div>
@@ -49,14 +49,14 @@ export default function Banned({ banDuration, bannedUntil, message }: BannedProp
         {/* Ban Details Card */}
         <div className="mt-4 rounded-2xl border border-red-500/20 bg-red-500/5 p-4 text-xs">
           <div className="flex items-center justify-between">
-            <span className="font-bold text-slate-400">Ban Period:</span>
+            <span className="font-bold text-slate-500">Ban Period:</span>
             <span className="font-extrabold uppercase text-red-400">{(banDuration || "permanent").toUpperCase()} BAN</span>
           </div>
 
-          <div className="my-2 h-[1px] bg-slate-800" />
+          <div className="my-2 h-[1px] bg-slate-50" />
 
           <div className="flex items-center justify-between">
-            <span className="font-bold text-slate-400">Unban Status:</span>
+            <span className="font-bold text-slate-500">Unban Status:</span>
             <span className={`font-bold ${formattedUntil ? "text-amber-300" : "text-red-400"}`}>
               {formattedUntil ? `Unban Date: ${formattedUntil}` : "Permanent Lifetime Ban"}
             </span>

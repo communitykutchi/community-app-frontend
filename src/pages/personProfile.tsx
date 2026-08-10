@@ -424,9 +424,9 @@ export default function PeopleProfile() {
       <Toast message={toast.message} type={toast.type} isVisible={toast.isVisible} onClose={() => setToast((t) => ({ ...t, isVisible: false }))} />
 
       {/* Profile Banner Card */}
-      <section className="overflow-hidden rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 text-slate-900 dark:text-white shadow-xl">
+      <section className="overflow-hidden rounded-3xl border border-slate-200 bg-white text-slate-900 shadow-xl">
         {/* Cover Photo Header */}
-        <div className="cover-banner relative h-36 sm:h-52 md:h-64 overflow-hidden bg-slate-900">
+        <div className="cover-banner relative h-36 sm:h-52 md:h-64 overflow-hidden bg-white">
           <img
             src={getMediaUrl(coverPreviewUrl || user?.coverPhotoUrl)}
             alt="Cover Banner"
@@ -437,60 +437,64 @@ export default function PeopleProfile() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-slate-950/20 to-black/30 pointer-events-none" />
           {/* Upload Cover Photo Button */}
-          <label className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 flex cursor-pointer items-center gap-1 sm:gap-1.5 rounded-xl border border-white/30 bg-slate-950/80 px-2.5 py-1.5 sm:px-3.5 sm:py-2 text-[11px] sm:text-xs font-extrabold text-white backdrop-blur-md hover:bg-slate-900 transition shadow-lg">
+          <label className="absolute top-3 right-3 sm:top-4 sm:right-4 z-10 inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 sm:px-3.5 sm:py-2 text-[11px] sm:text-xs font-extrabold text-slate-900 shadow-lg hover:bg-slate-50 active:scale-95 transition">
             <span>📷</span>
-            <span>{uploadingCover ? "Uploading..." : "Change Cover"}</span>
+            <span>{uploadingCover ? "Uploading..." : user?.coverPhotoUrl ? "Change Cover Photo" : "Add Cover Photo"}</span>
             <input type="file" accept="image/*" onChange={handleCoverPhotoChange} className="hidden" />
           </label>
         </div>
 
         {/* Profile Info Bar with Dynamic Ambient Gradient */}
-        <div className="relative px-4 py-4 sm:px-6 sm:pb-6 sm:pt-0 bg-gradient-to-b from-slate-100/90 via-white to-white dark:from-slate-900/90 dark:via-slate-950 dark:to-slate-950 border-t border-slate-200/50 dark:border-slate-800/50">
+        <div className="relative px-4 py-4 sm:px-6 sm:pb-6 sm:pt-0 bg-gradient-to-b from-slate-100/90 via-white to-white border-t border-slate-200/50">
           <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4 -mt-12 sm:-mt-16 relative z-10">
             {/* Avatar Row */}
-            <div className="relative inline-block shrink-0">
-              <UserAvatar name={user?.fullName} photoUrl={photoUrl} size="xl" className="ring-4 ring-white dark:ring-slate-900 bg-white dark:bg-slate-950 shadow-2xl" />
-              <label className="absolute -bottom-1 -right-1 grid h-8 w-8 sm:h-9 sm:w-9 cursor-pointer place-items-center rounded-xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-md transition hover:bg-slate-100 dark:hover:bg-slate-800 hover:scale-105 active:scale-95">
-                <span className="sr-only">Upload profile photo</span>
-                {uploadingPhoto ? (
-                  <div className="h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin rounded-full border-2 border-teal-500 border-t-transparent" />
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-700 dark:text-slate-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 0 1 2-2h.93a2 2 0 0 0 1.664-.89l.812-1.22A2 2 0 0 1 10.07 4h3.86a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 18.07 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z" />
-                    <circle cx="12" cy="13" r="3" />
-                  </svg>
-                )}
-                <input type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
-              </label>
-            </div>
-
-            {/* Profile Completion Box */}
-            <div className="w-full sm:w-auto sm:min-w-64 rounded-2xl border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-3.5 sm:p-4 shrink-0 shadow-lg space-y-2">
-              <div className="flex items-center justify-between text-xs font-black uppercase tracking-wider text-slate-900 dark:text-white">
-                <span>Profile Completion</span>
-                <span className="rounded-full bg-teal-500/20 px-2.5 py-0.5 text-xs font-black text-teal-700 dark:text-teal-300 border border-teal-500/30">
-                  {profileCompletion}%
-                </span>
+            <div className="relative inline-flex shrink-0">
+              <div className="relative h-24 w-24 sm:h-28 sm:w-28 shrink-0 rounded-3xl overflow-hidden ring-4 ring-white shadow-2xl bg-transparent">
+                <UserAvatar name={user?.fullName} photoUrl={photoUrl} size="xl" className="h-full w-full object-cover" />
+                <label className="absolute bottom-1.5 right-1.5 sm:bottom-2 sm:right-2 grid h-7 w-7 sm:h-8 sm:w-8 cursor-pointer place-items-center rounded-full border border-slate-200/90 bg-white/95 text-slate-800 shadow-md backdrop-blur-md transition hover:bg-white hover:scale-105 active:scale-95 z-20">
+                  <span className="sr-only">Upload profile photo</span>
+                  {uploadingPhoto ? (
+                    <div className="h-3 w-3 sm:h-3.5 sm:w-3.5 animate-spin rounded-full border-2 border-teal-500 border-t-transparent" />
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-slate-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 0 1 2-2h.93a2 2 0 0 0 1.664-.89l.812-1.22A2 2 0 0 1 10.07 4h3.86a2 2 0 0 1 1.664.89l.812 1.22A2 2 0 0 0 18.07 7H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9z" />
+                      <circle cx="12" cy="13" r="3" />
+                    </svg>
+                  )}
+                  <input type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" />
+                </label>
               </div>
-              <div className="progress-bar-track h-3 sm:h-3.5 overflow-hidden rounded-full p-0.5 shadow-inner">
-                <div
-                  className="progress-bar-fill h-full rounded-full transition-all duration-500"
-                  style={{ width: `${Math.max(profileCompletion, 5)}%` }}
-                />
-              </div>
-              <p className="text-[11px] font-bold text-slate-600 dark:text-slate-400">Fill all community fields to complete profile.</p>
             </div>
           </div>
 
-          {/* Name & Details Header (Positioned 100% cleanly below cover photo) */}
-          <div className="mt-3 sm:mt-4 space-y-1">
-            <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-950 dark:text-white tracking-tight break-words max-w-full">{user?.fullName || "Personal Details"}</h1>
-              <span className="inline-block shrink-0 rounded-full bg-teal-500/20 px-3 py-0.5 text-[11px] font-bold uppercase tracking-wider text-teal-700 dark:text-teal-300 border border-teal-500/30">
-                {labelRole(user?.role)}
-              </span>
+          {/* Name, Details & Profile Completion Row */}
+          <div className="mt-3 sm:mt-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="space-y-1 min-w-0 flex-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-950 tracking-tight break-words max-w-full">{user?.fullName || "Personal Details"}</h1>
+                <span className="inline-block shrink-0 rounded-full bg-teal-500/20 px-3 py-0.5 text-[11px] font-bold uppercase tracking-wider text-teal-700 border border-teal-500/30">
+                  {labelRole(user?.role)}
+                </span>
+              </div>
+              <p className="text-xs font-semibold text-slate-600 break-words">@{user?.username || "member"} • {user?.mobile || user?.email || "No contact info"}</p>
             </div>
-            <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 break-words">@{user?.username || "member"} • {user?.mobile || user?.email || "No contact info"}</p>
+
+            {/* Profile Completion Box */}
+            <div className="w-full md:w-auto md:min-w-64 rounded-2xl border border-slate-200 bg-slate-50/80 p-3.5 sm:p-4 shrink-0 shadow-sm space-y-2">
+              <div className="flex items-center justify-between gap-3 text-xs font-black uppercase tracking-wider text-slate-900">
+                <span>Profile Completion</span>
+                <span className="rounded-full bg-teal-600 px-2.5 py-0.5 text-xs font-black text-white shadow-2xs">
+                  {profileCompletion}%
+                </span>
+              </div>
+              <div className="progress-bar-track h-2.5 sm:h-3 overflow-hidden rounded-full p-0.5 shadow-inner bg-slate-200">
+                <div
+                  className="progress-bar-fill h-full rounded-full transition-all duration-500 bg-gradient-to-r from-teal-500 to-emerald-600"
+                  style={{ width: `${Math.max(profileCompletion, 5)}%` }}
+                />
+              </div>
+              <p className="text-[11px] font-bold text-slate-500">Fill all community fields to complete profile.</p>
+            </div>
           </div>
         </div>
       </section>
@@ -498,14 +502,14 @@ export default function PeopleProfile() {
       {/* Main Profile Form */}
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Section 1: Basic Identity Information */}
-        <div className="rounded-3xl border border-slate-800 bg-slate-900/90 p-6 text-white shadow-xl space-y-5">
-          <div className="border-b border-slate-800 pb-3 flex items-center gap-3">
-            <div className="grid h-9 w-9 place-items-center rounded-xl bg-teal-500/20 text-teal-300 font-extrabold text-base border border-teal-500/30">
+        <div className="rounded-3xl border border-slate-200 bg-white p-6 text-slate-900 shadow-xl space-y-5">
+          <div className="border-b border-slate-100 pb-3 flex items-center gap-3">
+            <div className="grid h-9 w-9 place-items-center rounded-xl bg-teal-50 text-teal-700 font-extrabold text-base border border-teal-200">
               👤
             </div>
             <div>
-              <h2 className="text-base font-extrabold text-white">Basic Account & Identity</h2>
-              <p className="text-xs text-slate-400">Your core login, name, and contact details.</p>
+              <h2 className="text-base font-extrabold text-slate-900">Basic Account & Identity</h2>
+              <p className="text-xs font-semibold text-slate-500">Your core login, name, and contact details.</p>
             </div>
           </div>
 
@@ -545,7 +549,7 @@ export default function PeopleProfile() {
                     ? "text-emerald-400"
                     : usernameStatus === "taken" || usernameStatus === "invalid"
                     ? "text-rose-400"
-                    : "text-slate-400"
+                    : "text-slate-500"
                 }`}>
                   {usernameMessage}
                 </p>
@@ -561,7 +565,7 @@ export default function PeopleProfile() {
                   value={form.email || ""}
                   readOnly
                   placeholder="name@example.com"
-                  className="form-input flex-1 min-w-0 text-xs sm:text-sm bg-slate-950/80 cursor-not-allowed font-semibold text-slate-300 truncate border-slate-800"
+                  className="form-input flex-1 min-w-0 text-xs sm:text-sm bg-white cursor-not-allowed font-semibold text-slate-700 truncate border-slate-200"
                 />
                 <button
                   type="button"
@@ -572,7 +576,7 @@ export default function PeopleProfile() {
                   <span>Change Email</span>
                 </button>
               </div>
-              <p className="mt-1.5 text-[11px] text-slate-400">Email is locked for security. Click 'Change Email' to verify a new email via OTP.</p>
+              <p className="mt-1.5 text-[11px] text-slate-500">Email is locked for security. Click 'Change Email' to verify a new email via OTP.</p>
             </div>
 
             <div>
@@ -614,7 +618,7 @@ export default function PeopleProfile() {
                 name="country"
                 value="Pakistan"
                 readOnly
-                className="form-input bg-slate-950/80 cursor-not-allowed font-semibold text-slate-400 border-slate-800"
+                className="form-input bg-white cursor-not-allowed font-semibold text-slate-500 border-slate-200"
               />
             </div>
 
@@ -627,15 +631,15 @@ export default function PeopleProfile() {
                 className="form-input font-medium"
               >
                 {PAKISTAN_CITIES.map((c) => (
-                  <option key={c} value={c} className="bg-slate-950 text-white">
+                  <option key={c} value={c} className="bg-white text-slate-900 font-semibold">
                     {c}
                   </option>
                 ))}
               </select>
             </div>
           </div>
-          <div className="pt-4 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p className="text-xs font-semibold text-slate-400">
+          <div className="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-xs font-semibold text-slate-500">
               Ensure all details are correct before saving.
             </p>
 
@@ -659,19 +663,19 @@ export default function PeopleProfile() {
 
       {/* Email Change & OTP Modal */}
       {showEmailModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 animate-in fade-in duration-200">
-          <div className="relative overflow-hidden w-full max-w-md rounded-3xl border border-teal-500/40 bg-gradient-to-br from-slate-950 via-slate-900 to-teal-950/95 p-6 text-white shadow-2xl space-y-5">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-md p-4 animate-in fade-in duration-200">
+          <div className="relative overflow-hidden w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 text-slate-900 shadow-2xl space-y-5">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div className="flex items-center gap-2">
                 <span className="text-xl">✉️</span>
-                <h3 className="text-base font-extrabold text-white">
+                <h3 className="text-base font-extrabold text-slate-900">
                   {emailStep === 1 ? "Verify New Email Address" : "Enter Verification Code"}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowEmailModal(false)}
-                className="rounded-full bg-slate-900 p-1.5 text-slate-400 hover:bg-slate-800 hover:text-white transition"
+                className="rounded-xl p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition cursor-pointer"
               >
                 ✕
               </button>
@@ -679,44 +683,46 @@ export default function PeopleProfile() {
 
             {emailStep === 1 ? (
               <form onSubmit={handleSendEmailOtp} className="space-y-4">
-                <p className="text-xs text-slate-300 leading-relaxed">
+                <p className="text-xs font-semibold text-slate-600 leading-relaxed">
                   Enter your new email address below. We will send a 6-digit OTP code to verify ownership before updating your account.
                 </p>
 
                 <div>
-                  <label className="form-label">Current Email</label>
+                  <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1">Current Email</label>
                   <input
                     type="email"
                     value={user?.email || "Not specified"}
                     disabled
-                    className="form-input bg-slate-950 text-slate-400 text-xs font-medium cursor-not-allowed border-slate-800"
+                    className="w-full rounded-xl border border-slate-200 bg-slate-100 p-3 text-xs sm:text-sm font-semibold text-slate-500 cursor-not-allowed"
                   />
                 </div>
 
                 <div>
-                  <label className="form-label">New Email Address <span className="text-rose-400">*</span></label>
+                  <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1">
+                    New Email Address <span className="text-rose-500">*</span>
+                  </label>
                   <input
                     type="email"
                     value={newEmailInput}
                     onChange={(e) => setNewEmailInput(e.target.value)}
                     placeholder="e.g. newemail@example.com"
                     required
-                    className="form-input text-xs font-medium focus:border-teal-400"
+                    className="w-full rounded-xl border border-slate-300 bg-white p-3 text-xs sm:text-sm font-semibold text-slate-900 placeholder-slate-400 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition"
                   />
                 </div>
 
-                <div className="flex items-center justify-end gap-2 pt-2">
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
                   <button
                     type="button"
                     onClick={() => setShowEmailModal(false)}
-                    className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-800 transition"
+                    className="rounded-xl border border-slate-300 bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-200 transition cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={sendingOtp || !newEmailInput.trim()}
-                    className="rounded-xl bg-teal-600 px-5 py-2.5 text-xs font-bold text-white shadow-md hover:bg-teal-500 transition disabled:opacity-50"
+                    className="rounded-xl active-green-btn btn-primary bg-teal-600 !text-white px-5 py-2.5 text-xs font-black uppercase tracking-wider shadow-md shadow-teal-600/30 hover:bg-teal-700 transition disabled:opacity-50 cursor-pointer"
                   >
                     {sendingOtp ? "Sending OTP..." : "Send Verification OTP 📩"}
                   </button>
@@ -724,12 +730,14 @@ export default function PeopleProfile() {
               </form>
             ) : (
               <form onSubmit={handleVerifyAndUpdateEmail} className="space-y-4">
-                <div className="rounded-2xl bg-teal-500/20 border border-teal-500/30 p-3.5 text-xs text-teal-200 leading-relaxed">
-                  🔐 We sent a 6-digit OTP code to <strong className="font-extrabold text-white">{newEmailInput}</strong>. Please check your inbox or spam folder.
+                <div className="rounded-2xl bg-teal-50 border border-teal-200 p-3.5 text-xs font-semibold text-teal-900 leading-relaxed">
+                  🔐 We sent a 6-digit OTP code to <strong className="font-extrabold text-teal-950">{newEmailInput}</strong>. Please check your inbox or spam folder.
                 </div>
 
                 <div>
-                  <label className="form-label">6-Digit Verification OTP Code <span className="text-rose-400">*</span></label>
+                  <label className="block text-xs font-black uppercase tracking-wider text-slate-700 mb-1">
+                    6-Digit Verification OTP Code <span className="text-rose-500">*</span>
+                  </label>
                   <input
                     type="text"
                     maxLength={6}
@@ -737,7 +745,7 @@ export default function PeopleProfile() {
                     onChange={(e) => setOtpInput(e.target.value.replace(/\D/g, ""))}
                     placeholder="123456"
                     required
-                    className="form-input text-center text-lg font-mono font-bold tracking-widest text-white focus:border-teal-400 bg-slate-950"
+                    className="w-full rounded-xl border border-slate-300 bg-white p-3 text-center text-lg font-mono font-extrabold tracking-widest text-slate-900 placeholder-slate-400 outline-none focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition"
                   />
                 </div>
 
@@ -745,7 +753,7 @@ export default function PeopleProfile() {
                   <button
                     type="button"
                     onClick={() => setEmailStep(1)}
-                    className="font-bold text-slate-400 hover:text-white transition"
+                    className="font-bold text-slate-500 hover:text-slate-800 transition cursor-pointer"
                   >
                     ← Change Email Address
                   </button>
@@ -753,24 +761,24 @@ export default function PeopleProfile() {
                     type="button"
                     onClick={handleSendEmailOtp}
                     disabled={sendingOtp}
-                    className="font-extrabold text-teal-400 hover:text-teal-300 transition"
+                    className="font-extrabold text-teal-600 hover:text-teal-700 transition cursor-pointer"
                   >
                     Resend OTP Code
                   </button>
                 </div>
 
-                <div className="flex items-center justify-end gap-2 pt-2">
+                <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-100">
                   <button
                     type="button"
                     onClick={() => setShowEmailModal(false)}
-                    className="rounded-xl border border-slate-700 bg-slate-900 px-4 py-2.5 text-xs font-bold text-slate-300 hover:bg-slate-800 transition"
+                    className="rounded-xl border border-slate-300 bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-200 transition cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={verifyingEmail || otpInput.length < 4}
-                    className="rounded-xl bg-teal-600 px-5 py-2.5 text-xs font-extrabold text-white shadow-md hover:bg-teal-500 transition disabled:opacity-50"
+                    className="rounded-xl active-green-btn btn-primary bg-teal-600 !text-white px-5 py-2.5 text-xs font-black uppercase tracking-wider shadow-md shadow-teal-600/30 hover:bg-teal-700 transition disabled:opacity-50 cursor-pointer"
                   >
                     {verifyingEmail ? "Verifying..." : "Verify & Update Email ✓"}
                   </button>

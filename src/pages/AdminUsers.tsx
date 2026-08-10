@@ -280,7 +280,7 @@ export default function AdminUsers() {
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
 
       {/* Header Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-slate-900 p-6 text-white shadow-xl md:p-8">
+      <div className="relative overflow-hidden rounded-3xl bg-white p-6 text-white shadow-xl md:p-8">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
@@ -289,7 +289,7 @@ export default function AdminUsers() {
               </span>
             </div>
             <h1 className="text-2xl font-extrabold text-white md:text-3xl">Community Portal Management</h1>
-            <p className="text-sm text-slate-300 max-w-xl">
+            <p className="text-sm text-slate-700 max-w-xl">
               Manage member accounts, permissions, jamaats, content moderation, reports, and global security actions.
             </p>
           </div>
@@ -332,19 +332,19 @@ export default function AdminUsers() {
         <div className="mt-6 space-y-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Total Registered</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Total Registered</span>
               <p className="mt-2 text-2xl font-black text-slate-900">{analytics?.totalUsers || users.length}</p>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Active Rate</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Active Rate</span>
               <p className="mt-2 text-2xl font-black text-teal-600">{analytics?.activeRate || 94}%</p>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Suspended Users</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Suspended Users</span>
               <p className="mt-2 text-2xl font-black text-red-600">{users.filter((u) => u.isBanned).length}</p>
             </div>
             <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-400">Pending Reports</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Pending Reports</span>
               <p className="mt-2 text-2xl font-black text-amber-600">{reports.filter((r) => r.status === "pending").length}</p>
             </div>
           </div>
@@ -385,16 +385,18 @@ export default function AdminUsers() {
               className="w-full md:w-80 rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm focus:border-teal-500"
             />
 
-            <div className="flex items-center gap-2 overflow-x-auto">
+            <div className="grid grid-cols-3 sm:flex flex-wrap gap-1.5 w-full sm:w-auto">
               {(["all", "super_admin", "admin", "moderator", "member", "banned"] as const).map((r) => (
                 <button
                   key={r}
                   onClick={() => setRoleFilter(r)}
-                  className={`rounded-xl px-3 py-1.5 text-xs font-bold uppercase transition ${
-                    roleFilter === r ? "bg-slate-900 text-white" : "bg-white text-slate-600 border border-slate-200"
+                  className={`rounded-xl px-2.5 py-2 sm:px-3 sm:py-1.5 text-xs font-black uppercase transition cursor-pointer text-center ${
+                    roleFilter === r
+                      ? "bg-teal-600 text-white shadow-md"
+                      : "bg-slate-100 text-slate-700 border border-slate-200 hover:bg-slate-200"
                   }`}
                 >
-                  {r}
+                  {r.replace("_", " ")}
                 </button>
               ))}
             </div>
@@ -414,7 +416,7 @@ export default function AdminUsers() {
                       <UserAvatar name={u.fullName} photoUrl={u.profilePhotoUrl} size="md" />
                       <div className="min-w-0">
                         <p className="font-extrabold text-slate-900 text-sm truncate">{u.fullName}</p>
-                        <p className="text-xs text-slate-400 truncate">@{u.username || "member"}</p>
+                        <p className="text-xs text-slate-500 truncate">@{u.username || "member"}</p>
                         <p className="text-[11px] text-slate-500 truncate">{u.mobile || u.email || "No contact"}</p>
                       </div>
                     </div>
@@ -429,7 +431,7 @@ export default function AdminUsers() {
                         className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-extrabold text-slate-700 shadow-sm hover:bg-teal-50 hover:border-teal-500 transition active:scale-95"
                       >
                         <span>⚙️ Actions</span>
-                        <svg className={`h-3.5 w-3.5 transition-transform duration-200 ${openActionUserId === u._id ? 'rotate-180 text-teal-600' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <svg className={`h-3.5 w-3.5 transition-transform duration-200 ${openActionUserId === u._id ? 'rotate-180 text-teal-600' : 'text-slate-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                         </svg>
                       </button>
@@ -528,13 +530,13 @@ export default function AdminUsers() {
                         <UserAvatar name={u.fullName} photoUrl={u.profilePhotoUrl} size="sm" />
                         <div>
                           <p className="font-bold text-slate-900">{u.fullName}</p>
-                          <p className="text-[11px] text-slate-400">@{u.username || "member"}</p>
+                          <p className="text-[11px] text-slate-500">@{u.username || "member"}</p>
                         </div>
                       </div>
                     </td>
                     <td className="px-4 py-3">
                       <p className="font-medium text-slate-800">{u.mobile || "N/A"}</p>
-                      <p className="text-[11px] text-slate-400">{u.email || ""}</p>
+                      <p className="text-[11px] text-slate-500">{u.email || ""}</p>
                     </td>
                     <td className="px-4 py-3 font-semibold text-slate-700">{u.jamaat || "General"}</td>
                     <td className="px-4 py-3">
@@ -574,7 +576,7 @@ export default function AdminUsers() {
                           className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-extrabold text-slate-700 shadow-sm hover:border-teal-500 hover:bg-teal-50 transition active:scale-95"
                         >
                           <span>⚙️ Actions</span>
-                          <svg className={`h-3.5 w-3.5 transition-transform duration-200 ${openActionUserId === u._id ? 'rotate-180 text-teal-600' : 'text-slate-400'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <svg className={`h-3.5 w-3.5 transition-transform duration-200 ${openActionUserId === u._id ? 'rotate-180 text-teal-600' : 'text-slate-500'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                           </svg>
                         </button>
@@ -646,7 +648,7 @@ export default function AdminUsers() {
                     <UserAvatar name={post.authorName || "User"} photoUrl={post.authorPhotoUrl} size="sm" />
                     <div>
                       <h4 className="text-xs font-bold text-slate-900">{post.authorName || "Anonymous Member"}</h4>
-                      <p className="text-[10px] text-slate-400">{new Date(post.createdAt || Date.now()).toLocaleDateString()}</p>
+                      <p className="text-[10px] text-slate-500">{new Date(post.createdAt || Date.now()).toLocaleDateString()}</p>
                     </div>
                   </div>
                   <button
@@ -708,7 +710,7 @@ export default function AdminUsers() {
                     Reported {r.targetType}
                   </span>
                   <p className="mt-2 text-xs font-bold text-slate-900">Reason: {r.reason}</p>
-                  <p className="text-[11px] text-slate-400">By: {r.reporterName} • {new Date(r.createdAt).toLocaleDateString()}</p>
+                  <p className="text-[11px] text-slate-500">By: {r.reporterName} • {new Date(r.createdAt).toLocaleDateString()}</p>
                 </div>
 
                 {r.status === "pending" && (
@@ -743,7 +745,7 @@ export default function AdminUsers() {
 
       {/* Role Picker Modal */}
       {rolePickerUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white backdrop-blur-sm p-4">
           <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl space-y-4">
             <h3 className="text-lg font-bold text-slate-900">Assign Role to {rolePickerUser.fullName}</h3>
             <div className="space-y-2">
@@ -769,7 +771,7 @@ export default function AdminUsers() {
 
       {/* Ban User Modal */}
       {userToBan && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white backdrop-blur-sm p-4">
           <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl space-y-4">
             <h3 className="text-lg font-bold text-slate-900">
               {userToBan.isBanned ? `Unban ${userToBan.fullName}?` : `Ban ${userToBan.fullName}`}
@@ -810,7 +812,7 @@ export default function AdminUsers() {
 
       {/* Force Logout Confirmation Modal */}
       {forceLogoutModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white backdrop-blur-sm p-4">
           <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl space-y-4">
             <h3 className="text-lg font-extrabold text-red-600">🚨 Confirm Global Force Logout</h3>
             <p className="text-xs text-slate-600 leading-relaxed">

@@ -2,6 +2,7 @@ import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import API from '../api/axios';
 import { persistAuthToken, getAuthToken } from '../auth/session';
+import SEO from '../components/SEO';
 
 export default function Login() {
   const navigate = useNavigate();
@@ -118,9 +119,10 @@ export default function Login() {
 
   return (
     <div className="flex min-h-[85vh] items-center justify-center px-4 py-12">
+      <SEO pageKey="login" />
       <div className="w-full max-w-md overflow-hidden rounded-3xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xl">
         <div className="mb-6 text-center">
-          <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-slate-900 p-2 shadow-lg shadow-teal-600/20 border border-teal-500/30">
+          <div className="mx-auto mb-4 grid h-16 w-16 place-items-center rounded-2xl bg-white p-2 shadow-lg shadow-teal-600/20 border border-teal-500/30">
             <img src="/logo.png" alt="All Kutchi Community Logo" className="h-full w-full object-contain" />
           </div>
           <span className="inline-flex rounded-full bg-teal-50 px-3.5 py-1 text-[11px] font-extrabold uppercase tracking-widest text-teal-700 border border-teal-200">
@@ -146,28 +148,29 @@ export default function Login() {
 
             <div>
               <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Password</label>
-              <div className="relative">
+              <div className="relative w-full">
                 <input
                   type={showPassword ? 'text' : 'password'}
                   placeholder="Enter your password"
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-xl border border-slate-300 px-4 py-2.5 pr-10 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20"
+                  className="w-full rounded-xl border border-slate-300 px-4 py-2.5 pr-11 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 overflow-hidden"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword((value) => !value)}
                   onMouseDown={(e) => e.preventDefault()}
-                  className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                  className="password-toggle-btn absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center p-1 !bg-transparent !border-none text-slate-500 hover:text-slate-600 focus:outline-none transition cursor-pointer !shadow-none select-none z-10"
+                  style={{ background: 'transparent', backgroundColor: 'transparent', border: 'none', boxShadow: 'none', outline: 'none' }}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.5 12c1.5 4.5 5.7 7.5 10.5 7.5 1.6 0 3.1-.3 4.5-.9M6.6 6.6A10.45 10.45 0 0112 4.5c4.8 0 9 3 10.5 7.5a10.4 10.4 0 01-1.3 2.4M9.88 9.88a3 3 0 104.24 4.24M3.5 3.5l17 17" />
                     </svg>
                   ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12 18 18.75 12 18.75 2.25 12 2.25 12z" />
                       <circle cx="12" cy="12" r="3" />
                     </svg>
@@ -245,28 +248,29 @@ export default function Login() {
 
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">New Password</label>
-                  <div className="relative">
+                  <div className="relative w-full">
                     <input
                       type={showPassword ? 'text' : 'password'}
                       placeholder="Enter new password"
                       required
                       value={newPassword}
                       onChange={(e) => setNewPassword(e.target.value)}
-                      className="w-full rounded-xl border border-slate-300 px-4 py-2.5 pr-10 text-sm focus:border-teal-500"
+                      className="w-full rounded-xl border border-slate-300 px-4 py-2.5 pr-11 text-sm focus:border-teal-500 overflow-hidden"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword((value) => !value)}
                       onMouseDown={(e) => e.preventDefault()}
-                      className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600 transition cursor-pointer"
+                      className="password-toggle-btn absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center p-1 !bg-transparent !border-none text-slate-500 hover:text-slate-600 focus:outline-none transition cursor-pointer !shadow-none select-none z-10"
+                      style={{ background: 'transparent', backgroundColor: 'transparent', border: 'none', boxShadow: 'none', outline: 'none' }}
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                     >
                       {showPassword ? (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M3.98 8.223A10.477 10.477 0 001.5 12c1.5 4.5 5.7 7.5 10.5 7.5 1.6 0 3.1-.3 4.5-.9M6.6 6.6A10.45 10.45 0 0112 4.5c4.8 0 9 3 10.5 7.5a10.4 10.4 0 01-1.3 2.4M9.88 9.88a3 3 0 104.24 4.24M3.5 3.5l17 17" />
                         </svg>
                       ) : (
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 12s3.75-6.75 9.75-6.75S21.75 12 21.75 12 18 18.75 12 18.75 2.25 12 2.25 12z" />
                           <circle cx="12" cy="12" r="3" />
                         </svg>

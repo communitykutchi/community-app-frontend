@@ -13,22 +13,11 @@ export function usePresence() {
       const currentToken = getAuthToken();
       if (!currentToken) return;
 
-      if (status === "inactive" && navigator.sendBeacon) {
-        try {
-          const baseURL = API.defaults.baseURL || "";
-          const url = `${baseURL}/users/presence`;
-          const blob = new Blob([JSON.stringify({ status: "inactive" })], {
-            type: "application/json",
-          });
-          // sendBeacon handles unload/visibility transitions cleanly
-          navigator.sendBeacon(url, blob);
-        } catch {
-          API.post("/users/presence", { status: "inactive" }).catch(() => {});
-        }
-        return;
+      try {
+        API.post("/users/presence", { status }, { skipAuthAlert: true } as any).catch(() => {});
+      } catch {
+        // Ignore presence report errors silently
       }
-
-      API.post("/users/presence", { status }).catch(() => {});
     };
 
     const startHeartbeat = () => {
@@ -36,7 +25,7 @@ export function usePresence() {
       sendPresence("active");
       heartbeatTimer = setInterval(() => {
         sendPresence("active");
-      }, 8000); // 8 seconds pulse
+      }, 10000); // 10 seconds pulse
     };
 
     const stopHeartbeat = () => {
@@ -56,7 +45,6 @@ export function usePresence() {
 
     const handlePageHide = () => {
       stopHeartbeat();
-      sendPresence("inactive");
     };
 
     // Initial trigger
@@ -64,13 +52,11 @@ export function usePresence() {
 
     document.addEventListener("visibilitychange", handleVisibilityChange);
     window.addEventListener("pagehide", handlePageHide);
-    window.addEventListener("beforeunload", handlePageHide);
 
     return () => {
       stopHeartbeat();
       document.removeEventListener("visibilitychange", handleVisibilityChange);
       window.removeEventListener("pagehide", handlePageHide);
-      window.removeEventListener("beforeunload", handlePageHide);
     };
   }, []);
 }

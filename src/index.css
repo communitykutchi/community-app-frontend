@@ -2,7 +2,7 @@
 
 @layer base {
   html {
-    scroll-behavior: smooth;
+    color-scheme: light;
   }
 
   body {
@@ -12,39 +12,15 @@
     color: #0f172a;
     background-color: #f8fafc;
     background-image:
-      radial-gradient(circle at 10% 10%, rgba(13, 148, 136, 0.1), transparent 40%),
-      radial-gradient(circle at 90% 35%, rgba(20, 184, 166, 0.07), transparent 45%),
-      radial-gradient(circle at 50% 80%, rgba(15, 23, 42, 0.04), transparent 50%),
-      linear-gradient(180deg, #f8fafc 0%, #edf7f6 45%, #e2f1ee 100%);
+      radial-gradient(circle at 10% 10%, rgba(13, 148, 136, 0.07), transparent 45%),
+      radial-gradient(circle at 90% 35%, rgba(20, 184, 166, 0.05), transparent 45%),
+      radial-gradient(circle at 50% 80%, rgba(16, 185, 129, 0.04), transparent 50%),
+      linear-gradient(180deg, #f8fafc 0%, #f0fdfa 50%, #ecfdf5 100%);
     background-repeat: no-repeat;
-    background-size: cover;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeSpeed;
   }
-}
-
-/* 60 FPS Hardware-Accelerated Theme Transition Helper */
-.theme-transition,
-.theme-transition *,
-.theme-transition *::before,
-.theme-transition *::after {
-  transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
-              color 150ms cubic-bezier(0.4, 0, 0.2, 1),
-              border-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1) !important;
-  will-change: background-color, color, border-color;
-}
-
-/* GPU Hardware Acceleration for ultra-smooth 60 FPS performance */
-*, ::before, ::after {
-  --tw-duration: 150ms;
-}
-
-.gpu-smooth {
-  will-change: transform, opacity;
-  transform: translateZ(0);
-  backface-visibility: hidden;
 }
 
 /* Custom Scrollbar Utilities */
@@ -56,6 +32,31 @@
   scrollbar-width: none;
 }
 
+/* Password Eye Toggle Button Reset */
+.password-toggle-btn,
+.password-toggle-btn:hover,
+.password-toggle-btn:focus,
+.password-toggle-btn:active,
+button.password-toggle-btn {
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+/* Chrome / Edge / Safari Autofill Clean Background */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #0f172a !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
 /* Base Form & Utility Styles */
 .form-label {
   display: block;
@@ -64,6 +65,7 @@
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 0.375rem;
+  color: #334155;
 }
 
 .form-input, .form-select {
@@ -73,6 +75,14 @@
   font-size: 0.875rem;
   font-weight: 600;
   outline: none;
+  background-color: #ffffff;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+}
+
+.form-input:focus, .form-select:focus {
+  border-color: #0d9488;
+  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15);
 }
 
 .btn-primary {
@@ -81,20 +91,21 @@
   justify-content: center;
   gap: 0.5rem;
   border-radius: 0.75rem;
-  background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important;
+  background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
   padding: 0.75rem 1.5rem;
-  font-size: 0.75rem;
-  font-weight: 800;
+  font-size: 0.875rem;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #ffffff !important;
+  letter-spacing: 0.04em;
+  color: #ffffff;
   border: none;
   cursor: pointer;
   box-shadow: 0 4px 14px rgba(13, 148, 136, 0.3);
+  transition: all 0.15s ease-in-out;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%) !important;
+  background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
   box-shadow: 0 6px 20px rgba(13, 148, 136, 0.4);
   transform: translateY(-1px);
 }
@@ -112,750 +123,128 @@
   font-size: 1.5rem;
   font-weight: 800;
   letter-spacing: -0.025em;
+  color: #0f172a;
 }
 
 .page-subtitle {
   font-size: 0.875rem;
   font-weight: 500;
+  color: #64748b;
 }
 
-/* =========================================================
-   ONLY TOP PAGE HERO BANNER IS COLORFUL (GREEN & BLACK GRADIENT)
-   ========================================================= */
+/* LIGHT THEME HERO BANNER GRADIENT */
 .page-hero-banner {
-  background-image: linear-gradient(135deg, #047857 0%, #0d9488 40%, #0f172a 100%) !important;
-  color: #ffffff !important;
-  border-color: rgba(45, 212, 191, 0.35) !important;
-  box-shadow: 0 12px 35px -10px rgba(13, 148, 136, 0.35) !important;
+  background-image: linear-gradient(135deg, #0d9488 0%, #059669 50%, #047857 100%);
+  color: #ffffff;
+  border-color: rgba(45, 212, 191, 0.35);
+  box-shadow: 0 10px 30px -8px rgba(13, 148, 136, 0.3);
 }
 
 .page-hero-banner h1,
 .page-hero-banner h2,
 .page-hero-banner h3 {
-  color: #ffffff !important;
+  color: #ffffff;
 }
 
 .page-hero-banner p {
-  color: #e2e8f0 !important;
+  color: #f0fdfa;
 }
 
-.page-hero-banner [class*="bg-teal-500/"],
-.page-hero-banner [class*="bg-emerald-500/"],
-.page-hero-banner [class*="bg-amber-500/"] {
-  background-color: rgba(255, 255, 255, 0.2) !important;
-  border-color: rgba(255, 255, 255, 0.4) !important;
-  color: #ffffff !important;
+/* Hardware Acceleration Helper */
+.gpu-smooth {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
-/* Page Hero Banner Buttons & Links on Hover and Keyboard Arrow Focus */
-.page-hero-banner button,
-.page-hero-banner a,
-.page-hero-banner [role="button"] {
-  color: #ffffff !important;
-}
-
-.page-hero-banner button *,
-.page-hero-banner a *,
-.page-hero-banner [role="button"] * {
-  color: #ffffff !important;
-}
-
-html:not(.dark) .page-hero-banner button:not(.active-green-btn):not(.btn-primary):not(.bg-teal-600):not(.bg-emerald-600):not(.bg-amber-500):not(.bg-rose-600),
-html:not(.dark) .page-hero-banner a:not(.active-green-btn):not(.btn-primary):not(.bg-teal-600):not(.bg-emerald-600):not(.bg-amber-500):not(.bg-rose-600) {
-  background-color: rgba(255, 255, 255, 0.15) !important;
-  color: #ffffff !important;
-  border-color: rgba(255, 255, 255, 0.3) !important;
-}
-
-html:not(.dark) .page-hero-banner button:hover:not(.active-green-btn):not(.btn-primary):not(.bg-teal-600):not(.bg-emerald-600):not(.bg-amber-500):not(.bg-rose-600),
-html:not(.dark) .page-hero-banner button:focus:not(.active-green-btn):not(.btn-primary):not(.bg-teal-600):not(.bg-emerald-600):not(.bg-amber-500):not(.bg-rose-600),
-html:not(.dark) .page-hero-banner a:hover:not(.active-green-btn):not(.btn-primary):not(.bg-teal-600):not(.bg-emerald-600):not(.bg-amber-500):not(.bg-rose-600),
-html:not(.dark) .page-hero-banner a:focus:not(.active-green-btn):not(.btn-primary):not(.bg-teal-600):not(.bg-emerald-600):not(.bg-amber-500):not(.bg-rose-600) {
-  background-color: rgba(255, 255, 255, 0.3) !important;
-  color: #ffffff !important;
-  border-color: rgba(255, 255, 255, 0.5) !important;
-}
-
-/* =========================================================
-   DARK THEME SYSTEM (Active when <html class="dark">)
-   ========================================================= */
-html.dark body {
-  color: #f8fafc;
-  background-color: #020617;
-  background-image:
-    radial-gradient(circle at 10% 10%, rgba(13, 148, 136, 0.15), transparent 40%),
-    radial-gradient(circle at 90% 35%, rgba(20, 184, 166, 0.1), transparent 45%),
-    radial-gradient(circle at 50% 80%, rgba(2, 6, 23, 0.8), transparent 50%),
-    linear-gradient(180deg, #020617 0%, #0f172a 50%, #020617 100%);
-}
-
-html.dark .form-label {
-  color: #cbd5e1;
-}
-
-html.dark .form-input, 
-html.dark .form-select {
-  border: 1px solid rgba(51, 65, 85, 0.8);
-  background-color: rgba(2, 6, 23, 0.9);
+/* Active Green Button Helper */
+.active-green-btn,
+button.active-green-btn {
+  background-color: #047857;
+  background-image: linear-gradient(135deg, #047857 0%, #0d9488 100%);
   color: #ffffff;
+  border-color: #047857;
+  box-shadow: 0 4px 14px rgba(4, 120, 87, 0.35);
 }
 
-html.dark .form-input::placeholder {
-  color: #94a3b8;
-}
-
-html.dark .form-input:focus, 
-html.dark .form-select:focus {
-  border-color: #2dd4bf;
-  box-shadow: 0 0 0 4px rgba(45, 212, 191, 0.15);
-}
-
-html.dark .form-input:disabled, 
-html.dark .form-select:disabled, 
-html.dark .form-input[readonly] {
-  background-color: rgba(15, 23, 42, 0.8);
-  color: #94a3b8;
-  border-color: rgba(51, 65, 85, 0.6);
-}
-
-html.dark .page-title {
-  color: #ffffff;
-}
-
-html.dark .page-subtitle {
-  color: #94a3b8;
-}
-
-/* =========================================================
-   UNIVERSAL LIGHT THEME SYSTEM (Active when html does NOT have 'dark')
-   ========================================================= */
-html:not(.dark) {
-  color-scheme: light;
-}
-
-html:not(.dark) body {
-  color: #0f172a;
-  background-color: #f8fafc;
-  background-image: none !important;
-}
-
-/* Neutralize gradients for everything except page hero banner, navbar, cover banner and action buttons */
-html:not(.dark) [class*="bg-gradient-to"]:not(header *):not(.page-hero-banner):not(.page-hero-banner *):not(.cover-banner):not(.cover-banner *):not(.profile-cover):not(.profile-cover *):not(.btn-primary):not(button.bg-teal-600):not(button.bg-emerald-600):not(button.bg-rose-600):not(button.bg-amber-500):not(button.bg-black):not(a.bg-teal-600):not(a.bg-emerald-600):not(a.bg-rose-600):not(a.bg-amber-500):not(.active-green-btn) {
-  background-image: none !important;
-  background-color: #ffffff !important;
-  color: #0f172a !important;
-}
-
-/* EVERY SINGLE OTHER ELEMENT, CARD, SECTION, FORM, ARTICLE, CONTAINER IN LIGHT MODE IS SOLID WHITE */
-html:not(.dark) section:not(.page-hero-banner):not(button):not(button *),
-html:not(.dark) article:not(button):not(button *),
-html:not(.dark) form:not(.page-hero-banner *):not(button):not(button *),
-html:not(.dark) div[class*="bg-slate-"]:not(header *):not(.page-hero-banner):not(.page-hero-banner *):not(.cover-banner):not(.cover-banner *):not(.profile-cover):not(.profile-cover *):not(button):not(button *),
-html:not(.dark) div[class*="bg-amber-"]:not(header *):not(.page-hero-banner):not(.page-hero-banner *):not(.cover-banner):not(.cover-banner *):not(button):not(button *),
-html:not(.dark) div[class*="bg-teal-"]:not(header *):not(.page-hero-banner):not(.page-hero-banner *):not(.cover-banner):not(.cover-banner *):not(button):not(button *),
-html:not(.dark) div[class*="bg-blue-"]:not(header *):not(.page-hero-banner):not(.page-hero-banner *):not(.cover-banner):not(.cover-banner *):not(button):not(button *),
-html:not(.dark) div[class*="bg-indigo-"]:not(header *):not(.page-hero-banner):not(.page-hero-banner *):not(.cover-banner):not(.cover-banner *):not(button):not(button *),
-html:not(.dark) div[class*="bg-purple-"]:not(header *):not(.page-hero-banner):not(.page-hero-banner *):not(.cover-banner):not(.cover-banner *):not(button):not(button *),
-html:not(.dark) div[class*="bg-emerald-"]:not(header *):not(.page-hero-banner):not(.page-hero-banner *):not(.cover-banner):not(.cover-banner *):not(button):not(button *),
-html:not(.dark) div[class*="bg-rose-"]:not(header *):not(.page-hero-banner):not(.page-hero-banner *):not(.cover-banner):not(.cover-banner *):not(button):not(button *),
-html:not(.dark) div[class*="bg-black"]:not(header *):not(.page-hero-banner *):not(.cover-banner):not(.cover-banner *):not(button):not(button *):not(video):not(img),
-html:not(.dark) a[class*="border-"]:not(header *):not(.page-hero-banner *):not(.btn-primary):not(.bg-teal-600):not(.bg-emerald-600):not(.bg-rose-600):not(.bg-amber-500):not(.active-green-btn),
-html:not(.dark) a[class*="bg-"]:not(header *):not(.page-hero-banner *):not(.btn-primary):not(.bg-teal-600):not(.bg-emerald-600):not(.bg-rose-600):not(.bg-amber-500):not(.active-green-btn) {
-  background-color: #ffffff !important;
-  background-image: none !important;
-  color: #0f172a !important;
-  border-color: #e2e8f0 !important;
-  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.05), 0 2px 6px -1px rgba(15, 23, 42, 0.03) !important;
-}
-
-/* Ensure cover banner images & gradient overlays render accurately */
+/* Cover Banner Overlay */
 .cover-banner,
 .profile-cover {
-  position: relative !important;
-  overflow: hidden !important;
+  position: relative;
+  overflow: hidden;
 }
 
 .cover-banner img,
 .profile-cover img {
-  display: block !important;
-  opacity: 1 !important;
-  visibility: visible !important;
-  width: 100% !important;
-  height: 100% !important;
-  object-fit: cover !important;
+  display: block;
+  opacity: 1;
+  visibility: visible;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-html:not(.dark) .cover-banner div[class*="bg-gradient-"],
-html:not(.dark) .profile-cover div[class*="bg-gradient-"] {
-  background-image: linear-gradient(to top, rgba(2, 6, 23, 0.75), rgba(2, 6, 23, 0.15), rgba(0, 0, 0, 0.25)) !important;
-  background-color: transparent !important;
-}
-
-/* 70% Top White / 30% Bottom Black Split Text Effect */
-.split-white-black-text {
-  background-image: linear-gradient(to bottom, #ffffff 70%, #0f172a 70%) !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
-  -webkit-text-fill-color: transparent !important;
-  color: transparent !important;
-  filter: drop-shadow(0 1.5px 2.5px rgba(0, 0, 0, 0.45)) !important;
-}
-
-/* High-Contrast Profile Completion Progress Bar */
+/* High-Contrast Profile Progress Bar */
 .progress-bar-track {
-  background-color: #cbd5e1 !important;
-  border-color: #94a3b8 !important;
-}
-
-html.dark .progress-bar-track {
-  background-color: #1e293b !important;
-  border-color: #334155 !important;
+  background-color: #cbd5e1;
+  border-color: #94a3b8;
 }
 
 .progress-bar-fill {
-  background-image: linear-gradient(to right, #0d9488, #10b981) !important;
-  box-shadow: 0 0 10px rgba(13, 148, 136, 0.4) !important;
+  background-image: linear-gradient(to right, #0d9488, #10b981);
+  box-shadow: 0 0 10px rgba(13, 148, 136, 0.4);
 }
 
 /* Quick Action Navigator Cards in Admin & SuperAdmin */
 .admin-nav-card {
-  transition: all 0.2s ease-in-out !important;
+  transition: all 0.2s ease-in-out;
+  background-color: #ffffff;
+  border-color: #cbd5e1;
+  color: #0f172a;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
 }
 
-html:not(.dark) .admin-nav-card {
-  background-color: #ffffff !important;
-  background-image: none !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06) !important;
+.admin-nav-card:hover {
+  background-color: #f0fdf4;
+  border-color: #10b981;
+  box-shadow: 0 8px 25px -4px rgba(16, 185, 129, 0.25);
 }
 
-html:not(.dark) .admin-nav-card h4,
-html:not(.dark) .admin-nav-card p,
-html:not(.dark) .admin-nav-card span {
-  color: #0f172a !important;
+/* Navbar Auth Button Active / Inactive State Rules */
+header a.nav-btn-active {
+  background-color: #0d9488;
+  background-image: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
+  color: #ffffff;
+  border-color: #0d9488;
+  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.35);
 }
 
-html:not(.dark) .admin-nav-card:hover {
-  background-color: #f0fdf4 !important;
-  border-color: #10b981 !important;
-  box-shadow: 0 8px 25px -4px rgba(16, 185, 129, 0.25) !important;
+header a.nav-btn-active:hover {
+  background-color: #0f766e;
+  background-image: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
+  color: #ffffff;
 }
 
-html:not(.dark) .admin-nav-card:hover h4,
-html:not(.dark) .admin-nav-card:hover p {
-  color: #065f46 !important;
+header a.nav-btn-inactive {
+  background-color: #ffffff;
+  color: #0d9488;
+  border-color: #0d9488;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-/* Mobile Hamburger Menu Button & Navbar Controls in Light Mode */
-html:not(.dark) header {
-  background-color: rgba(255, 255, 255, 0.96) !important;
-  border-color: #e2e8f0 !important;
-  color: #0f172a !important;
-  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.06) !important;
+header a.nav-btn-inactive:hover {
+  background-color: #f0fdfa;
+  color: #0d9488;
 }
 
-html:not(.dark) header h1 {
-  color: #0f172a !important;
-}
-
-html:not(.dark) header button:not(.btn-primary):not(.bg-teal-600):not(.bg-emerald-600):not(.bg-rose-600) {
-  background-color: #f1f5f9 !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
-}
-
-html:not(.dark) header button:not(.btn-primary):not(.bg-teal-600):not(.bg-emerald-600):not(.bg-rose-600):hover {
-  background-color: #e2e8f0 !important;
-  border-color: #94a3b8 !important;
-  color: #020617 !important;
-}
-
-html:not(.dark) header button:not(.btn-primary):not(.bg-teal-600):not(.bg-emerald-600):not(.bg-rose-600) span,
-html:not(.dark) header button:not(.btn-primary):not(.bg-teal-600):not(.bg-emerald-600):not(.bg-rose-600) div,
-html:not(.dark) header button:not(.btn-primary):not(.bg-teal-600):not(.bg-emerald-600):not(.bg-rose-600) p {
-  color: #0f172a !important;
-}
-
-html:not(.dark) .mobile-menu-btn,
-html:not(.dark) .mobile-theme-toggle-btn {
-  background-color: #f1f5f9 !important;
-  border-color: #cbd5e1 !important;
-  color: #0f172a !important;
-}
-
-html:not(.dark) .mobile-menu-btn:hover,
-html:not(.dark) .mobile-theme-toggle-btn:hover {
-  background-color: #e2e8f0 !important;
-  border-color: #94a3b8 !important;
-  color: #020617 !important;
-}
-
-/* Secondary Buttons & Interactive Pills in Light Mode */
-html:not(.dark) button:not(header *):not(.btn-primary):not(.bg-teal-600):not(.bg-emerald-600):not(.bg-rose-600):not(.bg-amber-500):not(.active-green-btn):not(.page-hero-banner *),
-html:not(.dark) label[class*="bg-slate-"]:not(header *) {
-  background-color: #f1f5f9 !important;
-  color: #0f172a !important;
-  border-color: #cbd5e1 !important;
-}
-
-html:not(.dark) button:not(header *):not(.btn-primary):not(.bg-teal-600):not(.bg-emerald-600):not(.bg-rose-600):not(.bg-amber-500):not(.active-green-btn):not(.page-hero-banner *):hover,
-html:not(.dark) button:not(header *):not(.btn-primary):not(.bg-teal-600):not(.bg-emerald-600):not(.bg-rose-600):not(.bg-amber-500):not(.active-green-btn):not(.page-hero-banner *):focus,
-html:not(.dark) label[class*="bg-slate-"]:hover:not(header *) {
-  background-color: #e2e8f0 !important;
-  color: #0f172a !important;
-  border-color: #94a3b8 !important;
-}
-
-/* Post Action Buttons (Like, Comment, Share) in Light Mode */
-html:not(.dark) article button:not(.active-green-btn):not(.btn-primary):not(.bg-teal-600):not(.bg-emerald-600):not(.bg-rose-600):not(.bg-amber-500) {
-  background-color: #f1f5f9 !important;
-  background-image: none !important;
-  color: #0f172a !important;
-  border-color: #cbd5e1 !important;
-}
-
-html:not(.dark) article button:not(.active-green-btn):not(.btn-primary):not(.bg-teal-600):not(.bg-emerald-600):not(.bg-rose-600):not(.bg-amber-500):hover {
-  background-color: #e2e8f0 !important;
-  color: #0f172a !important;
-  border-color: #94a3b8 !important;
-}
-
-html:not(.dark) article button:not(.active-green-btn):not(.btn-primary):not(.bg-teal-600):not(.bg-emerald-600):not(.bg-rose-600):not(.bg-amber-500) span:not([class*="bg-white"]),
-html:not(.dark) article button:not(.active-green-btn):not(.btn-primary):not(.bg-teal-600):not(.bg-emerald-600):not(.bg-rose-600):not(.bg-amber-500) svg {
-  color: #0f172a !important;
-  stroke: #0f172a !important;
-}
-
-/* Counter Badge inside inactive post buttons in Light Mode */
-html:not(.dark) article button:not(.active-green-btn):not(.btn-primary):not(.bg-teal-600):not(.bg-emerald-600):not(.bg-rose-600):not(.bg-amber-500) span[class*="rounded-full"] {
-  background-color: #e2e8f0 !important;
-  color: #0f172a !important;
-  border: 1px solid #cbd5e1 !important;
-}
-
-/* Counter Badge inside active post buttons in Light Mode & Dark Mode */
-.active-green-btn span[class*="rounded-full"],
-button.active-green-btn span[class*="rounded-full"],
-html:not(.dark) .active-green-btn span[class*="rounded-full"],
-html:not(.dark) button.active-green-btn span[class*="rounded-full"],
-html:not(.dark) button.bg-teal-600 span[class*="rounded-full"] {
-  background-color: rgba(255, 255, 255, 0.25) !important;
-  color: #ffffff !important;
-  border: none !important;
-}
-
-/* Soft Tinted Badges in Light Mode */
-html:not(.dark) [class*="bg-teal-500/"]:not(header *):not(.page-hero-banner *):not(.active-green-btn),
-html:not(.dark) [class*="bg-teal-400/"]:not(header *):not(.page-hero-banner *):not(.active-green-btn) {
-  background-color: #f0fdfa !important;
-  color: #0d9488 !important;
-  border-color: #99f6e4 !important;
-}
-
-html:not(.dark) [class*="bg-amber-500/"]:not(header *):not(.page-hero-banner *),
-html:not(.dark) [class*="bg-amber-400/"]:not(header *):not(.page-hero-banner *) {
-  background-color: #fef3c7 !important;
-  color: #b45309 !important;
-  border-color: #fde68a !important;
-}
-
-html:not(.dark) [class*="bg-indigo-500/"]:not(header *):not(.page-hero-banner *),
-html:not(.dark) [class*="bg-indigo-400/"]:not(header *):not(.page-hero-banner *) {
-  background-color: #e0e7ff !important;
-  color: #4338ca !important;
-  border-color: #c7d2fe !important;
-}
-
-html:not(.dark) [class*="bg-rose-500/"]:not(header *):not(.page-hero-banner *),
-html:not(.dark) [class*="bg-rose-400/"]:not(header *):not(.page-hero-banner *) {
-  background-color: #ffe4e6 !important;
-  color: #be123c !important;
-  border-color: #fecdd3 !important;
-}
-
-/* ABSOLUTE FORCE OVERRIDE FOR ACTIVE TEAL / GREEN BUTTONS ACROSS THE ENTIRE WEBSITE */
-.active-green-btn,
-button.active-green-btn,
-button.bg-teal-600,
-button[class*="bg-teal-600"],
-a.bg-teal-600,
-a[class*="bg-teal-600"],
-html:not(.dark) .active-green-btn,
-html:not(.dark) button.active-green-btn,
-html:not(.dark) button.bg-teal-600,
-html:not(.dark) button[class*="bg-teal-600"] {
-  background-color: #047857 !important;
-  background-image: linear-gradient(135deg, #047857 0%, #0d9488 100%) !important;
-  color: #ffffff !important;
-  border-color: #047857 !important;
-  box-shadow: 0 4px 14px rgba(4, 120, 87, 0.35) !important;
-}
-
-.active-green-btn *,
-button.active-green-btn *,
-button.bg-teal-600 *,
-button[class*="bg-teal-600"] *,
-a.bg-teal-600 *,
-a[class*="bg-teal-600"] *,
-html:not(.dark) .active-green-btn *,
-html:not(.dark) button.active-green-btn *,
-html:not(.dark) button.bg-teal-600 *,
-html:not(.dark) button[class*="bg-teal-600"] * {
-  color: #ffffff !important;
-}
-
-html:not(.dark) button.bg-amber-500,
-html:not(.dark) a.bg-amber-500 {
-  background-image: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important;
-  background-color: #f59e0b !important;
-  color: #0f172a !important;
-}
-
-html:not(.dark) button.bg-rose-600,
-html:not(.dark) button.bg-rose-500,
-html:not(.dark) a.bg-rose-600 {
-  background-image: linear-gradient(135deg, #e11d48 0%, #be123c 100%) !important;
-  background-color: #e11d48 !important;
-  color: #ffffff !important;
-}
-
-/* Inputs, Textareas & Select Controls */
-html:not(.dark) .form-label,
-html:not(.dark) label {
-  color: #334155 !important;
-}
-
-html:not(.dark) .form-input, 
-html:not(.dark) .form-select,
-html:not(.dark) input,
-html:not(.dark) select,
-html:not(.dark) textarea {
-  background-color: #ffffff !important;
-  color: #0f172a !important;
-  border: 1px solid #cbd5e1 !important;
-}
-
-html:not(.dark) input::placeholder,
-html:not(.dark) textarea::placeholder {
-  color: #94a3b8 !important;
-  opacity: 1 !important;
-}
-
-html:not(.dark) input:focus, 
-html:not(.dark) select:focus, 
-html:not(.dark) textarea:focus {
-  border-color: #0d9488 !important;
-  box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.15) !important;
-}
-
-/* All Text Elements outside hero headers */
-html:not(.dark) [class*="text-white"]:not(header *):not(.page-hero-banner *):not(.btn-primary *):not(button.bg-teal-600):not(button.bg-teal-600 *):not(button.bg-emerald-600 *):not(button.bg-rose-600 *):not(button.bg-black *):not(button[class*="bg-teal-600"] *):not(.active-green-btn):not(.active-green-btn *),
-html:not(.dark) [class*="text-slate-100"]:not(header *):not(.page-hero-banner *),
-html:not(.dark) [class*="text-slate-200"]:not(header *):not(.page-hero-banner *),
-html:not(.dark) [class*="text-slate-300"]:not(header *):not(.page-hero-banner *) {
-  color: #0f172a !important;
-}
-
-html:not(.dark) [class*="text-slate-400"]:not(header *):not(.page-hero-banner *) {
-  color: #475569 !important;
-}
-
-html:not(.dark) [class*="text-slate-500"]:not(header *):not(.page-hero-banner *) {
-  color: #64748b !important;
-}
-
-/* High-Contrast Accents in Light Mode */
-html:not(.dark) [class*="text-teal-200"]:not(header *):not(.page-hero-banner *),
-html:not(.dark) [class*="text-teal-300"]:not(header *):not(.page-hero-banner *),
-html:not(.dark) [class*="text-teal-400"]:not(header *):not(.page-hero-banner *) {
-  color: #0d9488 !important;
-}
-
-html:not(.dark) [class*="text-amber-200"]:not(.page-hero-banner *),
-html:not(.dark) [class*="text-amber-300"]:not(.page-hero-banner *),
-html:not(.dark) [class*="text-amber-400"]:not(.page-hero-banner *) {
-  color: #b45309 !important;
-}
-
-/* Force all Mayyat Notification post text in Light Mode to be solid black / dark slate */
-html:not(.dark) article.border-amber-500\/60 p,
-html:not(.dark) article.border-amber-500\/60 strong,
-html:not(.dark) article.border-amber-500\/60 span:not(.bg-amber-400 *):not(.bg-teal-600 *),
-html:not(.dark) article.border-amber-500\/60 div:not(.bg-amber-400 *) {
-  color: #000000 !important;
-}
-
-/* UNIVERSAL FORCE OVERRIDE: ALL TEXT INSIDE ALL POST CARDS (ARTICLE) IN LIGHT MODE IS PURE SOLID BLACK */
-html:not(.dark) article,
-html:not(.dark) article p,
-html:not(.dark) article span:not(button.active-green-btn *):not(.btn-primary *):not(button.bg-teal-600 *):not(button.bg-emerald-600 *):not(button.bg-rose-600 *):not(button.bg-amber-500 *),
-html:not(.dark) article div:not(button.active-green-btn *):not(.btn-primary *):not(button.bg-teal-600 *):not(button.bg-emerald-600 *):not(button.bg-rose-600 *):not(button.bg-amber-500 *),
-html:not(.dark) article h1,
-html:not(.dark) article h2,
-html:not(.dark) article h3,
-html:not(.dark) article h4,
-html:not(.dark) article h5,
-html:not(.dark) article h6,
-html:not(.dark) article strong,
-html:not(.dark) article b,
-html:not(.dark) article em,
-html:not(.dark) article i,
-html:not(.dark) article small,
-html:not(.dark) article time,
-html:not(.dark) article label,
-html:not(.dark) article input,
-html:not(.dark) article textarea,
-html:not(.dark) article [class*="text-slate-"],
-html:not(.dark) article [class*="text-gray-"],
-html:not(.dark) article [class*="text-amber-"]:not(.bg-amber-400 *),
-html:not(.dark) article [class*="text-teal-"]:not(button.active-green-btn *):not(.btn-primary *):not(button.bg-teal-600 *) {
-  color: #000000 !important;
-}
-
-html:not(.dark) [class*="text-rose-200"]:not(.page-hero-banner *),
-html:not(.dark) [class*="text-rose-300"]:not(.page-hero-banner *),
-html:not(.dark) [class*="text-rose-400"]:not(.page-hero-banner *) {
-  color: #be123c !important;
-}
-
-html:not(.dark) [class*="text-emerald-200"]:not(.page-hero-banner *),
-html:not(.dark) [class*="text-emerald-300"]:not(.page-hero-banner *),
-html:not(.dark) [class*="text-emerald-400"]:not(.page-hero-banner *) {
-  color: #047857 !important;
-}
-
-/* Borders */
-html:not(.dark) [class*="border-slate-"]:not(header *):not(.page-hero-banner *),
-html:not(.dark) [class*="border-blue-"]:not(header *):not(.page-hero-banner *),
-html:not(.dark) [class*="border-teal-"]:not(header *):not(.page-hero-banner *),
-html:not(.dark) [class*="border-amber-"]:not(header *):not(.page-hero-banner *),
-html:not(.dark) [class*="border-purple-"]:not(header *):not(.page-hero-banner *),
-html:not(.dark) [class*="border-emerald-"]:not(header *):not(.page-hero-banner *),
-html:not(.dark) [class*="border-white/"]:not(.page-hero-banner *) {
-  border-color: #e2e8f0 !important;
-}
-
-/* Tables */
-html:not(.dark) table {
-  background-color: #ffffff !important;
-  color: #0f172a !important;
-}
-
-html:not(.dark) thead,
-html:not(.dark) th {
-  background-color: #f1f5f9 !important;
-  color: #1e293b !important;
-  border-color: #cbd5e1 !important;
-}
-
-html:not(.dark) td {
-  color: #0f172a !important;
-  border-color: #e2e8f0 !important;
-}
-
-html:not(.dark) tr:hover,
-html:not(.dark) tr:focus {
-  background-color: #f8fafc !important;
-}
-
-/* =========================================================
-   NAVBAR & HEADER IN LIGHT MODE (HIGH CONTRAST ACTIVE LINKS)
-   ========================================================= */
-html:not(.dark) header {
-  background-color: #ecfdf5 !important;
-  background-image: linear-gradient(180deg, #ecfdf5 0%, #f0fdfa 100%) !important;
-  border-bottom: 1px solid rgba(16, 185, 129, 0.3) !important;
-  color: #064e3b !important;
-  box-shadow: 0 4px 20px -4px rgba(16, 185, 129, 0.12) !important;
-}
-
-/* User Profile Button in Navbar in Light Mode */
-html:not(.dark) header button[class*="bg-teal-500"] {
-  background-color: #ffffff !important;
-  background-image: linear-gradient(135deg, #ffffff 0%, #ecfdf5 100%) !important;
-  border: 1px solid #a7f3d0 !important;
-  box-shadow: 0 2px 8px -1px rgba(16, 185, 129, 0.15) !important;
-}
-
-html:not(.dark) header button[class*="bg-teal-500"]:hover {
-  background-color: #f0fdf4 !important;
-  border-color: #6ee7b7 !important;
-}
-
-html:not(.dark) header button[class*="bg-teal-500"] p {
-  color: #064e3b !important;
-}
-
-html:not(.dark) header button[class*="bg-teal-500"] p:last-child {
-  color: #047857 !important;
-}
-
-html:not(.dark) header button[class*="bg-teal-500"] svg {
-  stroke: #047857 !important;
-}
-
-/* Active Nav Links and Friends/Chat Dropdown Items in Light Mode */
-html:not(.dark) header nav a[class*="text-teal"],
-html:not(.dark) header nav button[class*="text-teal"],
-html:not(.dark) header [class*="bg-teal-500/10"],
-html:not(.dark) header [class*="bg-teal-500/20"] {
-  background-color: rgba(16, 185, 129, 0.2) !important;
-  color: #064e3b !important;
-  font-weight: 800 !important;
-}
-
-html:not(.dark) header nav a[class*="text-teal"] *,
-html:not(.dark) header nav button[class*="text-teal"] *,
-html:not(.dark) header div[role="menu"] a[class*="text-teal"] *,
-html:not(.dark) header div[role="menu"] button[class*="text-teal"] *,
-html:not(.dark) header div[class*="bg-slate-950"] a[class*="text-teal"] *,
-html:not(.dark) header div[class*="bg-slate-950"] button[class*="text-teal"] * {
-  color: #064e3b !important;
-}
-
-html:not(.dark) header .text-white,
-html:not(.dark) header .text-slate-300,
-html:not(.dark) header .text-slate-200,
-html:not(.dark) header .text-slate-100,
-html:not(.dark) header h1 {
-  color: #064e3b !important;
-}
-
-html:not(.dark) header .text-slate-400,
-html:not(.dark) header .text-slate-500 {
-  color: #047857 !important;
-}
-
-html:not(.dark) header .text-teal-400,
-html:not(.dark) header .text-teal-300,
-html:not(.dark) header .text-emerald-400 {
-  color: #047857 !important;
-}
-
-/* Nav links in Light Mode */
-html:not(.dark) header nav a,
-html:not(.dark) header nav button {
-  color: #064e3b !important;
-  font-weight: 700 !important;
-}
-
-html:not(.dark) header nav a:hover,
-html:not(.dark) header nav button:hover {
-  color: #047857 !important;
-  background-color: rgba(16, 185, 129, 0.15) !important;
-}
-
-/* Navbar Dropdowns in Light Mode */
-html:not(.dark) header div[role="menu"],
-html:not(.dark) header [class*="ultra-glass-dropdown"],
-html:not(.dark) header div[class*="bg-slate-950"],
-html:not(.dark) header div[class*="bg-slate-900"] {
-  background-color: #ffffff !important;
-  border-color: #a7f3d0 !important;
-  color: #064e3b !important;
-  box-shadow: 0 10px 30px -5px rgba(15, 23, 42, 0.15) !important;
-}
-
-html:not(.dark) header div[role="menu"] a,
-html:not(.dark) header div[role="menu"] button,
-html:not(.dark) header div[role="menu"] span,
-html:not(.dark) header div[role="menu"] p,
-html:not(.dark) header div[class*="bg-slate-950"] a,
-html:not(.dark) header div[class*="bg-slate-950"] button,
-html:not(.dark) header div[class*="bg-slate-950"] span,
-html:not(.dark) header div[class*="bg-slate-950"] p {
-  color: #064e3b !important;
-}
-
-html:not(.dark) header div[role="menu"] a:hover,
-html:not(.dark) header div[role="menu"] button:hover,
-html:not(.dark) header div[class*="bg-slate-950"] a:hover,
-html:not(.dark) header div[class*="bg-slate-950"] button:hover {
-  background-color: #ecfdf5 !important;
-  color: #047857 !important;
-}
-
-/* SVG icons in Navbar */
-html:not(.dark) header svg {
-  stroke: currentColor;
-}
-
-/* Preserve Badge counters */
-html:not(.dark) header span.bg-rose-500,
-html:not(.dark) header span.bg-teal-500,
-html:not(.dark) header span.bg-amber-500 {
-  color: #ffffff !important;
-}
-
-/* Footer & Modals */
-html:not(.dark) footer {
-  background-color: #ffffff !important;
-  border-color: #e2e8f0 !important;
-  color: #0f172a !important;
-}
-
-html:not(.dark) footer p,
-html:not(.dark) footer a {
-  color: #334155 !important;
-}
-
-html:not(.dark) .fixed.inset-0 {
-  background-color: rgba(15, 23, 42, 0.4) !important;
-}
-
-/* Explicit Navbar Auth Button Active / Inactive State Rules */
-header a.nav-btn-active,
-html:not(.dark) header a.nav-btn-active,
-html.dark header a.nav-btn-active {
-  background-color: #0d9488 !important;
-  background-image: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important;
-  color: #ffffff !important;
-  border-color: #0d9488 !important;
-  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.35) !important;
-}
-
-header a.nav-btn-active:hover,
-html:not(.dark) header a.nav-btn-active:hover,
-html.dark header a.nav-btn-active:hover {
-  background-color: #0f766e !important;
-  background-image: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%) !important;
-  color: #ffffff !important;
-}
-
-header a.nav-btn-inactive,
-html:not(.dark) header a.nav-btn-inactive,
-html.dark header a.nav-btn-inactive {
-  background-color: #ffffff !important;
-  background-image: none !important;
-  color: #0d9488 !important;
-  border-color: #0d9488 !important;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05) !important;
-}
-
-header a.nav-btn-inactive:hover,
-html:not(.dark) header a.nav-btn-inactive:hover,
-html.dark header a.nav-btn-inactive:hover {
-  background-color: #f0fdfa !important;
-  color: #0d9488 !important;
-}
-
-/* Explicit Forgot Password Link Blue Color Rule */
-.forgot-password-link,
-html:not(.dark) .forgot-password-link,
-html.dark .forgot-password-link,
-html:not(.dark) button.forgot-password-link,
-html.dark button.forgot-password-link {
-  color: #2563eb !important;
-  font-weight: 700 !important;
+/* Forgot Password Link Styling */
+.forgot-password-link {
+  color: #2563eb;
+  font-weight: 700;
   text-decoration: none;
 }
 
-.forgot-password-link:hover,
-html:not(.dark) .forgot-password-link:hover,
-html.dark .forgot-password-link:hover,
-html:not(.dark) button.forgot-password-link:hover,
-html.dark button.forgot-password-link:hover {
-  color: #1d4ed8 !important;
-  text-decoration: underline !important;
+.forgot-password-link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
 }

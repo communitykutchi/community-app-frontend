@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import SEO from "../components/SEO";
 
 export default function Home() {
   const quickActions = [
@@ -9,12 +10,13 @@ export default function Home() {
       icon: "💬",
       to: "/chats",
       badge: "⚡ Live Chat",
-      gradient: "from-teal-700 via-teal-800 to-slate-900 shadow-teal-800/30 border-teal-500/40",
-      badgeBg: "bg-emerald-500/20 text-emerald-300 border-emerald-400/30",
-      btnBg: "bg-emerald-500 hover:bg-emerald-400 text-slate-950",
+      badgeBg: "bg-emerald-100/90 text-emerald-950 border border-emerald-300/80 font-black",
+      iconBg: "bg-emerald-50 text-emerald-700 border border-emerald-200/80 shadow-xs",
+      btnBg: "bg-gradient-to-r from-emerald-600 via-teal-600 to-emerald-700 hover:from-emerald-700 hover:to-teal-800 text-white shadow-md shadow-emerald-600/25",
       btnText: "💬 Click to Chat",
       subText: "Real-Time",
-      pulseColor: "bg-emerald-400",
+      pulseColor: "bg-emerald-500",
+      subTextBg: "bg-emerald-50 text-emerald-800 border border-emerald-200/80",
     },
     {
       title: "Community Feed",
@@ -22,12 +24,13 @@ export default function Home() {
       icon: "📰",
       to: "/feed",
       badge: "📰 Social Feed",
-      gradient: "from-slate-900 via-teal-950 to-slate-950 shadow-teal-900/30 border-teal-500/30",
-      badgeBg: "bg-teal-500/20 text-teal-300 border-teal-400/30",
-      btnBg: "bg-teal-500 hover:bg-teal-400 text-slate-950",
+      badgeBg: "bg-blue-100/90 text-blue-950 border border-blue-300/80 font-black",
+      iconBg: "bg-blue-50 text-blue-700 border border-blue-200/80 shadow-xs",
+      btnBg: "bg-gradient-to-r from-blue-600 via-indigo-600 to-blue-700 hover:from-blue-700 hover:to-indigo-800 text-white shadow-md shadow-blue-600/25",
       btnText: "📰 Open Feed",
       subText: "Updates",
-      pulseColor: "bg-teal-400",
+      pulseColor: "bg-blue-500",
+      subTextBg: "bg-blue-50 text-blue-800 border border-blue-200/80",
     },
     {
       title: "Official Notices",
@@ -35,12 +38,13 @@ export default function Home() {
       icon: "📢",
       to: "/notices",
       badge: "📢 Important",
-      gradient: "from-amber-950 via-slate-900 to-amber-900 shadow-amber-900/30 border-amber-500/30",
-      badgeBg: "bg-amber-500/20 text-amber-300 border-amber-400/30",
-      btnBg: "bg-amber-500 hover:bg-amber-400 text-slate-950",
+      badgeBg: "bg-amber-100/90 text-amber-950 border border-amber-300/80 font-black",
+      iconBg: "bg-amber-50 text-amber-700 border border-amber-200/80 shadow-xs",
+      btnBg: "bg-gradient-to-r from-amber-600 via-orange-600 to-amber-700 hover:from-amber-700 hover:to-orange-800 text-white shadow-md shadow-amber-600/25",
       btnText: "📢 View Notices",
       subText: "Jamaat",
-      pulseColor: "bg-amber-400",
+      pulseColor: "bg-amber-500",
+      subTextBg: "bg-amber-50 text-amber-900 border border-amber-200/80",
     },
     {
       title: "Community Polls",
@@ -48,12 +52,13 @@ export default function Home() {
       icon: "🗳️",
       to: "/polls",
       badge: "🗳️ Active Vote",
-      gradient: "from-purple-950 via-slate-900 to-indigo-950 shadow-purple-900/30 border-purple-500/30",
-      badgeBg: "bg-purple-500/20 text-purple-300 border-purple-400/30",
-      btnBg: "bg-purple-500 hover:bg-purple-400 text-slate-950",
+      badgeBg: "bg-purple-100/90 text-purple-950 border border-purple-300/80 font-black",
+      iconBg: "bg-purple-50 text-purple-700 border border-purple-200/80 shadow-xs",
+      btnBg: "bg-gradient-to-r from-purple-600 via-violet-600 to-purple-700 hover:from-purple-700 hover:to-violet-800 text-white shadow-md shadow-purple-600/25",
       btnText: "🗳️ Vote Now",
       subText: "Live Results",
-      pulseColor: "bg-purple-400",
+      pulseColor: "bg-purple-500",
+      subTextBg: "bg-purple-50 text-purple-900 border border-purple-200/80",
     },
     {
       title: "Local Workers (کاریگر)",
@@ -61,12 +66,13 @@ export default function Home() {
       icon: "🛠️",
       to: "/workers",
       badge: "🛠️ Local Workers",
-      gradient: "from-emerald-950 via-slate-900 to-teal-950 shadow-emerald-900/30 border-emerald-500/30",
-      badgeBg: "bg-emerald-500/20 text-emerald-300 border-emerald-400/30",
-      btnBg: "bg-emerald-500 hover:bg-emerald-400 text-slate-950",
+      badgeBg: "bg-teal-100/90 text-teal-950 border border-teal-300/80 font-black",
+      iconBg: "bg-teal-50 text-teal-700 border border-teal-200/80 shadow-xs",
+      btnBg: "bg-gradient-to-r from-teal-600 via-cyan-700 to-teal-700 hover:from-teal-700 hover:to-cyan-800 text-white shadow-md shadow-teal-600/25",
       btnText: "🛠️ Find Workers",
       subText: "Workers",
-      pulseColor: "bg-emerald-400",
+      pulseColor: "bg-teal-500",
+      subTextBg: "bg-teal-50 text-teal-900 border border-teal-200/80",
     },
     {
       title: "Friends & Members",
@@ -74,12 +80,13 @@ export default function Home() {
       icon: "👥",
       to: "/friends",
       badge: "👥 Directory",
-      gradient: "from-blue-950 via-slate-900 to-indigo-950 shadow-blue-900/30 border-blue-500/30",
-      badgeBg: "bg-blue-500/20 text-blue-300 border-blue-400/30",
-      btnBg: "bg-blue-500 hover:bg-blue-400 text-slate-950",
+      badgeBg: "bg-sky-100/90 text-sky-950 border border-sky-300/80 font-black",
+      iconBg: "bg-sky-50 text-sky-700 border border-sky-200/80 shadow-xs",
+      btnBg: "bg-gradient-to-r from-sky-600 via-blue-700 to-sky-700 hover:from-sky-700 hover:to-blue-800 text-white shadow-md shadow-sky-600/25",
       btnText: "👥 Find Friends",
       subText: "Members",
-      pulseColor: "bg-blue-400",
+      pulseColor: "bg-sky-500",
+      subTextBg: "bg-sky-50 text-sky-900 border border-sky-200/80",
     },
     {
       title: "Help & Support",
@@ -87,12 +94,13 @@ export default function Home() {
       icon: "❓",
       to: "/help",
       badge: "❓ Help Desk",
-      gradient: "from-slate-900 via-slate-950 to-slate-900 shadow-slate-900/40 border-slate-700/50",
-      badgeBg: "bg-slate-500/20 text-slate-300 border-slate-400/30",
-      btnBg: "bg-slate-200 hover:bg-white text-slate-950",
+      badgeBg: "bg-rose-100/90 text-rose-950 border border-rose-300/80 font-black",
+      iconBg: "bg-rose-50 text-rose-700 border border-rose-200/80 shadow-xs",
+      btnBg: "bg-gradient-to-r from-rose-600 via-pink-600 to-rose-700 hover:from-rose-700 hover:to-pink-800 text-white shadow-md shadow-rose-600/25",
       btnText: "❓ Get Support",
       subText: "Guidance",
       pulseColor: "",
+      subTextBg: "bg-rose-50 text-rose-900 border border-rose-200/80",
     },
     {
       title: "My Profile",
@@ -100,12 +108,13 @@ export default function Home() {
       icon: "👤",
       to: "/profile",
       badge: "👤 Account",
-      gradient: "from-teal-950 via-slate-900 to-emerald-950 shadow-teal-900/30 border-teal-500/30",
-      badgeBg: "bg-teal-500/20 text-teal-300 border-teal-400/30",
-      btnBg: "bg-teal-500 hover:bg-teal-400 text-slate-950",
+      badgeBg: "bg-indigo-100/90 text-indigo-950 border border-indigo-300/80 font-black",
+      iconBg: "bg-indigo-50 text-indigo-700 border border-indigo-200/80 shadow-xs",
+      btnBg: "bg-gradient-to-r from-indigo-600 via-violet-600 to-indigo-700 hover:from-indigo-700 hover:to-violet-800 text-white shadow-md shadow-indigo-600/25",
       btnText: "👤 Open Profile",
       subText: "Settings",
       pulseColor: "",
+      subTextBg: "bg-indigo-50 text-indigo-900 border border-indigo-200/80",
     },
   ];
 
@@ -118,34 +127,37 @@ export default function Home() {
 
   return (
     <div className="w-full space-y-8 py-2">
+      <SEO pageKey="home" />
       {/* Premium Hero Banner */}
-      <div className="page-hero-banner relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 p-8 text-white shadow-xl md:p-10 border border-slate-800">
+      <div className="page-hero-banner relative overflow-hidden rounded-3xl bg-gradient-to-br from-teal-600 via-emerald-600 to-teal-700 via-teal-950 to-slate-900 p-6 sm:p-8 text-white shadow-xl md:p-10 border border-slate-200">
         <div className="absolute right-0 top-0 -mr-16 -mt-16 h-64 w-64 rounded-full bg-teal-500/10 blur-3xl" />
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8">
-          <div className="space-y-3 max-w-2xl">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-8 text-left">
+          <div className="space-y-3 max-w-2xl mx-0 flex flex-col items-start">
             <div className="inline-flex items-center gap-2 rounded-full bg-teal-500/10 px-3.5 py-1 text-xs font-bold uppercase tracking-wider text-teal-300 border border-teal-500/30">
               <img src="/logo.png" alt="Logo" className="h-4 w-4 object-contain" />
               <span>OFFICIAL DIGITAL PORTAL</span>
             </div>
-            <h1 className="text-3xl font-extrabold text-white sm:text-4xl md:text-5xl leading-tight">
+            <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-white leading-tight">
               Welcome to All Kutchi Community Hub
             </h1>
-            <p className="text-sm text-slate-300 md:text-base leading-relaxed">
+            <p className="text-xs sm:text-sm text-teal-100/90 md:text-base leading-relaxed">
               An all-in-one digital portal connecting members across Pakistan and worldwide. Stay informed with official notices, Mayyat announcements, career opportunities, and direct messaging.
             </p>
             
-            <div className="pt-3 flex flex-wrap gap-3">
+            <div className="pt-2 flex flex-col items-start gap-2 w-full">
               <Link
                 to="/feed"
-                className="inline-flex items-center gap-2 rounded-xl bg-teal-600 px-5 py-3 text-xs font-bold text-white shadow-lg shadow-teal-600/30 hover:bg-teal-500 transition active:scale-95"
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-bold text-xs px-3.5 py-2 shadow-md shadow-teal-900/40 border border-teal-400/30 transition-all duration-200 hover:scale-[1.02] active:scale-95 whitespace-nowrap"
               >
-                <span>📰</span> Explore Feed
+                <span>📰</span>
+                <span>Explore Feed</span>
               </Link>
               <Link
                 to="/notices"
-                className="inline-flex items-center gap-2 rounded-xl bg-slate-100 dark:bg-white/10 px-5 py-3 text-xs font-extrabold text-slate-900 dark:text-white border border-slate-300 dark:border-white/30 hover:bg-slate-200 dark:hover:bg-white/20 transition active:scale-95 shadow-sm"
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-white hover:bg-slate-50 text-slate-900 font-bold text-xs px-3.5 py-2 shadow-sm border border-slate-200 transition-all duration-200 hover:scale-[1.02] active:scale-95 whitespace-nowrap"
               >
-                <span>📢</span> View Notices & Mayyat
+                <span>📢</span>
+                <span>View Notices & Mayyat</span>
               </Link>
             </div>
           </div>
@@ -158,27 +170,31 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Quick Action Grid */}
+      {/* Quick Action Grid - Portal Services & Modules */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-xl font-extrabold text-slate-900">Portal Services & Modules</h2>
-            <p className="text-xs font-semibold text-slate-500">Quickly access key sections of the community portal</p>
+        <div className="flex flex-col sm:flex-row items-center sm:items-start justify-between text-center sm:text-left mb-4 gap-2">
+          <div className="flex flex-col items-center sm:items-start">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-teal-50 text-teal-800 border border-teal-200 text-xs font-extrabold uppercase tracking-wider mb-1">
+              <span>⚡ Core Services</span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
+              Portal Services & Modules
+            </h2>
+            <p className="text-xs font-bold text-slate-600">
+              Quickly access key sections of the community portal
+            </p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {quickActions.map((item) => (
-            <Link
+            <div
               key={item.to}
-              to={item.to}
-              className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-gradient-to-br ${item.gradient} p-5 text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-xl border`}
+              className="group relative flex flex-col justify-between overflow-hidden rounded-2xl bg-white border border-slate-200/90 p-5 shadow-sm hover:shadow-xl hover:border-slate-300 hover:-translate-y-1.5 transition-all duration-300"
             >
-              <div className="absolute -right-6 -bottom-6 h-28 w-28 rounded-full bg-white/10 blur-xl group-hover:scale-150 transition-transform duration-500" />
-
               <div>
                 <div className="flex items-center justify-between">
-                  <div className="relative flex items-center justify-center h-10 w-10 rounded-xl bg-white/15 backdrop-blur-md border border-white/20 text-2xl shadow-inner group-hover:scale-110 transition-transform">
+                  <div className={`relative flex items-center justify-center h-10 w-10 rounded-xl text-xl shadow-xs group-hover:scale-110 transition-transform ${item.iconBg}`}>
                     {item.icon}
                     {item.pulseColor && (
                       <span className="absolute -top-1 -right-1 flex h-3 w-3">
@@ -187,27 +203,32 @@ export default function Home() {
                       </span>
                     )}
                   </div>
-                  <span className={`rounded-full px-2.5 py-1 text-[10px] font-black border uppercase tracking-wider ${item.badgeBg}`}>
+                  <span className={`rounded-full px-2.5 py-1 text-[10px] uppercase tracking-wider ${item.badgeBg}`}>
                     {item.badge}
                   </span>
                 </div>
 
-                <h3 className="mt-4 text-base font-black text-white group-hover:text-teal-200 transition">
+                <h3 className="mt-4 text-base font-extrabold text-slate-900 leading-snug">
                   {item.title}
                 </h3>
-                <p className="mt-1 text-xs text-slate-200 leading-relaxed font-medium">
+                <p className="mt-1.5 text-xs text-slate-600 leading-relaxed font-medium">
                   {item.description}
                 </p>
               </div>
 
-              <div className="mt-5 pt-3 border-t border-white/15 flex items-center justify-between text-xs font-black text-white">
-                <span className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-extrabold shadow-md transition group-hover:scale-105 ${item.btnBg}`}>
+              <div className="mt-5 pt-3 border-t border-slate-100 flex items-center justify-between">
+                <Link
+                  to={item.to}
+                  className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2.5 text-xs font-extrabold transition group-hover:scale-105 active:scale-95 ${item.btnBg}`}
+                >
                   <span>{item.btnText}</span>
-                  <span>→</span>
+                  <span className="transition-transform group-hover:translate-x-0.5">→</span>
+                </Link>
+                <span className={`text-[10px] font-black px-2 py-0.5 rounded-md ${item.subTextBg}`}>
+                  {item.subText}
                 </span>
-                <span className="text-xs text-slate-300 font-bold opacity-90">{item.subText}</span>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       </div>
@@ -215,25 +236,23 @@ export default function Home() {
       {/* Why This Space & Tip Cards */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Why Community Card */}
-        <div className="lg:col-span-2 relative overflow-hidden rounded-3xl border border-slate-800 bg-gradient-to-br from-slate-900 via-teal-950 to-slate-900 p-6 sm:p-8 text-white shadow-xl">
-          <div className="absolute -top-12 -right-12 h-48 w-48 rounded-full bg-teal-500/10 blur-3xl pointer-events-none" />
-
+        <div className="lg:col-span-2 relative overflow-hidden rounded-3xl border border-teal-200 bg-white p-6 sm:p-8 text-slate-900 shadow-xl">
           <div className="relative z-10">
-            <div className="inline-flex items-center gap-2 rounded-full bg-teal-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-wider text-teal-300 border border-teal-500/30 mb-2">
+            <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3.5 py-1 text-[10px] font-black uppercase tracking-wider text-teal-700 border border-teal-200 mb-2">
               <span>🛡️ COMMUNITY GUIDANCE</span>
             </div>
-            <h2 className="text-xl font-black text-white">Why All Kutchi Community Portal?</h2>
-            <p className="mt-1 text-xs text-slate-300 font-medium">Built to empower our community members and streamline Jamaat communication.</p>
+            <h2 className="text-xl font-black text-slate-900">Why All Kutchi Community Portal?</h2>
+            <p className="mt-1 text-xs text-slate-600 font-medium">Built to empower our community members and streamline Jamaat communication.</p>
 
             <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4">
               {highlights.map((h, i) => (
-                <div key={i} className="group flex items-start gap-3 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md hover:bg-white/10 hover:border-teal-500/40 transition-all duration-200">
-                  <div className="h-10 w-10 shrink-0 rounded-xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center text-xl shadow-inner group-hover:scale-110 transition-transform">
+                <div key={i} className="group flex items-start gap-3.5 rounded-2xl border border-slate-200/80 bg-slate-50/80 p-4 hover:bg-teal-50/60 hover:border-teal-300 transition-all duration-200">
+                  <div className="h-10 w-10 shrink-0 rounded-xl bg-teal-100 text-teal-700 border border-teal-200 flex items-center justify-center text-xl shadow-xs group-hover:scale-110 transition-transform">
                     {h.icon}
                   </div>
                   <div>
-                    <h4 className="text-xs font-black text-white group-hover:text-teal-300 transition">{h.title}</h4>
-                    <p className="mt-1 text-[11px] text-slate-300 leading-relaxed font-medium">{h.desc}</p>
+                    <h4 className="text-xs font-black text-slate-900 group-hover:text-teal-700 transition">{h.title}</h4>
+                    <p className="mt-1 text-[11px] text-slate-600 leading-relaxed font-medium">{h.desc}</p>
                   </div>
                 </div>
               ))}
@@ -242,28 +261,26 @@ export default function Home() {
         </div>
 
         {/* Daily Tip Card */}
-        <div className="relative overflow-hidden rounded-3xl border border-teal-500/40 bg-gradient-to-br from-teal-900 via-emerald-950 to-slate-950 p-6 sm:p-8 text-white shadow-xl flex flex-col justify-between">
-          <div className="absolute -bottom-10 -left-10 h-40 w-40 rounded-full bg-emerald-500/15 blur-2xl pointer-events-none" />
-
+        <div className="relative overflow-hidden rounded-3xl border border-amber-200 bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100/60 p-6 sm:p-8 text-slate-900 shadow-xl flex flex-col justify-between">
           <div className="relative z-10">
             <div className="flex items-center justify-between">
-              <div className="h-10 w-10 rounded-xl bg-amber-500/20 border border-amber-400/30 flex items-center justify-center text-2xl shadow-inner">
+              <div className="h-10 w-10 rounded-xl bg-amber-100 border border-amber-300 flex items-center justify-center text-2xl shadow-xs">
                 💡
               </div>
-              <span className="rounded-full bg-amber-500/20 text-amber-300 border border-amber-400/30 text-[10px] font-black uppercase tracking-wider px-3 py-1">
+              <span className="rounded-full bg-amber-100 text-amber-800 border border-amber-300 text-[10px] font-black uppercase tracking-wider px-3 py-1">
                 Daily Tip
               </span>
             </div>
 
-            <h3 className="mt-4 text-base font-black text-white">Jamaat Daily Tip</h3>
-            <p className="mt-2 text-xs text-slate-200 leading-relaxed font-medium">
+            <h3 className="mt-4 text-base font-black text-slate-900">Jamaat Daily Tip</h3>
+            <p className="mt-2 text-xs text-slate-700 leading-relaxed font-medium">
               Keep your profile details up to date (occupations, family count, Jamaat branch). It helps Jamaat admins maintain accurate records and contact you during emergencies or event invitations.
             </p>
           </div>
 
           <Link
             to="/profile"
-            className="relative z-10 mt-6 block text-center rounded-xl bg-emerald-500 hover:bg-emerald-400 py-3 text-xs font-black text-slate-950 shadow-lg shadow-emerald-500/20 transition active:scale-95"
+            className="relative z-10 mt-6 block text-center rounded-xl bg-amber-500 hover:bg-amber-600 py-3 text-xs font-black text-white shadow-md shadow-amber-500/25 transition active:scale-95"
           >
             <span>👤 Update My Profile</span>
             <span className="ml-1">→</span>

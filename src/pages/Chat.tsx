@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import API from "../api/axios";
 import UserAvatar from "../components/UserAvatar";
+import AudioPlayer from "../components/AudioPlayer";
 import { getPresenceStatus, getChatMessageDateLabel } from "../utils/presence";
 
 interface ChatMessage {
@@ -48,140 +49,6 @@ const getSupportedAudioMimeType = () => {
   return "";
 };
 
-function AudioPlayer({ url, duration, isOutgoing }: { url: string; duration?: number; isOutgoing?: boolean }) {
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [audioDuration, setAudioDuration] = useState(duration || 0);
-  const [hasError, setHasError] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-
-  const getAudioSrc = (srcUrl: string) => {
-    if (!srcUrl) return "";
-    if (srcUrl.startsWith("http://") || srcUrl.startsWith("https://") || srcUrl.startsWith("blob:")) {
-      return srcUrl;
-    }
-    const baseURL = (import.meta as any).env?.VITE_API_URL || "http://localhost:5000";
-    const cleanBase = baseURL.replace(/\/api\/?$/, "").replace(/\/$/, "");
-    return srcUrl.startsWith("/") ? `${cleanBase}${srcUrl}` : `${cleanBase}/${srcUrl}`;
-  };
-
-  const fullAudioSrc = getAudioSrc(url);
-
-  useEffect(() => {
-    if (duration && duration > 0) {
-      setAudioDuration(duration);
-    }
-  }, [duration]);
-
-  const togglePlay = async () => {
-    if (!audioRef.current) return;
-    if (isPlaying) {
-      audioRef.current.pause();
-      setIsPlaying(false);
-    } else {
-      setHasError(false);
-      setIsLoading(true);
-      try {
-        await audioRef.current.play();
-        setIsPlaying(true);
-      } catch (err: any) {
-        console.error("Audio playback failed:", err);
-        setIsPlaying(false);
-        setHasError(true);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-  };
-
-  const handleTimeUpdate = () => {
-    if (audioRef.current) {
-      setCurrentTime(audioRef.current.currentTime);
-      if (Number.isFinite(audioRef.current.duration) && audioRef.current.duration > 0 && !audioDuration) {
-        setAudioDuration(audioRef.current.duration);
-      }
-    }
-  };
-
-  const handleLoadedMetadata = () => {
-    if (audioRef.current && Number.isFinite(audioRef.current.duration) && audioRef.current.duration > 0) {
-      setAudioDuration(audioRef.current.duration);
-    }
-  };
-
-  const formatTime = (secs: number) => {
-    if (!Number.isFinite(secs) || secs < 0) return "0:00";
-    const m = Math.floor(secs / 60);
-    const s = Math.floor(secs % 60);
-    return `${m}:${s < 10 ? "0" : ""}${s}`;
-  };
-
-  return (
-    <div
-      className={`flex items-center gap-3 p-2.5 rounded-2xl min-w-[210px] sm:min-w-[240px] my-1 ${
-        isOutgoing ? "bg-emerald-700/90 text-white" : "bg-slate-100 text-slate-900 border border-slate-200"
-      }`}
-    >
-      <audio
-        ref={audioRef}
-        src={fullAudioSrc}
-        preload="metadata"
-        onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={handleLoadedMetadata}
-        onDurationChange={handleLoadedMetadata}
-        onEnded={() => {
-          setIsPlaying(false);
-          setCurrentTime(0);
-        }}
-        onError={(e) => {
-          console.error("Audio element error:", e);
-          setIsPlaying(false);
-          setHasError(true);
-        }}
-      />
-
-      <button
-        type="button"
-        onClick={togglePlay}
-        title={hasError ? "Audio load failed. Click to retry." : isPlaying ? "Pause" : "Play"}
-        className={`h-9 w-9 shrink-0 grid place-items-center rounded-full font-bold shadow-md transition ${
-          hasError
-            ? "bg-rose-500 text-white"
-            : isOutgoing
-            ? "bg-white text-emerald-800 hover:bg-emerald-50"
-            : "bg-emerald-600 text-white hover:bg-emerald-700"
-        }`}
-      >
-        {isLoading ? "⏳" : hasError ? "⚠️" : isPlaying ? "⏸" : "▶"}
-      </button>
-
-      <div className="flex-1 space-y-1.5 min-w-0">
-        <div
-          className="h-2 w-full rounded-full bg-black/10 overflow-hidden cursor-pointer relative"
-          onClick={(e) => {
-            if (!audioRef.current || !audioDuration) return;
-            const rect = e.currentTarget.getBoundingClientRect();
-            const pos = (e.clientX - rect.left) / rect.width;
-            const seekTime = pos * audioDuration;
-            audioRef.current.currentTime = seekTime;
-            setCurrentTime(seekTime);
-          }}
-        >
-          <div
-            className={`h-full rounded-full transition-all ${isOutgoing ? "bg-white" : "bg-emerald-600"}`}
-            style={{ width: `${audioDuration ? Math.min(100, Math.max(0, (currentTime / audioDuration) * 100)) : 0}%` }}
-          />
-        </div>
-        <div className="flex justify-between text-[10px] font-mono opacity-80">
-          <span>{formatTime(currentTime)}</span>
-          <span>{hasError ? "Error loading audio" : `🎙️ Voice Note • ${formatTime(audioDuration)}`}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export default function Chat() {
   const { friendId } = useParams();
   const navigate = useNavigate();
@@ -215,10 +82,23 @@ export default function Chat() {
 
   const loadChat = async () => {
     if (!friendId) return;
-
     try {
+      if (typeof document !== 'undefined' && document.hidden) return;
       const response = await API.get<{ success: boolean; chat: ChatData }>(`/friends/chats/${encodeURIComponent(friendId)}`);
-      setChat(response.data.chat);
+      const nextChat = response.data?.chat;
+      if (!nextChat) return;
+
+      setChat((prev) => {
+        if (
+          prev &&
+          prev._id === nextChat._id &&
+          prev.messages?.length === nextChat.messages?.length &&
+          prev.messages?.[prev.messages.length - 1]?._id === nextChat.messages?.[nextChat.messages.length - 1]?._id
+        ) {
+          return prev;
+        }
+        return nextChat;
+      });
     } catch (err: any) {
       setStatus(err.response?.data?.message || "Unable to open chat.");
     }
@@ -229,7 +109,7 @@ export default function Chat() {
 
     const timer = setInterval(() => {
       loadChat();
-    }, 3000);
+    }, 4000);
 
     return () => clearInterval(timer);
   }, [friendId]);
@@ -240,6 +120,21 @@ export default function Chat() {
       el.scrollTop = el.scrollHeight;
     }
   }, [chat?.messages]);
+
+  // Intercept mobile hardware / browser back button
+  useEffect(() => {
+    window.history.pushState({ chatOpen: true }, "");
+
+    const handlePopState = () => {
+      navigate(-1);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+    };
+  }, [navigate]);
 
   const startRecording = async () => {
     try {
@@ -373,7 +268,7 @@ export default function Chat() {
 
     if (msg.isDelivered) {
       return (
-        <svg viewBox="0 0 24 24" className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2">
+        <svg viewBox="0 0 24 24" className="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" strokeWidth="2">
           <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
           <path strokeLinecap="round" strokeLinejoin="round" d="M1 10l4 4L14 3" />
         </svg>
@@ -381,7 +276,7 @@ export default function Chat() {
     }
 
     return (
-      <svg viewBox="0 0 24 24" className="h-4 w-4 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2">
+      <svg viewBox="0 0 24 24" className="h-4 w-4 text-slate-500" fill="none" stroke="currentColor" strokeWidth="2">
         <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
       </svg>
     );
@@ -448,7 +343,7 @@ export default function Chat() {
           />
           <span className={`absolute bottom-0 right-0 h-4 w-4 rounded-full ring-2 ring-white ${partnerPresence.isOnline ? 'bg-emerald-500' : 'bg-slate-400'}`} />
         </div>
-        <div className="flex items-center gap-2 rounded-2xl bg-slate-900 px-4 py-2 text-xs font-black text-white shadow-2xl group-hover:bg-slate-800 transition border border-slate-700">
+        <div className="flex items-center gap-2 rounded-2xl bg-white px-4 py-2 text-xs font-black text-white shadow-2xl group-hover:bg-slate-50 transition border border-slate-200">
           <span>💬</span>
           <span className="truncate max-w-[120px]">{partner?.fullName || partner?.username || 'Chat'}</span>
           <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider ml-1">▲ Open</span>
@@ -458,9 +353,9 @@ export default function Chat() {
   }
 
   return (
-    <div className="fixed bottom-0 right-3 sm:right-6 z-50 w-[94vw] sm:w-[380px] h-[520px] max-h-[85vh] bg-slate-900 rounded-t-3xl shadow-2xl border border-slate-800 flex flex-col overflow-hidden text-white">
+    <div className="fixed inset-0 sm:inset-auto sm:bottom-0 sm:right-6 z-50 w-full sm:w-[380px] h-full sm:h-[520px] sm:max-h-[85vh] bg-white rounded-none sm:rounded-t-3xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden text-slate-900">
       {/* Facebook Style Chat Header */}
-      <header className="flex items-center justify-between border-b border-slate-800 bg-slate-950 px-4 py-3 text-white shrink-0">
+      <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 shrink-0">
         <div
           onClick={() => partner && navigate(`/user/${partner._id}`)}
           className="flex items-center gap-2.5 cursor-pointer group min-w-0"
@@ -470,16 +365,16 @@ export default function Chat() {
               name={partner?.fullName || partner?.username || 'Friend'}
               photoUrl={partner?.profilePhotoUrl || partner?.photoUrl}
               size="sm"
-              className={`${partnerPresence.isOnline ? "ring-2 ring-emerald-400" : "ring-2 ring-slate-600"} group-hover:scale-105 transition`}
+              className={`${partnerPresence.isOnline ? "ring-2 ring-emerald-500" : "ring-2 ring-slate-300"} group-hover:scale-105 transition`}
             />
-            <span className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full ring-2 ring-slate-950 ${partnerPresence.isOnline ? 'bg-emerald-400' : 'bg-slate-500'}`} />
+            <span className={`absolute bottom-0 right-0 h-2.5 w-2.5 rounded-full ring-2 ring-white ${partnerPresence.isOnline ? 'bg-emerald-500' : 'bg-slate-400'}`} />
           </div>
 
           <div className="min-w-0">
-            <h2 className="text-xs font-extrabold text-white leading-tight truncate group-hover:text-teal-400 transition">
+            <h2 className="text-xs font-extrabold text-slate-900 leading-tight truncate group-hover:text-teal-600 transition">
               {partner?.fullName || partner?.username || 'Friend'}
             </h2>
-            <p className={`text-[10px] font-semibold truncate ${partnerPresence.isOnline ? 'text-emerald-400' : 'text-slate-400'}`}>
+            <p className={`text-[10px] font-semibold truncate ${partnerPresence.isOnline ? 'text-emerald-600 font-bold' : 'text-slate-500'}`}>
               {partnerPresence.isOnline ? 'Active Now' : 'Offline'}
             </p>
           </div>
@@ -489,7 +384,7 @@ export default function Chat() {
           <button
             type="button"
             onClick={() => setIsMinimized(true)}
-            className="rounded-lg bg-slate-800 p-1.5 text-slate-300 hover:bg-slate-700 hover:text-white transition"
+            className="rounded-lg bg-slate-100 p-1.5 text-slate-600 hover:bg-slate-200 hover:text-slate-900 transition"
             title="Minimize Chat"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -500,7 +395,7 @@ export default function Chat() {
           <button
             type="button"
             onClick={() => navigate(-1)}
-            className="rounded-lg bg-slate-800 p-1.5 text-slate-300 hover:bg-rose-600 hover:text-white transition"
+            className="rounded-lg bg-slate-100 p-1.5 text-slate-600 hover:bg-rose-500 hover:text-white transition"
             title="Close Chat"
           >
             <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -512,16 +407,16 @@ export default function Chat() {
 
       {/* Status Error Alert */}
         {status ? (
-          <div className="bg-rose-950/60 px-5 py-2.5 text-xs font-semibold text-rose-300 border-b border-rose-800/80 flex justify-between items-center">
+          <div className="bg-rose-50 px-5 py-2.5 text-xs font-semibold text-rose-800 border-b border-rose-200 flex justify-between items-center">
             <span>{status}</span>
-            <button onClick={() => setStatus(null)} className="text-rose-400 hover:text-white">✕</button>
+            <button onClick={() => setStatus(null)} className="text-rose-600 hover:text-rose-900 font-bold">✕</button>
           </div>
         ) : null}
 
         {/* Chat Messages Body */}
         <main
           id="chat-messages-container-full"
-          className="flex-1 overflow-y-auto bg-gradient-to-b from-slate-950 via-slate-900 to-teal-950/40 p-4 sm:p-6 space-y-1.5"
+          className="flex-1 overflow-y-auto bg-slate-50 p-4 sm:p-5 space-y-1.5"
         >
           {chat?.messages?.length ? (
             chat.messages.map((item, index) => {
@@ -550,11 +445,11 @@ export default function Chat() {
                 <React.Fragment key={(item._id || item.createdAt) + "-" + index}>
                   {showDateDivider && (
                     <div className="w-full flex items-center justify-center my-4 py-1 select-none pointer-events-none">
-                      <div className="h-[1px] flex-1 bg-slate-800 max-w-[60px] sm:max-w-[100px]" />
-                      <span className="mx-2.5 rounded-full bg-slate-950 border border-slate-800 px-3.5 py-0.5 text-[10px] font-black text-teal-300 uppercase tracking-wider shadow-2xs">
+                      <div className="h-[1px] flex-1 bg-slate-200 max-w-[60px] sm:max-w-[100px]" />
+                      <span className="mx-2.5 rounded-full bg-white border border-slate-200 px-3.5 py-0.5 text-[10px] font-black text-teal-700 uppercase tracking-wider shadow-xs">
                         {dateLabel}
                       </span>
-                      <div className="h-[1px] flex-1 bg-slate-800 max-w-[60px] sm:max-w-[100px]" />
+                      <div className="h-[1px] flex-1 bg-slate-200 max-w-[60px] sm:max-w-[100px]" />
                     </div>
                   )}
                   <div className={`flex items-end gap-2 my-1 ${isOutgoing ? 'justify-end' : 'justify-start'}`}>
@@ -563,16 +458,16 @@ export default function Chat() {
                         name={senderName}
                         photoUrl={senderPhoto || partner?.profilePhotoUrl || partner?.photoUrl}
                         size="sm"
-                        className="ring-1 ring-slate-700 mb-0.5 shrink-0"
+                        className="ring-1 ring-slate-300 mb-0.5 shrink-0"
                       />
                     )}
 
                     <div className={`max-w-[85%] sm:max-w-[75%] rounded-2xl ${
                       isOutgoing 
-                        ? 'bg-teal-600 text-white rounded-br-xs shadow-sm px-3.5 py-2' 
-                        : 'bg-slate-800/90 text-white border border-slate-700/80 rounded-bl-xs shadow-sm px-3.5 py-2'
+                        ? 'bg-teal-600 text-white rounded-br-xs shadow-xs px-3.5 py-2' 
+                        : 'bg-white text-slate-900 border border-slate-200/90 rounded-bl-xs shadow-xs px-3.5 py-2'
                     }`}>
-                      <p className={`text-[11px] font-bold mb-1 ${isOutgoing ? 'text-teal-100' : 'text-teal-300'}`}>
+                      <p className={`text-[11px] font-bold mb-0.5 ${isOutgoing ? 'text-teal-100' : 'text-teal-700'}`}>
                         {senderName}
                       </p>
 
@@ -580,7 +475,7 @@ export default function Chat() {
                         <AudioPlayer url={item.audioUrl} duration={item.audioDuration} isOutgoing={isOutgoing} />
                       ) : (
                         <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-                          <span className="text-xs sm:text-sm leading-snug whitespace-pre-wrap break-words font-normal text-white">
+                          <span className={`text-xs sm:text-sm leading-snug whitespace-pre-wrap break-words font-normal ${isOutgoing ? 'text-white' : 'text-slate-800'}`}>
                             {item.text}
                           </span>
                         </div>
@@ -606,11 +501,11 @@ export default function Chat() {
             })
           ) : (
             <div className="flex h-full flex-col items-center justify-center p-8 text-center">
-              <div className="w-20 h-20 rounded-full bg-teal-500/20 text-teal-300 grid place-items-center text-3xl shadow-inner mb-4 border border-teal-500/30">
+              <div className="w-16 h-16 rounded-full bg-teal-100 text-teal-700 grid place-items-center text-3xl shadow-xs mb-3 border border-teal-200">
                 💬
               </div>
-              <h3 className="text-base font-bold text-white">No messages yet</h3>
-              <p className="mt-1 text-xs text-slate-400 max-w-xs">
+              <h3 className="text-sm font-extrabold text-slate-900">No messages yet</h3>
+              <p className="mt-1 text-xs text-slate-500 max-w-xs">
                 Start the conversation or send a voice message to {partner?.fullName || partner?.username || 'your friend'}!
               </p>
             </div>
@@ -619,7 +514,7 @@ export default function Chat() {
 
         {/* Emoji Quick Drawer */}
         {showEmojiPicker && (
-          <div className="bg-slate-900 border-t border-slate-800 px-6 py-2 flex flex-wrap gap-2 shadow-inner">
+          <div className="bg-white border-t border-slate-200 px-6 py-2 flex flex-wrap gap-2 shadow-inner">
             {emojis.map((e) => (
               <button
                 key={e}
@@ -634,12 +529,12 @@ export default function Chat() {
         )}
 
         {/* Footer Input & Voice Controls */}
-        <footer className="border-t border-slate-800 bg-slate-950 p-4">
+        <footer className="border-t border-slate-200 bg-white p-3.5">
           {isRecording ? (
-            <div className="flex items-center justify-between gap-3 bg-rose-950/80 border border-rose-800/80 p-3 rounded-2xl animate-pulse">
+            <div className="flex items-center justify-between gap-3 bg-rose-50 border border-rose-200 p-3 rounded-2xl animate-pulse">
               <div className="flex items-center gap-3">
                 <span className="h-3 w-3 rounded-full bg-rose-500 animate-ping" />
-                <span className="text-xs font-extrabold text-rose-200 uppercase tracking-wider">
+                <span className="text-xs font-extrabold text-rose-800 uppercase tracking-wider">
                   Recording Voice Note ({formatRecordingTime(recordingTime)})
                 </span>
               </div>
@@ -648,7 +543,7 @@ export default function Chat() {
                 <button
                   type="button"
                   onClick={cancelRecording}
-                  className="rounded-xl border border-rose-700 bg-slate-900 px-3 py-1.5 text-xs font-bold text-rose-300 hover:bg-rose-950/60 transition"
+                  className="rounded-xl border border-rose-200 bg-white px-3 py-1.5 text-xs font-bold text-rose-700 hover:bg-rose-100 transition"
                 >
                   🗑️ Cancel
                 </button>
@@ -663,11 +558,11 @@ export default function Chat() {
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={() => setShowEmojiPicker((v) => !v)}
-                className="p-2.5 rounded-2xl text-slate-400 hover:text-teal-400 hover:bg-slate-900 transition"
+                className="p-2 rounded-2xl text-slate-500 hover:text-teal-600 hover:bg-slate-100 transition"
                 title="Add Emoji"
               >
                 😊
@@ -676,7 +571,7 @@ export default function Chat() {
               <button
                 type="button"
                 onClick={startRecording}
-                className="p-2.5 rounded-2xl text-slate-400 hover:text-rose-400 hover:bg-slate-900 transition"
+                className="p-2 rounded-2xl text-slate-500 hover:text-rose-600 hover:bg-slate-100 transition"
                 title="Record Voice Note"
               >
                 🎙️
@@ -687,15 +582,15 @@ export default function Chat() {
                 onChange={(event) => setMessage(event.target.value)}
                 onKeyDown={handleKeyDown}
                 rows={1}
-                placeholder="Type your message... (Press Enter to send)"
-                className="flex-1 resize-none rounded-2xl border border-slate-700/80 bg-slate-900 px-4 py-3 text-xs sm:text-sm text-white placeholder-slate-400 outline-none transition focus:border-teal-400 focus:ring-2 focus:ring-teal-500/20 min-h-[44px] max-h-[120px]"
+                placeholder="Type your message..."
+                className="flex-1 resize-none rounded-2xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-teal-500 focus:bg-white focus:ring-2 focus:ring-teal-500/20 min-h-[42px] max-h-[120px]"
               />
 
               <button
                 type="button"
                 onClick={sendMessage}
                 disabled={sending || !message.trim()}
-                className="inline-flex items-center justify-center rounded-2xl bg-teal-600 px-6 py-3 text-xs sm:text-sm font-bold text-white shadow-lg shadow-teal-900/40 transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex items-center justify-center rounded-2xl bg-teal-600 px-5 py-2.5 text-xs sm:text-sm font-bold text-white shadow-md shadow-teal-600/30 transition hover:bg-teal-500 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {sending ? 'Sending...' : 'Send'}
               </button>
