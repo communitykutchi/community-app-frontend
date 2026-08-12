@@ -7,7 +7,7 @@ import { PAKISTAN_CITIES } from "../utils/pakistanCities";
 const configuredApiBase = import.meta.env.VITE_API_URL || "https://backend.kutchicommunity.com";
 const apiOrigin = (() => {
   try {
-    const fallbackOrigin = typeof window !== "undefined" ? window.location.origin : "http://localhost";
+    const fallbackOrigin = typeof window !== "undefined" && window.location?.origin ? window.location.origin : "https://backend.kutchicommunity.com";
     return new URL(configuredApiBase, fallbackOrigin).origin;
   } catch {
     return "https://backend.kutchicommunity.com";

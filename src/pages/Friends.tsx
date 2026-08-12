@@ -46,9 +46,8 @@ export default function Friends() {
     [incomingRequests],
   );
 
-  const loadFriends = async () => {
-    setLoading(true);
-    setMessage(null);
+  const loadFriends = async (showLoading = true) => {
+    if (showLoading) setLoading(true);
 
     try {
       const response = await API.get<{ success: boolean; friends: UserItem[]; incomingRequests: UserItem[]; sentRequests: UserItem[] }>('/friends/me');
@@ -56,14 +55,20 @@ export default function Friends() {
       setIncomingRequests(response.data.incomingRequests || []);
       setSentRequests(response.data.sentRequests || []);
     } catch (err: any) {
-      setMessage({ text: err.response?.data?.message || 'Unable to load friends.', isError: true });
+      if (showLoading) {
+        setMessage({ text: err.response?.data?.message || 'Unable to load friends.', isError: true });
+      }
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   };
 
   useEffect(() => {
-    loadFriends();
+    loadFriends(true);
+    const interval = setInterval(() => {
+      loadFriends(false);
+    }, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   const runSearch = async (searchText: string) => {
@@ -74,7 +79,6 @@ export default function Friends() {
     }
 
     setSearching(true);
-    setMessage(null);
 
     try {
       const response = await API.get<{ success: boolean; users: UserItem[] }>(`/friends/search?q=${encodeURIComponent(trimmed)}`);
@@ -100,60 +104,88 @@ export default function Friends() {
 
   const handleAcceptRequest = async (requesterId: string) => {
     setMessage(null);
+
+    // 1. Instant Optimistic UI Update (0ms delay)
+    const acceptedUser = incomingRequests.find((r) => r._id === requesterId) || results.find((r) => r._id === requesterId);
+    setIncomingRequests((prev) => prev.filter((r) => r._id !== requesterId));
+    if (acceptedUser) {
+      setFriends((prev) => (prev.some((f) => f._id === requesterId) ? prev : [acceptedUser, ...prev]));
+    }
+
     try {
       await API.post(`/friends/request/${requesterId}/accept`);
       setMessage({ text: 'Friend request accepted.', isError: false });
-      await loadFriends();
+      await loadFriends(false);
     } catch (err: any) {
       setMessage({ text: err.response?.data?.message || 'Unable to accept friend request.', isError: true });
+      await loadFriends(false);
     }
   };
 
   const handleRejectRequest = async (requesterId: string) => {
     setMessage(null);
+
+    // Instant Optimistic UI Update
+    setIncomingRequests((prev) => prev.filter((r) => r._id !== requesterId));
+
     try {
       await API.post(`/friends/request/${requesterId}/reject`);
       setMessage({ text: 'Friend request rejected.', isError: false });
-      await loadFriends();
+      await loadFriends(false);
     } catch (err: any) {
       setMessage({ text: err.response?.data?.message || 'Unable to reject friend request.', isError: true });
+      await loadFriends(false);
     }
   };
 
   const handleSendRequest = async (friendId: string) => {
     setMessage(null);
+
+    // Instant Optimistic UI Update
+    const sentUser = results.find((item) => item._id === friendId);
+    if (sentUser) {
+      setSentRequests((prev) => (prev.some((r) => r._id === friendId) ? prev : [...prev, sentUser]));
+    }
+
     try {
       await API.post(`/friends/request/${friendId}`);
       setMessage({ text: 'Friend request sent.', isError: false });
-      const sentUser = results.find((item) => item._id === friendId);
-      setSentRequests((prev) => [
-        ...prev,
-        sentUser || ({ _id: friendId } as UserItem),
-      ]);
+      await loadFriends(false);
     } catch (err: any) {
       setMessage({ text: err.response?.data?.message || 'Unable to send friend request.', isError: true });
+      setSentRequests((prev) => prev.filter((r) => r._id !== friendId));
     }
   };
 
   const handleCancelRequest = async (friendId: string) => {
     setMessage(null);
+
+    // Instant Optimistic UI Update
+    setSentRequests((prev) => prev.filter((request) => request._id !== friendId));
+
     try {
       await API.post(`/friends/request/${friendId}/cancel`);
       setMessage({ text: 'Friend request canceled.', isError: false });
-      setSentRequests((prev) => prev.filter((request) => request._id !== friendId));
+      await loadFriends(false);
     } catch (err: any) {
       setMessage({ text: err.response?.data?.message || 'Unable to cancel friend request.', isError: true });
+      await loadFriends(false);
     }
   };
 
   const handleUnfriend = async (friendId: string) => {
     setMessage(null);
+
+    // Instant Optimistic UI Update
+    setFriends((prev) => prev.filter((f) => f._id !== friendId));
+
     try {
       await API.post(`/friends/unfriend/${friendId}`);
       setMessage({ text: 'Friend removed.', isError: false });
-      await loadFriends();
+      await loadFriends(false);
     } catch (err: any) {
       setMessage({ text: err.response?.data?.message || 'Unable to unfriend.', isError: true });
+      await loadFriends(false);
     }
   };
 

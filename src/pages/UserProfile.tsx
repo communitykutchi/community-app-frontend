@@ -9,7 +9,7 @@ import ConfirmModal from "../components/ConfirmModal";
 const configuredApiBase = import.meta.env.VITE_API_URL || "https://backend.kutchicommunity.com";
 const apiOrigin = (() => {
   try {
-    const fallbackOrigin = typeof window !== "undefined" ? window.location.origin : "http://localhost";
+    const fallbackOrigin = typeof window !== "undefined" && window.location?.origin ? window.location.origin : "https://backend.kutchicommunity.com";
     return new URL(configuredApiBase, fallbackOrigin).origin;
   } catch {
     return "https://backend.kutchicommunity.com";
@@ -147,8 +147,8 @@ export default function UserProfile() {
     if (!profile) return;
     setActionLoading(true);
     try {
-      const res = await API.post(`/friends/request/send/${profile._id}`);
-      if (res.data.success) {
+      const res = await API.post(`/friends/request/${profile._id}`);
+      if (res.data?.success !== false) {
         setFriendStatus("request_sent");
         setToast({ message: "Friend request sent!", type: "success" });
       }
@@ -163,8 +163,8 @@ export default function UserProfile() {
     if (!profile) return;
     setActionLoading(true);
     try {
-      const res = await API.post(`/friends/request/accept/${profile._id}`);
-      if (res.data.success) {
+      const res = await API.post(`/friends/request/${profile._id}/accept`);
+      if (res.data?.success !== false) {
         setFriendStatus("friends");
         setToast({ message: "Friend request accepted!", type: "success" });
       }
@@ -179,8 +179,8 @@ export default function UserProfile() {
     if (!profile) return;
     setActionLoading(true);
     try {
-      const res = await API.post(`/friends/request/cancel/${profile._id}`);
-      if (res.data.success) {
+      const res = await API.post(`/friends/request/${profile._id}/cancel`);
+      if (res.data?.success !== false) {
         setFriendStatus("none");
         setToast({ message: "Friend request cancelled.", type: "success" });
       }
@@ -197,8 +197,8 @@ export default function UserProfile() {
 
     setActionLoading(true);
     try {
-      const res = await API.delete(`/friends/${profile._id}`);
-      if (res.data.success) {
+      const res = await API.post(`/friends/unfriend/${profile._id}`);
+      if (res.data?.success !== false) {
         setFriendStatus("none");
         setToast({ message: "Removed from friends.", type: "success" });
       }
@@ -307,138 +307,9 @@ export default function UserProfile() {
                 title={profile.isOnline ? "Active Now" : "Offline"}
               />
             </div>
-
-            {/* Action Buttons Toolbar */}
-            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 pt-1 sm:pt-0 max-w-full">
-              {friendStatus === "self" ? (
-                <Link
-                  to="/profile"
-                  className="rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold px-3.5 py-2 text-xs shadow-md shadow-teal-600/30 transition cursor-pointer whitespace-nowrap"
-                >
-                  ✏️ Edit Profile
-                </Link>
-              ) : (
-                <>
-                  {friendStatus === "friends" && (
-                    <div className="relative inline-block text-left shrink-0" ref={dropdownRef}>
-                      <button
-                        type="button"
-                        onClick={() => setShowFriendsDropdown((prev) => !prev)}
-                        disabled={actionLoading}
-                        className="rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-extrabold text-emerald-800 shadow-xs hover:bg-emerald-100 transition cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
-                      >
-                        <span>✓ Friends</span>
-                        <svg
-                          className={`h-3.5 w-3.5 transition-transform duration-200 ${showFriendsDropdown ? "rotate-180" : ""}`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-
-                      {showFriendsDropdown && (
-                        <div className="absolute left-0 mt-2 w-48 sm:w-52 origin-top-left rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-100 whitespace-nowrap">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShowFriendsDropdown(false);
-                              setShowUnfriendConfirm(true);
-                            }}
-                            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-extrabold text-rose-600 rounded-xl hover:bg-rose-50 transition cursor-pointer"
-                          >
-                            <span className="shrink-0 text-base">👤❌</span>
-                            <span>Unfriend</span>
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShowFriendsDropdown(false);
-                              setShowReportModal(true);
-                            }}
-                            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-extrabold text-slate-700 rounded-xl hover:bg-slate-100 transition cursor-pointer"
-                          >
-                            <span className="shrink-0 text-base">🚩</span>
-                            <span>Report Profile</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {friendStatus === "request_sent" && (
-                    <button
-                      onClick={handleCancelRequest}
-                      disabled={actionLoading}
-                      title="Click to cancel friend request"
-                      className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-xs font-extrabold text-amber-900 hover:bg-amber-100 transition whitespace-nowrap shrink-0 cursor-pointer"
-                    >
-                      ⏳ Request Sent
-                    </button>
-                  )}
-
-                  {friendStatus === "request_received" && (
-                    <button
-                      onClick={handleAcceptRequest}
-                      disabled={actionLoading}
-                      className="rounded-xl bg-emerald-600 px-3 py-2 text-xs font-extrabold text-white shadow-xs hover:bg-emerald-500 transition whitespace-nowrap shrink-0 cursor-pointer"
-                    >
-                      ✅ Accept Request
-                    </button>
-                  )}
-
-                  {friendStatus === "none" && (
-                    <button
-                      onClick={handleSendFriendRequest}
-                      disabled={actionLoading}
-                      className="rounded-xl bg-teal-600 px-3 py-2 text-xs font-extrabold text-white shadow-md shadow-teal-600/20 hover:bg-teal-500 transition whitespace-nowrap shrink-0 cursor-pointer"
-                    >
-                      ➕ Add Friend
-                    </button>
-                  )}
-
-                  <button
-                    onClick={() => navigate(`/friends/${profile._id}/chat`)}
-                    className="rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold px-3 py-2 text-xs shadow-md shadow-emerald-600/30 transition flex items-center gap-1.5 cursor-pointer whitespace-nowrap shrink-0"
-                  >
-                    💬 Message
-                  </button>
-
-                  {friendStatus !== "friends" && (
-                    <div className="relative inline-block text-left" ref={moreOptionsRef}>
-                      <button
-                        type="button"
-                        onClick={() => setShowMoreOptionsDropdown((prev) => !prev)}
-                        className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 sm:py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-100 transition cursor-pointer"
-                        title="More Options"
-                      >
-                        ⋮
-                      </button>
-
-                      {showMoreOptionsDropdown && (
-                        <div className="absolute right-0 mt-2 w-48 sm:w-52 origin-top-right rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-100 whitespace-nowrap">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShowMoreOptionsDropdown(false);
-                              setShowReportModal(true);
-                            }}
-                            className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-extrabold text-slate-700 rounded-xl hover:bg-slate-100 transition cursor-pointer"
-                          >
-                            <span className="shrink-0 text-base">🚩</span>
-                            <span>Report Profile</span>
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </>
-              )}
-            </div>
           </div>
 
-          {/* Name & Details Header */}
+          {/* Name & Details Header (Uper Aayega) */}
           <div className="mt-3 sm:mt-4 space-y-1">
             <div className="flex items-center gap-2 flex-wrap">
               <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-slate-950 tracking-tight break-words max-w-full">
@@ -461,6 +332,138 @@ export default function UserProfile() {
                 ? `Last seen ${new Date(profile.lastActive).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`
                 : "Offline"}
             </p>
+          </div>
+
+          {/* Action Buttons Toolbar / Patti (Symmetrical 16px padding on both left & right) */}
+          <div className="flex items-center justify-between gap-2 pt-3.5 border-t border-slate-100 mt-4 w-full">
+            {friendStatus === "self" ? (
+              <Link
+                to="/profile"
+                className="w-full rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-extrabold px-4 py-2.5 text-xs shadow-md shadow-teal-600/30 transition cursor-pointer text-center justify-center inline-flex items-center"
+              >
+                ✏️ Edit Profile
+              </Link>
+            ) : (
+              <>
+                {/* 1. Add Friend / Status Button (flex-1 for equal left half) */}
+                {friendStatus === "friends" && (
+                  <div className="relative inline-block text-left flex-1 min-w-0" ref={dropdownRef}>
+                    <button
+                      type="button"
+                      onClick={() => setShowFriendsDropdown((prev) => !prev)}
+                      disabled={actionLoading}
+                      className="w-full justify-center rounded-xl border border-emerald-300 bg-emerald-50 px-2 sm:px-3.5 py-2.5 text-xs font-extrabold text-emerald-800 shadow-xs hover:bg-emerald-100 transition cursor-pointer inline-flex items-center gap-1.5 whitespace-nowrap"
+                    >
+                      <span>✓ Friends</span>
+                      <svg
+                        className={`h-3.5 w-3.5 transition-transform duration-200 ${showFriendsDropdown ? "rotate-180" : ""}`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </button>
+
+                    {showFriendsDropdown && (
+                      <div className="absolute left-0 mt-2 w-48 sm:w-52 origin-top-left rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-100 whitespace-nowrap">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowFriendsDropdown(false);
+                            setShowUnfriendConfirm(true);
+                          }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-extrabold text-rose-600 rounded-xl hover:bg-rose-50 transition cursor-pointer"
+                        >
+                          <span className="shrink-0 text-base">👤❌</span>
+                          <span>Unfriend</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowFriendsDropdown(false);
+                            setShowReportModal(true);
+                          }}
+                          className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-extrabold text-slate-700 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+                        >
+                          <span className="shrink-0 text-base">🚩</span>
+                          <span>Report Profile</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {friendStatus === "request_sent" && (
+                  <button
+                    onClick={handleCancelRequest}
+                    disabled={actionLoading}
+                    title="Click to cancel friend request"
+                    className="flex-1 min-w-0 justify-center inline-flex items-center rounded-xl border border-amber-300 bg-amber-50 px-2 sm:px-3.5 py-2.5 text-xs font-extrabold text-amber-900 hover:bg-amber-100 transition whitespace-nowrap cursor-pointer"
+                  >
+                    ⏳ Request Sent
+                  </button>
+                )}
+
+                {friendStatus === "request_received" && (
+                  <button
+                    onClick={handleAcceptRequest}
+                    disabled={actionLoading}
+                    className="flex-1 min-w-0 justify-center inline-flex items-center rounded-xl bg-emerald-600 px-2 sm:px-3.5 py-2.5 text-xs font-extrabold text-white shadow-xs hover:bg-emerald-500 transition whitespace-nowrap cursor-pointer"
+                  >
+                    ✅ Accept Request
+                  </button>
+                )}
+
+                {friendStatus === "none" && (
+                  <button
+                    onClick={handleSendFriendRequest}
+                    disabled={actionLoading}
+                    className="flex-1 min-w-0 justify-center inline-flex items-center rounded-xl bg-teal-600 px-2 sm:px-3.5 py-2.5 text-xs font-extrabold text-white shadow-md shadow-teal-600/20 hover:bg-teal-500 transition whitespace-nowrap cursor-pointer"
+                  >
+                    ➕ Add Friend
+                  </button>
+                )}
+
+                {/* 2. Message Button (Shown ONLY when confirmed friends) */}
+                {friendStatus === "friends" && (
+                  <button
+                    onClick={() => navigate(`/friends/${profile._id}/chat`)}
+                    className="flex-1 min-w-0 justify-center inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold px-2 sm:px-3.5 py-2.5 text-xs shadow-md shadow-emerald-600/30 transition cursor-pointer whitespace-nowrap"
+                  >
+                    💬 Message
+                  </button>
+                )}
+
+                {/* 3. 3-Dots (⋮) Options Button (shrink-0 fixed width) */}
+                <div className="relative inline-block text-left shrink-0" ref={moreOptionsRef}>
+                  <button
+                    type="button"
+                    onClick={() => setShowMoreOptionsDropdown((prev) => !prev)}
+                    className="h-9 w-9 sm:h-10 sm:w-10 inline-flex items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-sm font-black text-slate-700 hover:bg-slate-100 transition cursor-pointer"
+                    title="More Options"
+                  >
+                    ⋮
+                  </button>
+
+                  {showMoreOptionsDropdown && (
+                    <div className="absolute right-0 mt-2 w-48 sm:w-52 origin-top-right rounded-2xl border border-slate-200 bg-white p-2 shadow-2xl z-50 animate-in fade-in zoom-in-95 duration-100 whitespace-nowrap">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowMoreOptionsDropdown(false);
+                          setShowReportModal(true);
+                        }}
+                        className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-extrabold text-slate-700 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+                      >
+                        <span className="shrink-0 text-base">🚩</span>
+                        <span>Report Profile</span>
+                      </button>
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

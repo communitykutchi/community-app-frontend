@@ -81,6 +81,11 @@ export default function ChatHub() {
   const [reportReason, setReportReason] = useState("Spam or suspicious behavior");
   const [reporting, setReporting] = useState(false);
 
+  const isSelectedPartnerFriend = useMemo(() => {
+    if (!selectedFriendId) return false;
+    return (friends || []).some((f) => String(f._id) === String(selectedFriendId));
+  }, [friends, selectedFriendId]);
+
   const handleCopyMessageText = (msgText?: string) => {
     if (!msgText) return;
     navigator.clipboard.writeText(msgText).then(() => {
@@ -266,7 +271,9 @@ export default function ChatHub() {
 
         chatsList.forEach((c) => {
           c.participants.forEach((p) => {
-            map[p._id] = c;
+            const pId = String((p as any)._id || p);
+            if (currentUser?._id && pId === String(currentUser._id)) return;
+            map[pId] = c;
           });
         });
         setChatsMap(map);
@@ -554,8 +561,34 @@ export default function ChatHub() {
     }
   };
 
+  const allPartners = useMemo(() => {
+    const partnerMap = new Map<string, FriendUser>();
+    const myId = currentUser?._id ? String(currentUser._id) : "";
+
+    // Add current friends
+    (friends || []).forEach((f) => {
+      const fId = String(f._id || "");
+      if (fId && fId !== myId) {
+        partnerMap.set(fId, f);
+      }
+    });
+
+    // Add existing chat partners from chatsMap (preserves chats of unfriended users)
+    Object.entries(chatsMap || {}).forEach(([friendId, chat]) => {
+      const fId = String(friendId);
+      if (fId && fId !== myId && !partnerMap.has(fId)) {
+        const otherParticipant = chat?.participants?.find((p) => String((p as any)._id || p) !== myId);
+        if (otherParticipant && typeof otherParticipant === "object") {
+          partnerMap.set(fId, otherParticipant as FriendUser);
+        }
+      }
+    });
+
+    return Array.from(partnerMap.values());
+  }, [friends, chatsMap, currentUser]);
+
   const filteredFriends = useMemo(() => {
-    const list = friends.filter((friend) => {
+    const list = allPartners.filter((friend) => {
       const q = searchQuery.toLowerCase().trim();
       const nameMatch =
         !q ||
@@ -578,7 +611,7 @@ export default function ChatHub() {
       if (!aPinned && bPinned) return 1;
       return 0;
     });
-  }, [friends, searchQuery, filterTab, chatsMap, pinnedFriendIds]);
+  }, [allPartners, searchQuery, filterTab, chatsMap, pinnedFriendIds]);
 
   const renderMessageTicks = (message: ChatMessage) => {
     if (message.isRead) {
@@ -660,7 +693,7 @@ export default function ChatHub() {
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search friends..."
+                placeholder="Search chats..."
                 className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-4 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-teal-500 focus:bg-white focus:ring-2 focus:ring-teal-500/20 transition"
               />
             </div>
@@ -675,7 +708,7 @@ export default function ChatHub() {
                     : "bg-slate-100 text-slate-600 border border-slate-300 hover:bg-slate-200 hover:text-slate-900"
                 }`}
               >
-                All Friends ({friends.length})
+                Chats ({allPartners.length})
               </button>
               <button
                 type="button"
@@ -711,6 +744,8 @@ export default function ChatHub() {
                 const friendPresence = getPresenceStatus(friend.isOnline, friend.lastActive);
                 const unreadCount = Number(friend.unreadCount || (friendChat as any)?.unreadCount || 0);
 
+                const isItemFriend = (friends || []).some((f) => String(f._id) === String(friend._id));
+
                 return (
                   <div
                     key={friend._id}
@@ -720,11 +755,13 @@ export default function ChatHub() {
                     <div className="relative">
                       <UserAvatar
                         name={friend.fullName || friend.username}
-                        photoUrl={friend.profilePhotoUrl || friend.photoUrl}
+                        photoUrl={isItemFriend ? (friend.profilePhotoUrl || friend.photoUrl) : undefined}
                         size="md"
                         className="ring-2 ring-teal-500/30"
                       />
-                      <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-white ${friendPresence.isOnline ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                      {isItemFriend && (
+                        <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-white ${friendPresence.isOnline ? 'bg-emerald-500' : 'bg-slate-400'}`} />
+                      )}
                     </div>
 
                     <div className="flex-1 min-w-0">
@@ -766,19 +803,23 @@ export default function ChatHub() {
                   <div className="relative">
                     <UserAvatar
                       name={activePartner.fullName || activePartner.username}
-                      photoUrl={activePartner.profilePhotoUrl || activePartner.photoUrl}
+                      photoUrl={isSelectedPartnerFriend ? (activePartner.profilePhotoUrl || activePartner.photoUrl) : undefined}
                       size="md"
-                      className={activePartnerPresence.isOnline ? "ring-2 ring-emerald-500" : "ring-2 ring-slate-300"}
+                      className={isSelectedPartnerFriend && activePartnerPresence.isOnline ? "ring-2 ring-emerald-500" : "ring-2 ring-slate-300"}
                     />
-                    <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-white ${activePartnerPresence.isOnline ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
+                    {isSelectedPartnerFriend && (
+                      <span className={`absolute bottom-0 right-0 h-3 w-3 rounded-full ring-2 ring-white ${activePartnerPresence.isOnline ? 'bg-emerald-500' : 'bg-slate-400'}`}></span>
+                    )}
                   </div>
                   <div>
                     <h3 className="text-sm font-black text-slate-900 leading-tight">
-                      {activePartner.fullName || activePartner.username || "Friend"}
+                      {activePartner.fullName || activePartner.username || "Community Member"}
                     </h3>
-                    <p className={`text-[11px] font-semibold ${activePartnerPresence.isOnline ? 'text-emerald-600 font-bold' : 'text-slate-500'}`}>
-                      {activePartnerPresence.text}
-                    </p>
+                    {isSelectedPartnerFriend && (
+                      <p className={`text-[11px] font-semibold ${activePartnerPresence.isOnline ? 'text-emerald-600 font-bold' : 'text-slate-500'}`}>
+                        {activePartnerPresence.text}
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -1012,7 +1053,7 @@ export default function ChatHub() {
                             {!isOutgoing && (
                               <UserAvatar
                                 name={senderName}
-                                photoUrl={senderPhoto || activePartner?.profilePhotoUrl || activePartner?.photoUrl}
+                                photoUrl={isSelectedPartnerFriend ? (senderPhoto || activePartner?.profilePhotoUrl || activePartner?.photoUrl) : undefined}
                                 size="sm"
                                 className="ring-1 ring-slate-300 mb-0.5 shrink-0"
                               />
@@ -1130,91 +1171,116 @@ export default function ChatHub() {
                 </div>
               )}
 
-              {/* Message Input Box */}
-              <div className="shrink-0 p-3 bg-white border-t border-slate-200">
-                {isRecording ? (
-                  <div className="flex items-center justify-between gap-3 bg-rose-50 border border-rose-200 p-2.5 rounded-xl animate-pulse">
-                    <div className="flex items-center gap-2.5">
-                      <span className="h-3 w-3 rounded-full bg-rose-500 animate-ping" />
-                      <span className="text-xs font-extrabold text-rose-800 uppercase tracking-wider">
-                        Recording ({formatRecordingTime(recordingTime)})
-                      </span>
+              {/* Message Input Box OR Unfriended Notice Banner */}
+              {!isSelectedPartnerFriend ? (
+                <div className="shrink-0 p-4 bg-slate-900 text-white border-t border-slate-800 text-center shadow-lg">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-3 max-w-xl mx-auto">
+                    <div className="flex items-center gap-3 text-left">
+                      <span className="text-xl shrink-0">🚫</span>
+                      <div>
+                        <p className="text-xs sm:text-sm font-extrabold text-amber-300">
+                          You are no longer friends with {activePartner?.fullName || activePartner?.username || "this member"}.
+                        </p>
+                        <p className="text-[11px] text-slate-300 mt-0.5">
+                          Messaging is disabled. Send a friend request to resume chatting.
+                        </p>
+                      </div>
                     </div>
+                    <button
+                      type="button"
+                      onClick={() => navigate(`/user/${selectedFriendId}`)}
+                      className="shrink-0 rounded-xl bg-teal-500 hover:bg-teal-400 px-3.5 py-2 text-xs font-black text-slate-950 shadow-md transition cursor-pointer"
+                    >
+                      👤 View Profile
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="shrink-0 p-3 bg-white border-t border-slate-200">
+                  {isRecording ? (
+                    <div className="flex items-center justify-between gap-3 bg-rose-50 border border-rose-200 p-2.5 rounded-xl animate-pulse">
+                      <div className="flex items-center gap-2.5">
+                        <span className="h-3 w-3 rounded-full bg-rose-500 animate-ping" />
+                        <span className="text-xs font-extrabold text-rose-800 uppercase tracking-wider">
+                          Recording ({formatRecordingTime(recordingTime)})
+                        </span>
+                      </div>
 
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={cancelRecording}
+                          className="rounded-lg border border-rose-200 bg-white px-3 py-1 text-xs font-bold text-rose-700 hover:bg-rose-100 transition"
+                        >
+                          🗑️ Cancel
+                        </button>
+                        <button
+                          type="button"
+                          onClick={sendVoiceNote}
+                          disabled={uploadingVoice}
+                          className="rounded-lg bg-teal-600 px-3.5 py-1 text-xs font-extrabold text-white shadow-md hover:bg-teal-500 transition"
+                        >
+                          {uploadingVoice ? "Uploading..." : "⬆️ Send Voice Note"}
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={cancelRecording}
-                        className="rounded-lg border border-rose-200 bg-white px-3 py-1 text-xs font-bold text-rose-700 hover:bg-rose-100 transition"
+                        onClick={() => setShowEmojiPicker((v) => !v)}
+                        className="p-2 rounded-xl text-slate-500 hover:text-teal-600 hover:bg-slate-100 transition"
+                        title="Emoji"
                       >
-                        🗑️ Cancel
+                        😊
                       </button>
-                      <button
-                        type="button"
-                        onClick={sendVoiceNote}
-                        disabled={uploadingVoice}
-                        className="rounded-lg bg-teal-600 px-3.5 py-1 text-xs font-extrabold text-white shadow-md hover:bg-teal-500 transition"
-                      >
-                        {uploadingVoice ? "Uploading..." : "⬆️ Send Voice Note"}
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setShowEmojiPicker((v) => !v)}
-                      className="p-2 rounded-xl text-slate-500 hover:text-teal-600 hover:bg-slate-100 transition"
-                      title="Emoji"
-                    >
-                      😊
-                    </button>
 
-                    <textarea
-                      value={messageText}
-                      onChange={(e) => setMessageText(e.target.value)}
-                      onKeyDown={handleKeyDown}
-                      placeholder="Type a message..."
-                      rows={1}
-                      className="flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-teal-500 focus:bg-white focus:ring-2 focus:ring-teal-500/20 transition min-h-[38px] max-h-[100px]"
-                    />
+                      <textarea
+                        value={messageText}
+                        onChange={(e) => setMessageText(e.target.value)}
+                        onKeyDown={handleKeyDown}
+                        placeholder="Type a message..."
+                        rows={1}
+                        className="flex-1 resize-none rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-xs text-slate-900 placeholder:text-slate-400 outline-none focus:border-teal-500 focus:bg-white focus:ring-2 focus:ring-teal-500/20 transition min-h-[38px] max-h-[100px]"
+                      />
 
-                    {messageText.trim() ? (
-                      <button
-                        type="button"
-                        onClick={handleSendMessage}
-                        disabled={sending}
-                        className="inline-flex items-center justify-center rounded-xl bg-teal-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-600/30 transition hover:bg-teal-500 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-                      >
-                        {sending ? (
-                          <svg className="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
-                          </svg>
-                        ) : (
-                          <span className="flex items-center gap-1.5">
-                            Send
-                            <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                      {messageText.trim() ? (
+                        <button
+                          type="button"
+                          onClick={handleSendMessage}
+                          disabled={sending}
+                          className="inline-flex items-center justify-center rounded-xl bg-teal-600 px-5 py-2.5 text-xs font-bold text-white shadow-md shadow-teal-600/30 transition hover:bg-teal-500 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                        >
+                          {sending ? (
+                            <svg className="w-4 h-4 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                             </svg>
-                          </span>
-                        )}
-                      </button>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={startRecording}
-                        className="inline-flex items-center justify-center rounded-xl bg-teal-600 p-2.5 text-white shadow-md shadow-teal-600/30 transition hover:bg-teal-500 hover:scale-105 active:scale-95 shrink-0"
-                        title="Record Voice Note"
-                      >
-                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
+                          ) : (
+                            <span className="flex items-center gap-1.5">
+                              Send
+                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                              </svg>
+                            </span>
+                          )}
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={startRecording}
+                          className="inline-flex items-center justify-center rounded-xl bg-teal-600 p-2.5 text-white shadow-md shadow-teal-600/30 transition hover:bg-teal-500 hover:scale-105 active:scale-95 shrink-0"
+                          title="Record Voice Note"
+                        >
+                          <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
             </>
           ) : (
             /* Unselected Hero View */
