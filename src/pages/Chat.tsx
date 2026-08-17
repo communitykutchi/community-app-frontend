@@ -4,6 +4,12 @@ import API from "../api/axios";
 import UserAvatar from "../components/UserAvatar";
 import AudioPlayer from "../components/AudioPlayer";
 import { getPresenceStatus, getChatMessageDateLabel } from "../utils/presence";
+import {
+  getAudioStream,
+  createSafeMediaRecorder,
+  startMediaRecorderSafely,
+  formatAudioError,
+} from "../utils/audioRecorder";
 
 interface ChatMessage {
   _id?: string;
@@ -31,23 +37,6 @@ interface ChatData {
   }>;
   messages: ChatMessage[];
 }
-
-const getSupportedAudioMimeType = () => {
-  if (typeof MediaRecorder === "undefined") return "";
-  const types = [
-    "audio/webm;codecs=opus",
-    "audio/webm",
-    "audio/mp4",
-    "audio/ogg;codecs=opus",
-    "audio/aac",
-  ];
-  for (const type of types) {
-    if (MediaRecorder.isTypeSupported(type)) {
-      return type;
-    }
-  }
-  return "";
-};
 
 export default function Chat() {
   const { friendId } = useParams();
@@ -139,61 +128,90 @@ export default function Chat() {
   const startRecording = async () => {
     try {
       setStatus(null);
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const preferredMime = getSupportedAudioMimeType();
-      const options = preferredMime ? { mimeType: preferredMime } : undefined;
-      const mediaRecorder = new MediaRecorder(stream, options);
+      const stream = await getAudioStream();
+      const mediaRecorder = createSafeMediaRecorder(stream);
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
       mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
+        if (event.data && event.data.size > 0) {
           audioChunksRef.current.push(event.data);
         }
       };
 
-      mediaRecorder.start(100);
+      startMediaRecorderSafely(mediaRecorder);
       setIsRecording(true);
       setRecordingTime(0);
 
+      if (timerRef.current) clearInterval(timerRef.current);
       timerRef.current = setInterval(() => {
         setRecordingTime((prev) => prev + 1);
       }, 1000);
     } catch (err: any) {
-      setStatus("Microphone permission denied or not supported on this browser.");
+      setStatus(formatAudioError(err));
     }
   };
 
   const cancelRecording = () => {
-    if (mediaRecorderRef.current && isRecording) {
-      mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
-      mediaRecorderRef.current.stop();
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
     }
-    clearInterval(timerRef.current);
+    const recorder = mediaRecorderRef.current;
+    if (recorder) {
+      try {
+        if (recorder.state !== "inactive") {
+          recorder.stop();
+        }
+      } catch {}
+      try {
+        recorder.stream?.getTracks().forEach((track) => track.stop());
+      } catch {}
+      mediaRecorderRef.current = null;
+    }
     setIsRecording(false);
     setRecordingTime(0);
     audioChunksRef.current = [];
   };
 
   const sendVoiceNote = async () => {
-    if (!mediaRecorderRef.current || !chat) return;
+    const recorder = mediaRecorderRef.current;
+    if (!recorder || !chat) return;
 
     setUploadingVoice(true);
     const duration = Math.max(1, recordingTime);
 
-    mediaRecorderRef.current.onstop = async () => {
+    if (timerRef.current) {
       clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    recorder.onstop = async () => {
+      try {
+        recorder.stream?.getTracks().forEach((track) => track.stop());
+      } catch {}
+      mediaRecorderRef.current = null;
       setIsRecording(false);
       setRecordingTime(0);
 
-      const mimeType = mediaRecorderRef.current?.mimeType || "audio/webm";
+      const mimeType = recorder.mimeType || "audio/webm";
       const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
       if (audioBlob.size === 0) {
         setUploadingVoice(false);
+        setStatus("Recorded audio was empty. Please try speaking again.");
         return;
       }
 
-      const ext = mimeType.includes("mp4") ? "mp4" : mimeType.includes("ogg") ? "ogg" : mimeType.includes("wav") ? "wav" : "webm";
+      const ext = mimeType.includes("mp4")
+        ? "mp4"
+        : mimeType.includes("aac")
+        ? "aac"
+        : mimeType.includes("ogg")
+        ? "ogg"
+        : mimeType.includes("wav")
+        ? "wav"
+        : "webm";
+
       const formData = new FormData();
       formData.append("file", audioBlob, `voice_note_${Date.now()}.${ext}`);
       formData.append("folder", "community-app/voicemails");
@@ -221,8 +239,20 @@ export default function Chat() {
       }
     };
 
-    mediaRecorderRef.current.stream.getTracks().forEach((track) => track.stop());
-    mediaRecorderRef.current.stop();
+    try {
+      if (recorder.state !== "inactive") {
+        if (typeof recorder.requestData === "function") {
+          try {
+            recorder.requestData();
+          } catch {}
+        }
+        recorder.stop();
+      } else {
+        recorder.onstop(new Event("stop") as any);
+      }
+    } catch {
+      setUploadingVoice(false);
+    }
   };
 
   const sendMessage = async () => {
@@ -317,7 +347,7 @@ export default function Chat() {
     return maxTime > 0 ? new Date(maxTime).toISOString() : partner.lastActive;
   })();
 
-  const partnerPresence = getPresenceStatus(partner?.isOnline, partnerEffectiveLastActive);
+  const partnerPresence = getPresenceStatus(partner?.isOnline, partnerEffectiveLastActive, { prefix: "Last seen" });
 
   const emojis = ["😊", "😂", "❤️", "👍", "🔥", "🎉", "👋", "🙌", "😍", "✨", "🙏", "😎"];
 

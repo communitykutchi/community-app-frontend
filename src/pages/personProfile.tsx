@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ChangeEvent, type FormEvent } from "react";
+import { Link } from "react-router-dom";
 import API from "../api/axios";
 import UserAvatar from "../components/UserAvatar";
 import Toast from "../components/Toast";
@@ -498,6 +499,23 @@ export default function PeopleProfile() {
           </div>
         </div>
       </section>
+
+      {/* Quick Navigation / Security Settings Link */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+          <span>🛡️</span>
+          <span>Security, Password & Session Management</span>
+        </div>
+        <Link
+          to="/security"
+          className="inline-flex items-center gap-2 rounded-xl bg-teal-50 px-3.5 py-2 text-xs font-extrabold text-teal-700 border border-teal-200 hover:bg-teal-100 hover:border-teal-300 active:scale-95 transition"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2.2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+          </svg>
+          <span>Change Password & Security</span>
+        </Link>
+      </div>
 
       {/* Main Profile Form */}
       <form onSubmit={handleSubmit} className="space-y-6">

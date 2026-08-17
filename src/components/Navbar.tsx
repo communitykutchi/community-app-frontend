@@ -288,6 +288,11 @@ export default function Navbar() {
         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
       </svg>
     ),
+    Security: (
+      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+      </svg>
+    ),
   };
 
   const navItems: NavItem[] = isAuthRoute
@@ -497,6 +502,15 @@ export default function Navbar() {
                     </Link>
 
                     <Link
+                      to="/security"
+                      onClick={() => setUserDropdownOpen(false)}
+                      className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-emerald-600 hover:bg-emerald-500/10 transition-all font-semibold"
+                    >
+                      <span className="text-slate-500 group-hover:text-emerald-500">{Icons.Security}</span>
+                      <span>Security & Password</span>
+                    </Link>
+
+                    <Link
                       to="/help"
                       onClick={() => setUserDropdownOpen(false)}
                       className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-slate-700 hover:text-emerald-600 hover:bg-emerald-500/10 transition-all font-semibold"
@@ -664,12 +678,38 @@ export default function Navbar() {
 
             <div className="mt-2 pt-2 border-t border-slate-200 space-y-1.5">
               {isAuthenticated && (
-                <button
-                  onClick={handleLogout}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl bg-rose-50 border border-rose-200 py-2.5 text-xs font-bold text-rose-700 hover:bg-rose-100 transition"
-                >
-                  Sign Out Account
-                </button>
+                <>
+                  <Link
+                    to="/profile"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition"
+                  >
+                    <span className="text-slate-500">{Icons.Home}</span>
+                    <span>My Profile</span>
+                  </Link>
+                  <Link
+                    to="/security"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition"
+                  >
+                    <span className="text-slate-500">{Icons.Security}</span>
+                    <span>Security & Password</span>
+                  </Link>
+                  <Link
+                    to="/help"
+                    onClick={() => setMobileOpen(false)}
+                    className="flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 transition"
+                  >
+                    <span className="text-slate-500">{Icons.Help}</span>
+                    <span>Help & Guidance</span>
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex w-full items-center justify-center gap-2 rounded-xl bg-rose-50 border border-rose-200 py-2.5 text-xs font-bold text-rose-700 hover:bg-rose-100 transition mt-2 cursor-pointer"
+                  >
+                    Sign Out Account
+                  </button>
+                </>
               )}
             </div>
           </div>

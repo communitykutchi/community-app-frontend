@@ -11,6 +11,7 @@ import Help from "./pages/Help";
 import Banned from "./pages/Banned";
 import SuperAdmin from "./pages/SuperAdmin";
 import Admin from "./pages/Admin";
+import Security from "./pages/Security";
 import PeopleProfile from "./pages/personProfile";
 import UserProfile from "./pages/UserProfile";
 import Friends from "./pages/Friends";
@@ -18,10 +19,12 @@ import Chat from "./pages/Chat";
 import ChatHub from "./pages/ChatHub";
 import MainLayout from "./layout/MainLayout";
 import PrivateRoute from "./routes/PrivateRoute";
+import SessionExpiredModal from "./components/SessionExpiredModal";
 
 function App() {
   return (
     <Router>
+      <SessionExpiredModal />
       <MainLayout>
         <Routes>
           {/* Public Routes */}
@@ -97,6 +100,15 @@ function App() {
             element={
               <PrivateRoute>
                 <PeopleProfile />
+              </PrivateRoute>
+            }
+          />
+
+          <Route
+            path="/security"
+            element={
+              <PrivateRoute>
+                <Security />
               </PrivateRoute>
             }
           />

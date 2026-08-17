@@ -5,6 +5,7 @@ import UserAvatar from "../components/UserAvatar";
 import Loader from "../components/Loader";
 import Toast from "../components/Toast";
 import ConfirmModal from "../components/ConfirmModal";
+import { formatLastActive } from "../utils/presence";
 
 const configuredApiBase = import.meta.env.VITE_API_URL || "https://backend.kutchicommunity.com";
 const apiOrigin = (() => {
@@ -327,9 +328,9 @@ export default function UserProfile() {
             <p className="text-xs text-slate-500 flex items-center gap-2 pt-1">
               <span className={`inline-block h-2 w-2 rounded-full ${profile.isOnline ? "bg-emerald-500" : "bg-slate-400"}`} />
               {profile.isOnline
-                ? "Active Now in Community"
+                ? "Active now in community"
                 : profile.lastActive
-                ? `Last seen ${new Date(profile.lastActive).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })}`
+                ? formatLastActive(profile.lastActive, false)
                 : "Offline"}
             </p>
           </div>

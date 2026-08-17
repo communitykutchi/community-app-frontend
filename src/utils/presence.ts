@@ -5,8 +5,13 @@ export interface PresenceStatus {
 
 export function getPresenceStatus(
   rawIsOnline?: boolean,
-  lastActive?: string | Date | null
+  lastActive?: string | Date | null,
+  options?: {
+    prefix?: "Last seen" | "Active" | "Last active";
+  }
 ): PresenceStatus {
+  const prefix = options?.prefix || "Active";
+
   if (!lastActive) {
     if (rawIsOnline) return { isOnline: true, text: "Active now" };
     return { isOnline: false, text: "Offline" };
@@ -45,19 +50,35 @@ export function getPresenceStatus(
     activeDate.getFullYear() === yesterday.getFullYear();
 
   if (isToday) {
-    return { isOnline: false, text: `Last seen at ${timeStr}` };
+    return { isOnline: false, text: `${prefix} today at ${timeStr}` };
   }
 
   if (isYesterday) {
-    return { isOnline: false, text: `Last seen yesterday at ${timeStr}` };
+    return { isOnline: false, text: `${prefix} yesterday at ${timeStr}` };
   }
 
+  const isSameYear = activeDate.getFullYear() === now.getFullYear();
   const dateStr = activeDate.toLocaleDateString([], {
     day: "numeric",
     month: "short",
+    ...(isSameYear ? {} : { year: "numeric" }),
   });
 
-  return { isOnline: false, text: `Last seen ${dateStr} at ${timeStr}` };
+  return { isOnline: false, text: `${prefix} ${dateStr} at ${timeStr}` };
+}
+
+export function formatLastSeen(
+  lastActive?: string | Date | null,
+  rawIsOnline?: boolean
+): string {
+  return getPresenceStatus(rawIsOnline, lastActive, { prefix: "Last seen" }).text;
+}
+
+export function formatLastActive(
+  lastActive?: string | Date | null,
+  rawIsOnline?: boolean
+): string {
+  return getPresenceStatus(rawIsOnline, lastActive, { prefix: "Active" }).text;
 }
 
 export function getChatMessageDateLabel(createdAt?: string | Date | null): string {

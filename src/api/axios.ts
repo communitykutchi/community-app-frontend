@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getAuthToken, clearAuthToken } from "../auth/session";
+import { getAuthToken, triggerSessionExpired } from "../auth/session";
 
 const baseURL = import.meta.env.VITE_API_URL || "https://backend.kutchicommunity.com/api";
 
@@ -27,12 +27,18 @@ API.interceptors.response.use(
         Boolean(error.config?.skipAuthAlert);
 
       if (!isLogoutOrPresence) {
-        clearAuthToken();
-        if (typeof window !== "undefined" && window.location.pathname !== "/login") {
+        const isAuthRoute =
+          typeof window !== "undefined" &&
+          (window.location.pathname === "/login" ||
+            window.location.pathname === "/register" ||
+            window.location.pathname === "/banned");
+
+        if (!isAuthRoute) {
           const data = error.response?.data;
-          const message = data?.message || "Your account was logged in on another device. You have been logged out.";
-          alert(message);
-          window.location.href = "/login";
+          const message =
+            data?.message ||
+            "Your account was logged in on another device. You have been logged out automatically.";
+          triggerSessionExpired(message);
         }
       }
     }

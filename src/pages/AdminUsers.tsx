@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import API from "../api/axios";
 import Loader from "../components/Loader";
 import Toast from "../components/Toast";
@@ -73,6 +74,7 @@ export default function AdminUsers() {
 
   // Modals
   const [rolePickerUser, setRolePickerUser] = useState<UserItem | null>(null);
+  const [promoteModalUser, setPromoteModalUser] = useState<UserItem | null>(null);
   const [userToBan, setUserToBan] = useState<UserItem | null>(null);
   const [banDuration, setBanDuration] = useState<"1day" | "1week" | "1month" | "1year" | "permanent">("permanent");
   const [userToDelete, setUserToDelete] = useState<UserItem | null>(null);
@@ -351,11 +353,7 @@ export default function AdminUsers() {
 
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <h3 className="text-base font-bold text-slate-900">Role Breakdown</h3>
-            <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-              <div className="rounded-xl bg-purple-50 p-4 border border-purple-100">
-                <span className="text-xs font-bold text-purple-700">Super Admins</span>
-                <p className="text-xl font-extrabold text-purple-900">{users.filter((u) => u.role === "super_admin").length}</p>
-              </div>
+            <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
               <div className="rounded-xl bg-blue-50 p-4 border border-blue-100">
                 <span className="text-xs font-bold text-blue-700">Jamaat Admins</span>
                 <p className="text-xl font-extrabold text-blue-900">{users.filter((u) => u.role === "admin").length}</p>
@@ -386,7 +384,7 @@ export default function AdminUsers() {
             />
 
             <div className="grid grid-cols-3 sm:flex flex-wrap gap-1.5 w-full sm:w-auto">
-              {(["all", "super_admin", "admin", "moderator", "member", "banned"] as const).map((r) => (
+              {(["all", "admin", "moderator", "member", "banned"] as const).map((r) => (
                 <button
                   key={r}
                   onClick={() => setRoleFilter(r)}
@@ -412,14 +410,18 @@ export default function AdminUsers() {
               filteredUsers.map((u) => (
                 <div key={u._id} className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm space-y-3">
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center gap-3 min-w-0">
+                    <Link
+                      to={`/user/${u._id}`}
+                      className="flex items-center gap-3 min-w-0 group cursor-pointer"
+                      title="View member profile"
+                    >
                       <UserAvatar name={u.fullName} photoUrl={u.profilePhotoUrl} size="md" />
                       <div className="min-w-0">
-                        <p className="font-extrabold text-slate-900 text-sm truncate">{u.fullName}</p>
+                        <p className="font-extrabold text-slate-900 text-sm truncate group-hover:text-teal-600 group-hover:underline transition">{u.fullName}</p>
                         <p className="text-xs text-slate-500 truncate">@{u.username || "member"}</p>
                         <p className="text-[11px] text-slate-500 truncate">{u.mobile || u.email || "No contact"}</p>
                       </div>
-                    </div>
+                    </Link>
 
                     <div className="relative shrink-0 member-action-dropdown">
                       <button
@@ -449,18 +451,29 @@ export default function AdminUsers() {
                             <span>⚙️ Change Role</span>
                           </button>
 
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setOpenActionUserId(null);
-                              setUserToBan(u);
-                            }}
-                            className={`flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left font-bold transition ${
-                              u.isBanned ? "text-emerald-700 hover:bg-emerald-50" : "text-amber-700 hover:bg-amber-50"
-                            }`}
-                          >
-                            <span>{u.isBanned ? "🟢 Unban Member" : "🚫 Ban / Suspend"}</span>
-                          </button>
+                          {u.isBanned ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOpenActionUserId(null);
+                                setUserToBan(u);
+                              }}
+                              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left font-bold text-emerald-700 hover:bg-emerald-50 transition"
+                            >
+                              <span>🟢 Lift Suspension</span>
+                            </button>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setOpenActionUserId(null);
+                                setUserToBan(u);
+                              }}
+                              className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left font-bold text-amber-700 hover:bg-amber-50 transition"
+                            >
+                              <span>🚫 Ban / Suspend</span>
+                            </button>
+                          )}
 
                           <button
                             type="button"
@@ -478,8 +491,8 @@ export default function AdminUsers() {
                   </div>
 
                   <div className="flex items-center justify-between gap-2 pt-2 border-t border-slate-100 text-xs">
-                    <span className="font-bold text-slate-600">Jamaat: {u.jamaat || "General"}</span>
-                    <div className="flex items-center gap-1.5">
+                    <span className="font-semibold text-slate-600 truncate">{u.jamaat || "General"}</span>
+                    <div className="flex items-center gap-1.5 shrink-0">
                       <span
                         className={`inline-block rounded-md px-2.5 py-0.5 text-[10px] font-bold uppercase ${
                           u.role === "super_admin"
@@ -526,13 +539,17 @@ export default function AdminUsers() {
                 {filteredUsers.map((u) => (
                   <tr key={u._id} className="hover:bg-slate-50/50">
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
+                      <Link
+                        to={`/user/${u._id}`}
+                        className="flex items-center gap-3 group cursor-pointer"
+                        title="View member profile"
+                      >
                         <UserAvatar name={u.fullName} photoUrl={u.profilePhotoUrl} size="sm" />
                         <div>
-                          <p className="font-bold text-slate-900">{u.fullName}</p>
+                          <p className="font-bold text-slate-900 group-hover:text-teal-600 group-hover:underline transition">{u.fullName}</p>
                           <p className="text-[11px] text-slate-500">@{u.username || "member"}</p>
                         </div>
-                      </div>
+                      </Link>
                     </td>
                     <td className="px-4 py-3">
                       <p className="font-medium text-slate-800">{u.mobile || "N/A"}</p>
@@ -745,26 +762,109 @@ export default function AdminUsers() {
 
       {/* Role Picker Modal */}
       {rolePickerUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-white backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl space-y-4">
-            <h3 className="text-lg font-bold text-slate-900">Assign Role to {rolePickerUser.fullName}</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+          <div className="relative overflow-hidden w-full max-w-sm rounded-3xl border border-slate-200/80 bg-white p-6 text-slate-900 shadow-2xl space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="flex items-start gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-50 border border-teal-200 text-teal-600 text-xl">
+                ⚙️
+              </div>
+              <div className="min-w-0">
+                <h3 className="text-base font-black text-slate-900 truncate">Assign Role</h3>
+                <p className="text-xs text-slate-500 truncate">{rolePickerUser.fullName}</p>
+              </div>
+            </div>
+
             <div className="space-y-2">
               {(["member", "moderator", "admin"] as const).map((r) => (
                 <button
                   key={r}
                   disabled={submittingAction}
-                  onClick={() => handleUpdateRole(rolePickerUser._id, r)}
-                  className={`w-full rounded-xl p-3 text-xs font-bold uppercase transition text-left border ${
-                    rolePickerUser.role === r ? "border-teal-600 bg-teal-50 text-teal-900" : "border-slate-200 hover:bg-slate-50"
+                  onClick={() => {
+                    if (r === "moderator" && rolePickerUser.role !== "moderator") {
+                      const userToPromote = rolePickerUser;
+                      setRolePickerUser(null);
+                      setPromoteModalUser(userToPromote);
+                    } else {
+                      handleUpdateRole(rolePickerUser._id, r);
+                    }
+                  }}
+                  className={`w-full rounded-xl p-3 text-left text-xs font-black capitalize transition cursor-pointer flex items-center justify-between ${
+                    rolePickerUser.role === r
+                      ? "bg-teal-600 text-white shadow-md shadow-teal-600/20"
+                      : "bg-slate-50 text-slate-800 border border-slate-200 hover:bg-slate-100"
                   }`}
                 >
-                  {r.replace("_", " ")}
+                  <span>{r.replace("_", " ")}</span>
+                  {rolePickerUser.role === r && <span>✓</span>}
                 </button>
               ))}
             </div>
-            <button onClick={() => setRolePickerUser(null)} className="w-full text-center text-xs font-bold text-slate-500 pt-2">
+
+            <button
+              onClick={() => setRolePickerUser(null)}
+              className="w-full text-center text-xs font-bold text-slate-600 py-2 hover:bg-slate-100 rounded-xl transition cursor-pointer"
+            >
               Cancel
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Promote to Moderator Confirmation Modal */}
+      {promoteModalUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+          <div className="relative overflow-hidden w-full max-w-md rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-7 text-slate-900 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-teal-50 border border-teal-200 text-teal-600 text-2xl shadow-sm">
+                🛡️
+              </div>
+              <div className="space-y-1 pt-0.5 min-w-0 flex-1">
+                <h3 className="text-lg font-black tracking-tight text-slate-900 truncate">
+                  Promote to Moderator
+                </h3>
+                <p className="text-xs font-bold uppercase tracking-wider text-teal-600 truncate">
+                  Role Promotion Confirmation
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs sm:text-sm font-medium text-slate-600 leading-relaxed">
+              Are you sure you want to promote <strong className="text-slate-900">"{promoteModalUser.fullName}"</strong> (@{promoteModalUser.username || "member"}) to <strong className="text-teal-700">Community Moderator</strong>?
+            </p>
+
+            <div className="rounded-2xl bg-teal-50/70 border border-teal-200/70 p-3.5 space-y-1.5 text-xs text-teal-900">
+              <p className="font-extrabold flex items-center gap-1.5">
+                <span>✨</span> Moderator Privileges Granted:
+              </p>
+              <ul className="space-y-1 text-[11px] text-teal-800 list-disc list-inside">
+                <li>Create & publish official Jamaat Notices</li>
+                <li>View member directory and inquiries for their Jamaat</li>
+                <li>Assist in feed moderation and community safety</li>
+              </ul>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setPromoteModalUser(null)}
+                disabled={submittingAction}
+                className="rounded-xl border border-slate-300 bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-200 transition cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const targetId = promoteModalUser._id;
+                  setPromoteModalUser(null);
+                  await handleUpdateRole(targetId, "moderator");
+                }}
+                disabled={submittingAction}
+                className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 px-5 py-2.5 text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-teal-600/30 transition cursor-pointer active:scale-95 disabled:opacity-50"
+              >
+                {submittingAction ? "Promoting..." : "Confirm & Promote"}
+              </button>
+            </div>
           </div>
         </div>
       )}

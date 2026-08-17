@@ -39,6 +39,7 @@ export default function Admin() {
   const [roleFilter, setRoleFilter] = useState<"all" | "member" | "moderator">("all");
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
+  const [promoteModalUser, setPromoteModalUser] = useState<UserItem | null>(null);
 
   const [toast, setToast] = useState<{ message: string; type: "success" | "error"; isVisible: boolean }>({
     message: "",
@@ -272,14 +273,18 @@ export default function Admin() {
             visibleUsers.map((u) => (
               <div key={u._id} className="rounded-2xl border border-slate-200 bg-slate-50/70 p-3.5 shadow-sm space-y-3">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0 flex-1">
+                  <Link
+                    to={`/user/${u._id}`}
+                    className="flex items-center gap-3 min-w-0 flex-1 group cursor-pointer"
+                    title="View member profile"
+                  >
                     <UserAvatar name={u.fullName} photoUrl={u.profilePhotoUrl} size="md" />
                     <div className="min-w-0 flex-1">
-                      <p className="font-black text-slate-950 text-sm truncate">{u.fullName}</p>
+                      <p className="font-black text-slate-950 text-sm truncate group-hover:text-teal-600 group-hover:underline transition">{u.fullName}</p>
                       <p className="text-[11px] font-semibold text-slate-500 truncate">@{u.username || "member"}</p>
                       <p className="text-[11px] font-medium text-slate-600 truncate">{u.mobile || u.email || "No contact"}</p>
                     </div>
-                  </div>
+                  </Link>
                 </div>
 
                 <div className="pt-2.5 border-t border-slate-200 space-y-2">
@@ -295,7 +300,7 @@ export default function Admin() {
                     <div className="shrink-0">
                       {u.role === "member" ? (
                         <button
-                          onClick={() => handleRoleChange(u._id, "moderator")}
+                          onClick={() => setPromoteModalUser(u)}
                           disabled={actionLoading}
                           className="rounded-xl bg-teal-600 text-white px-2.5 py-1 text-[10px] sm:text-[11px] font-black shadow-xs hover:bg-teal-700 transition cursor-pointer whitespace-nowrap"
                         >
@@ -333,13 +338,17 @@ export default function Admin() {
               {visibleUsers.map((u) => (
                 <tr key={u._id} className="hover:bg-slate-50 transition">
                   <td className="p-3.5">
-                    <div className="flex items-center gap-3">
+                    <Link
+                      to={`/user/${u._id}`}
+                      className="flex items-center gap-3 group cursor-pointer"
+                      title="View member profile"
+                    >
                       <UserAvatar name={u.fullName} photoUrl={u.profilePhotoUrl} size="sm" />
                       <div>
-                        <p className="font-extrabold text-slate-900">{u.fullName}</p>
+                        <p className="font-extrabold text-slate-900 group-hover:text-teal-600 group-hover:underline transition">{u.fullName}</p>
                         <p className="text-[11px] text-slate-500">@{u.username || "member"} • {u.mobile || u.email}</p>
                       </div>
-                    </div>
+                    </Link>
                   </td>
                   <td className="p-3.5 font-bold text-slate-700">{u.jamaat || "General"}</td>
                   <td className="p-3.5">
@@ -350,7 +359,7 @@ export default function Admin() {
                   <td className="p-3.5 text-right space-x-2">
                     {u.role === "member" ? (
                       <button
-                        onClick={() => handleRoleChange(u._id, "moderator")}
+                        onClick={() => setPromoteModalUser(u)}
                         disabled={actionLoading}
                         className="rounded-lg bg-teal-600 text-white px-3 py-1.5 text-xs font-extrabold shadow-sm hover:bg-teal-700 transition cursor-pointer"
                       >
@@ -372,6 +381,65 @@ export default function Admin() {
           </table>
         </div>
       </div>
+
+      {/* Promote to Moderator Confirmation Modal */}
+      {promoteModalUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+          <div className="relative overflow-hidden w-full max-w-md rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-7 text-slate-900 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-teal-50 border border-teal-200 text-teal-600 text-2xl shadow-sm">
+                🛡️
+              </div>
+              <div className="space-y-1 pt-0.5 min-w-0 flex-1">
+                <h3 className="text-lg font-black tracking-tight text-slate-900 truncate">
+                  Promote to Moderator
+                </h3>
+                <p className="text-xs font-bold uppercase tracking-wider text-teal-600 truncate">
+                  Role Promotion Confirmation
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs sm:text-sm font-medium text-slate-600 leading-relaxed">
+              Are you sure you want to promote <strong className="text-slate-900">"{promoteModalUser.fullName}"</strong> (@{promoteModalUser.username || "member"}) to <strong className="text-teal-700">Community Moderator</strong>?
+            </p>
+
+            <div className="rounded-2xl bg-teal-50/70 border border-teal-200/70 p-3.5 space-y-1.5 text-xs text-teal-900">
+              <p className="font-extrabold flex items-center gap-1.5">
+                <span>✨</span> Moderator Privileges Granted:
+              </p>
+              <ul className="space-y-1 text-[11px] text-teal-800 list-disc list-inside">
+                <li>Create & publish official Jamaat Notices</li>
+                <li>View member directory and inquiries for their Jamaat</li>
+                <li>Assist in feed moderation and community safety</li>
+              </ul>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setPromoteModalUser(null)}
+                disabled={actionLoading}
+                className="rounded-xl border border-slate-300 bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-200 transition cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  const targetId = promoteModalUser._id;
+                  setPromoteModalUser(null);
+                  await handleRoleChange(targetId, "moderator");
+                }}
+                disabled={actionLoading}
+                className="rounded-xl bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-500 hover:to-emerald-500 px-5 py-2.5 text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-teal-600/30 transition cursor-pointer active:scale-95 disabled:opacity-50"
+              >
+                {actionLoading ? "Promoting..." : "Confirm & Promote"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
