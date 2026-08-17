@@ -135,12 +135,20 @@ export const formatAudioError = (err: any): string => {
   const errorMessage = String(err.message || "");
 
   if (
+    errorName === "SecurityError" ||
+    errorMessage.toLowerCase().includes("https") ||
+    errorMessage.toLowerCase().includes("secure")
+  ) {
+    return "Microphone requires a secure HTTPS connection. Please access the site via HTTPS.";
+  }
+
+  if (
     errorName === "NotAllowedError" ||
     errorName === "PermissionDeniedError" ||
     errorMessage.toLowerCase().includes("permission") ||
     errorMessage.toLowerCase().includes("denied")
   ) {
-    return "Microphone permission was denied. Please allow microphone access in your browser/phone settings.";
+    return "Microphone permission is blocked. Tap the lock/tune icon in your browser address bar to allow Microphone.";
   }
 
   if (
@@ -158,14 +166,6 @@ export const formatAudioError = (err: any): string => {
     errorMessage.toLowerCase().includes("already in use")
   ) {
     return "Microphone is in use by another app or cannot be accessed.";
-  }
-
-  if (
-    errorName === "SecurityError" ||
-    errorMessage.toLowerCase().includes("https") ||
-    errorMessage.toLowerCase().includes("secure")
-  ) {
-    return errorMessage || "Microphone access requires a secure (HTTPS) connection.";
   }
 
   if (

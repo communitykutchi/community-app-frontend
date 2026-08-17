@@ -148,7 +148,11 @@ export default function Chat() {
         setRecordingTime((prev) => prev + 1);
       }, 1000);
     } catch (err: any) {
-      setStatus(formatAudioError(err));
+      const msg = formatAudioError(err);
+      setStatus(msg);
+      setTimeout(() => {
+        setStatus((curr) => (curr === msg ? null : curr));
+      }, 7000);
     }
   };
 
