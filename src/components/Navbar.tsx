@@ -6,6 +6,7 @@ import UserAvatar from './UserAvatar';
 
 const NOTICE_ACTIVITY_EVENT = 'community-notice-activity';
 const PROFILE_UPDATED_EVENT = 'community-profile-updated';
+export const FRIENDS_ACTIVITY_EVENT = 'community-friends-activity';
 
 interface NavItem {
   to: string;
@@ -46,6 +47,7 @@ export default function Navbar() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [unreadNoticeCount, setUnreadNoticeCount] = useState(0);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
+  const [friendRequestsCount, setFriendRequestsCount] = useState(0);
   const [currentUser, setCurrentUser] = useState<CurrentUser | null>(null);
 
   const formattedName = capitalizeName(currentUser?.fullName);
@@ -61,23 +63,27 @@ export default function Navbar() {
   useEffect(() => {
     if (!authToken) {
       setUnreadChatCount(0);
+      setFriendRequestsCount(0);
       return;
     }
 
-    const fetchUnreadChatCount = () => {
+    const fetchUnreadCounts = () => {
       if (typeof document !== 'undefined' && document.hidden) return;
-      API.get<{ unreadCount?: number }>('/friends/unread-chat-count')
+      API.get<{ unreadCount?: number; unreadChatCount?: number; friendRequestsCount?: number }>('/friends/unread-chat-count')
         .then((response) => {
-          const newCount = Number(response.data?.unreadCount || 0);
-          setUnreadChatCount((prev) => (prev === newCount ? prev : newCount));
+          const newChatCount = Number(response.data?.unreadChatCount ?? response.data?.unreadCount ?? 0);
+          const newReqCount = Number(response.data?.friendRequestsCount || 0);
+          setUnreadChatCount((prev) => (prev === newChatCount ? prev : newChatCount));
+          setFriendRequestsCount((prev) => (prev === newReqCount ? prev : newReqCount));
         })
         .catch(() => {
           setUnreadChatCount(0);
+          setFriendRequestsCount(0);
         });
     };
 
-    fetchUnreadChatCount();
-    const timer = setInterval(fetchUnreadChatCount, 20000);
+    fetchUnreadCounts();
+    const timer = setInterval(fetchUnreadCounts, 20000);
     return () => clearInterval(timer);
   }, [authToken, location.pathname]);
 
@@ -210,6 +216,36 @@ export default function Navbar() {
   }, [authToken]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const refreshFriendsCounts = () => {
+      if (!authToken) {
+        setUnreadChatCount(0);
+        setFriendRequestsCount(0);
+        return;
+      }
+
+      API.get<{ unreadCount?: number; unreadChatCount?: number; friendRequestsCount?: number }>('/friends/unread-chat-count')
+        .then((response) => {
+          const newChatCount = Number(response.data?.unreadChatCount ?? response.data?.unreadCount ?? 0);
+          const newReqCount = Number(response.data?.friendRequestsCount || 0);
+          setUnreadChatCount((prev) => (prev === newChatCount ? prev : newChatCount));
+          setFriendRequestsCount((prev) => (prev === newReqCount ? prev : newReqCount));
+        })
+        .catch(() => {
+          setUnreadChatCount(0);
+          setFriendRequestsCount(0);
+        });
+    };
+
+    window.addEventListener(FRIENDS_ACTIVITY_EVENT, refreshFriendsCounts);
+
+    return () => {
+      window.removeEventListener(FRIENDS_ACTIVITY_EVENT, refreshFriendsCounts);
+    };
+  }, [authToken]);
+
+  useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setUserDropdownOpen(false);
@@ -300,7 +336,7 @@ export default function Navbar() {
     : isAuthenticated
     ? [
         { to: '/', label: 'Home', icon: Icons.Home },
-        { to: '/friends', label: 'Friends', icon: Icons.Friends, isDropdown: true, unreadCount: unreadChatCount },
+        { to: '/friends', label: 'Friends', icon: Icons.Friends, isDropdown: true, unreadCount: friendRequestsCount },
         { to: '/feed', label: 'Feed', icon: Icons.Feed },
         { to: '/notices', label: 'Notices', icon: Icons.Notices, unreadCount: unreadNoticeCount },
         { to: '/polls', label: 'Polls', icon: Icons.Polls },
@@ -345,6 +381,7 @@ export default function Navbar() {
             {navItems.map((item) => {
               if (item.isDropdown) {
                 const isFriendsActive = location.pathname === '/friends' || location.pathname === '/chats';
+                const totalDropdownBadge = friendRequestsCount > 0 ? friendRequestsCount : unreadChatCount;
                 return (
                   <div className="relative" key={item.to} ref={friendsDropdownRef}>
                     <button
@@ -359,11 +396,15 @@ export default function Navbar() {
                         {item.icon}
                       </span>
                       <span>{item.label}</span>
-                      {unreadChatCount > 0 && (
-                        <span className="ml-0.5 inline-flex items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[9px] font-bold text-white leading-none">
+                      {friendRequestsCount > 0 ? (
+                        <span className="ml-0.5 inline-flex items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[9px] font-bold text-white leading-none" title={`${friendRequestsCount} Friend Request${friendRequestsCount > 1 ? 's' : ''}`}>
+                          {friendRequestsCount > 99 ? '99+' : friendRequestsCount}
+                        </span>
+                      ) : unreadChatCount > 0 ? (
+                        <span className="ml-0.5 inline-flex items-center justify-center rounded-full bg-teal-600 px-1.5 py-0.5 text-[9px] font-bold text-white leading-none" title={`${unreadChatCount} Unread Message${unreadChatCount > 1 ? 's' : ''}`}>
                           {unreadChatCount > 99 ? '99+' : unreadChatCount}
                         </span>
-                      )}
+                      ) : null}
                       <svg
                         className={`h-3.5 w-3.5 text-slate-500 transition-transform duration-200 ${
                           friendsDropdownOpen ? 'rotate-180 text-teal-600' : ''
@@ -381,14 +422,21 @@ export default function Navbar() {
                         <Link
                           to="/friends"
                           onClick={() => setFriendsDropdownOpen(false)}
-                          className={`flex items-center gap-2.5 px-3 py-2 rounded-xl transition-all font-semibold bg-transparent ${
+                          className={`flex items-center justify-between px-3 py-2 rounded-xl transition-all font-semibold bg-transparent ${
                             location.pathname === '/friends'
                               ? 'text-teal-600 font-bold'
                               : 'text-slate-700 hover:text-teal-600'
                           }`}
                         >
-                          <span className={location.pathname === '/friends' ? 'text-teal-600' : 'text-slate-500'}>{Icons.Friends}</span>
-                          <span>Friends</span>
+                          <div className="flex items-center gap-2.5">
+                            <span className={location.pathname === '/friends' ? 'text-teal-600' : 'text-slate-500'}>{Icons.Friends}</span>
+                            <span>Friends</span>
+                          </div>
+                          {friendRequestsCount > 0 && (
+                            <span className="inline-flex items-center justify-center rounded-full bg-rose-500 px-1.5 py-0.5 text-[9px] font-bold text-white leading-none">
+                              {friendRequestsCount > 99 ? '99+' : friendRequestsCount}
+                            </span>
+                          )}
                         </Link>
                         <Link
                           to="/chats"
@@ -586,7 +634,7 @@ export default function Navbar() {
               className="mobile-menu-btn relative rounded-xl border border-transparent bg-transparent p-2 text-slate-800 transition hover:text-teal-600 lg:hidden shadow-none cursor-pointer"
               aria-label="Toggle Menu"
             >
-              {(unreadChatCount > 0 || unreadNoticeCount > 0) && !mobileOpen && (
+              {(unreadChatCount > 0 || friendRequestsCount > 0 || unreadNoticeCount > 0) && !mobileOpen && (
                 <span className="absolute top-1.5 right-1.5 flex h-2.5 w-2.5">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500 ring-2 ring-white" />
@@ -627,6 +675,11 @@ export default function Navbar() {
                         <span className={location.pathname === '/friends' ? 'text-teal-600' : 'text-slate-500'}>{Icons.Friends}</span>
                         <span>Friends</span>
                       </div>
+                      {friendRequestsCount > 0 && (
+                        <span className="rounded-full bg-rose-500 px-2 py-0.5 text-[9px] font-bold text-white">
+                          {friendRequestsCount > 99 ? '99+' : friendRequestsCount}
+                        </span>
+                      )}
                     </Link>
                     <Link
                       to="/chats"

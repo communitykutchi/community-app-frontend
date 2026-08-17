@@ -1,10 +1,19 @@
 import axios from "axios";
 import { getAuthToken, triggerSessionExpired } from "../auth/session";
 
-const baseURL = import.meta.env.VITE_API_URL || "https://backend.kutchicommunity.com/api";
+const resolveBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_URL;
+  if (envUrl && (envUrl.startsWith("http://") || envUrl.startsWith("https://"))) {
+    return envUrl.replace(/\/+$/, "");
+  }
+  if (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1")) {
+    return "http://localhost:5000/api";
+  }
+  return "https://backend.kutchicommunity.com/api";
+};
 
 const API = axios.create({
-  baseURL,
+  baseURL: resolveBaseUrl(),
 });
 
 API.interceptors.request.use((config) => {

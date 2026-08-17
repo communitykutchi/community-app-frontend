@@ -127,6 +127,17 @@ export default function SuperAdmin() {
   const [actionLoading, setActionLoading] = useState(false);
   const [openActionUserId, setOpenActionUserId] = useState<string | null>(null);
 
+  // Password Lookup & Reset Feature State
+  const [fetchQuery, setFetchQuery] = useState("");
+  const [fetchedUser, setFetchedUser] = useState<any | null>(null);
+  const [fetchingUser, setFetchingUser] = useState(false);
+  const [newPasswordValue, setNewPasswordValue] = useState("123456");
+  const [resettingPassword, setResettingPassword] = useState(false);
+  const [passwordResetModalUser, setPasswordResetModalUser] = useState<UserItem | null>(null);
+  const [modalNewPassword, setModalNewPassword] = useState("123456");
+  const [lastResetInfo, setLastResetInfo] = useState<{ user: string; pass: string } | null>(null);
+  const [showPlainPassword, setShowPlainPassword] = useState(true);
+
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (!(e.target as HTMLElement).closest(".member-action-dropdown")) {
@@ -314,6 +325,63 @@ export default function SuperAdmin() {
       showToast(err.response?.data?.message || "Failed to delete report.", "error");
     } finally {
       setActionLoading(false);
+    }
+  };
+
+  const handleFetchUser = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (!fetchQuery.trim()) {
+      showToast("Please enter an email, username, or phone.", "error");
+      return;
+    }
+    setFetchingUser(true);
+    setFetchedUser(null);
+    setLastResetInfo(null);
+    try {
+      const res = await API.post("/auth/admin/fetch-user", { query: fetchQuery.trim() });
+      if (res.data?.success && res.data.user) {
+        setFetchedUser(res.data.user);
+        setNewPasswordValue("123456");
+        showToast(`Account found for ${res.data.user.fullName}!`, "success");
+      } else {
+        showToast(res.data?.message || "User not found.", "error");
+      }
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Member account not found.", "error");
+    } finally {
+      setFetchingUser(false);
+    }
+  };
+
+  const handleAdminResetPassword = async (userId: string, targetPassword?: string) => {
+    const passwordToSet = targetPassword || newPasswordValue;
+    if (!passwordToSet || passwordToSet.length < 4) {
+      showToast("Password must be at least 4 characters.", "error");
+      return;
+    }
+    setResettingPassword(true);
+    try {
+      const res = await API.post("/auth/admin/reset-password", {
+        userId,
+        newPassword: passwordToSet,
+      });
+      if (res.data?.success) {
+        setLastResetInfo({
+          user: res.data.user?.fullName || "Member",
+          pass: passwordToSet,
+        });
+        showToast(res.data.message || "Password updated successfully!", "success");
+        setPasswordResetModalUser(null);
+        if (fetchedUser && fetchedUser._id === userId) {
+          setFetchedUser({ ...fetchedUser, passwordStatus: `Updated to "${passwordToSet}"` });
+        }
+      } else {
+        showToast(res.data?.message || "Failed to reset password.", "error");
+      }
+    } catch (err: any) {
+      showToast(err.response?.data?.message || "Failed to reset password.", "error");
+    } finally {
+      setResettingPassword(false);
     }
   };
 
@@ -542,7 +610,186 @@ export default function SuperAdmin() {
 
       {/* MEMBERS TAB */}
       {activeTab === "members" && (
-        <div className="rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 text-slate-900 shadow-xl space-y-4">
+        <div className="rounded-3xl border border-slate-200 bg-white p-4 sm:p-6 text-slate-900 shadow-xl space-y-5">
+          {/* Member Password Lookup & Direct Reset Control */}
+          <div className="rounded-2xl border border-amber-300/80 bg-gradient-to-br from-amber-50/70 via-white to-slate-50 p-4 sm:p-5 shadow-sm space-y-3">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-2.5">
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500 text-slate-950 text-base shadow-sm font-black">
+                  🔑
+                </span>
+                <div>
+                  <h3 className="text-sm font-black text-slate-900">Member Password Lookup & Reset Control</h3>
+                  <p className="text-[11px] text-slate-600 font-medium">
+                    Search any member by Email or Username to inspect details and instantly override their password.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <form onSubmit={handleFetchUser} className="flex flex-col sm:flex-row gap-2">
+              <div className="relative flex-1">
+                <input
+                  type="text"
+                  value={fetchQuery}
+                  onChange={(e) => setFetchQuery(e.target.value)}
+                  placeholder="Enter member's email, username, or phone number..."
+                  className="w-full rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-xs text-slate-900 placeholder-slate-400 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 transition"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={fetchingUser}
+                className="rounded-xl bg-slate-900 hover:bg-slate-800 px-5 py-2.5 text-xs font-black text-white shadow-md transition cursor-pointer active:scale-95 disabled:opacity-50 flex items-center justify-center gap-1.5"
+              >
+                {fetchingUser ? (
+                  <span>Fetching...</span>
+                ) : (
+                  <>
+                    <span>🔍 Fetch Account</span>
+                  </>
+                )}
+              </button>
+            </form>
+
+            {/* Fetched User Result Box */}
+            {fetchedUser && (
+              <div className="rounded-xl border border-amber-200 bg-white p-4 shadow-sm space-y-3 animate-in fade-in zoom-in-95 duration-150">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+                  <div className="flex items-center gap-3">
+                    <UserAvatar name={fetchedUser.fullName} size="md" />
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="text-sm font-extrabold text-slate-950">{fetchedUser.fullName}</h4>
+                        <span className="rounded-md px-2 py-0.5 text-[10px] font-black uppercase bg-amber-100 text-amber-900 border border-amber-300">
+                          {fetchedUser.role}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500">
+                        Username: <strong className="text-slate-800">@{fetchedUser.username}</strong> • Email: <strong className="text-slate-800">{fetchedUser.email}</strong>
+                      </p>
+                      <p className="text-[11px] text-slate-500">
+                        Phone: {fetchedUser.mobile} • Jamaat: {fetchedUser.jamaat} • Status: {fetchedUser.passwordStatus}
+                      </p>
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPasswordResetModalUser(fetchedUser);
+                      setModalNewPassword("123456");
+                    }}
+                    className="rounded-xl bg-amber-500 hover:bg-amber-400 px-4 py-2 text-xs font-black text-slate-950 shadow-md transition cursor-pointer active:scale-95 shrink-0"
+                  >
+                    🔑 Set / Override Password
+                  </button>
+                </div>
+
+                {/* CURRENT PASSWORD STATUS & DECRYPTED VALUE */}
+                {fetchedUser.currentPassword ? (
+                  <div className="rounded-xl border border-emerald-300 bg-emerald-50/90 p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-600 text-white text-base shadow-sm font-black">
+                        🔓
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-black uppercase tracking-wider text-emerald-800">
+                          Current Account Password (Decrypted)
+                        </p>
+                        <div className="flex items-center gap-2 pt-0.5 flex-wrap">
+                          <code className="font-mono text-sm font-black text-emerald-950 bg-white px-2.5 py-0.5 rounded-lg border border-emerald-300 shadow-2xs">
+                            {showPlainPassword ? fetchedUser.currentPassword : "••••••••••••"}
+                          </code>
+                          <button
+                            type="button"
+                            onClick={() => setShowPlainPassword(!showPlainPassword)}
+                            className="text-xs font-extrabold text-emerald-700 hover:text-emerald-900 underline cursor-pointer"
+                          >
+                            {showPlainPassword ? "Hide" : "Show"}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard?.writeText(fetchedUser.currentPassword);
+                        showToast("Password copied to clipboard!", "success");
+                      }}
+                      className="rounded-lg bg-emerald-700 hover:bg-emerald-800 px-3.5 py-1.5 text-xs font-black text-white shadow-sm transition cursor-pointer self-start sm:self-auto shrink-0"
+                    >
+                      📋 Copy Password
+                    </button>
+                  </div>
+                ) : (
+                  <div className="rounded-xl border border-amber-300 bg-amber-50/80 p-3 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5 text-xs font-semibold text-amber-900">
+                      <span className="text-base">🔒</span>
+                      <span>
+                        Legacy Encrypted Hash (Bcrypt) • Click <strong>"⚡ Save Now"</strong> below to set a new password and enable continuous instant decryption.
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="flex flex-col sm:flex-row items-center gap-2 pt-1 border-t border-slate-100">
+                  <span className="text-xs font-bold text-slate-700 shrink-0">Set New Password:</span>
+                  <input
+                    type="text"
+                    value={newPasswordValue}
+                    onChange={(e) => setNewPasswordValue(e.target.value)}
+                    placeholder="Type new password (e.g. 123456)"
+                    className="w-full sm:w-48 rounded-lg border border-slate-300 bg-slate-50 px-3 py-1.5 text-xs text-slate-900 font-mono outline-none focus:border-amber-500"
+                  />
+                  <div className="flex items-center gap-1.5 w-full sm:w-auto">
+                    <button
+                      type="button"
+                      onClick={() => setNewPasswordValue("123456")}
+                      className="rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1.5 text-[11px] font-bold text-slate-700 hover:bg-slate-200 transition"
+                    >
+                      "123456"
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setNewPasswordValue(`Kutchi@${Math.floor(1000 + Math.random() * 9000)}`)}
+                      className="rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1.5 text-[11px] font-bold text-slate-700 hover:bg-slate-200 transition"
+                    >
+                      🎲 Random
+                    </button>
+                    <button
+                      type="button"
+                      disabled={resettingPassword}
+                      onClick={() => handleAdminResetPassword(fetchedUser._id, newPasswordValue)}
+                      className="rounded-lg bg-emerald-600 hover:bg-emerald-500 px-3.5 py-1.5 text-xs font-black text-white shadow-sm transition disabled:opacity-50 cursor-pointer"
+                    >
+                      {resettingPassword ? "Saving..." : "⚡ Save Now"}
+                    </button>
+                  </div>
+                </div>
+
+                {lastResetInfo && (
+                  <div className="rounded-lg border border-emerald-300 bg-emerald-50 p-2.5 text-xs text-emerald-900 font-bold flex items-center justify-between gap-2">
+                    <span>
+                      ✅ Password for {lastResetInfo.user} set to: <code className="bg-white px-2 py-0.5 rounded border border-emerald-300 text-emerald-800 font-mono font-black">{lastResetInfo.pass}</code>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard?.writeText(lastResetInfo.pass);
+                        showToast("Password copied to clipboard!", "success");
+                      }}
+                      className="rounded-md bg-emerald-700 hover:bg-emerald-800 px-2.5 py-1 text-[11px] font-extrabold text-white cursor-pointer"
+                    >
+                      📋 Copy Password
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <input
               type="text"
@@ -655,6 +902,18 @@ export default function SuperAdmin() {
                               <span>🚫 Ban / Suspend</span>
                             </button>
                           )}
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setOpenActionUserId(null);
+                              setPasswordResetModalUser(u);
+                              setModalNewPassword("123456");
+                            }}
+                            className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left font-bold text-amber-700 hover:bg-amber-50 transition cursor-pointer"
+                          >
+                            <span>🔑 Set / Reset Password</span>
+                          </button>
 
                           <button
                             type="button"
@@ -810,6 +1069,18 @@ export default function SuperAdmin() {
                                   <span>🚫 Ban / Suspend</span>
                                 </button>
                               )}
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setOpenActionUserId(null);
+                                  setPasswordResetModalUser(u);
+                                  setModalNewPassword("123456");
+                                }}
+                                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left font-bold text-amber-700 hover:bg-amber-50 transition cursor-pointer"
+                              >
+                                <span>🔑 Set / Reset Password</span>
+                              </button>
 
                               <button
                                 type="button"
@@ -1479,6 +1750,81 @@ export default function SuperAdmin() {
                 className="rounded-xl bg-gradient-to-r from-rose-600 to-rose-700 hover:from-rose-500 hover:to-rose-600 px-5 py-2.5 text-xs font-black uppercase tracking-wider text-white shadow-lg shadow-rose-600/30 transition cursor-pointer active:scale-95 disabled:opacity-50"
               >
                 {actionLoading ? "Executing..." : "Execute Force Logout"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Password Reset Modal */}
+      {passwordResetModalUser && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4 animate-in fade-in duration-150">
+          <div className="relative overflow-hidden w-full max-w-md rounded-3xl border border-slate-200/80 bg-white p-6 sm:p-7 text-slate-900 shadow-2xl space-y-5 animate-in zoom-in-95 duration-150">
+            <div className="flex items-start gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 text-2xl shadow-sm">
+                🔑
+              </div>
+              <div className="space-y-1 pt-0.5 min-w-0">
+                <h3 className="text-lg font-black tracking-tight text-slate-900 truncate">Set Member Password</h3>
+                <p className="text-xs font-bold uppercase tracking-wider text-amber-700 truncate">{passwordResetModalUser.fullName} (@{passwordResetModalUser.username})</p>
+              </div>
+            </div>
+
+            <p className="text-xs text-slate-600 font-medium">
+              Enter a new password for <strong className="text-slate-900">{passwordResetModalUser.fullName}</strong> ({passwordResetModalUser.email || passwordResetModalUser.username}). This will immediately update their login credentials.
+            </p>
+
+            <div className="space-y-2">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">New Password</label>
+              <input
+                type="text"
+                value={modalNewPassword}
+                onChange={(e) => setModalNewPassword(e.target.value)}
+                placeholder="Type password..."
+                className="w-full rounded-xl border border-slate-300 bg-slate-50 px-4 py-2.5 text-sm font-mono text-slate-900 outline-none focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20"
+              />
+              <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                <span className="text-[11px] text-slate-500 font-bold">Quick set:</span>
+                <button
+                  type="button"
+                  onClick={() => setModalNewPassword("123456")}
+                  className="rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-200 transition"
+                >
+                  "123456"
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setModalNewPassword("Kutchi@2026")}
+                  className="rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-200 transition"
+                >
+                  "Kutchi@2026"
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setModalNewPassword(`Pass@${Math.floor(1000 + Math.random() * 9000)}`)}
+                  className="rounded-lg border border-slate-200 bg-slate-100 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-200 transition"
+                >
+                  🎲 Random
+                </button>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => setPasswordResetModalUser(null)}
+                disabled={resettingPassword}
+                className="rounded-xl border border-slate-300 bg-slate-100 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-200 transition cursor-pointer disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => handleAdminResetPassword(passwordResetModalUser._id, modalNewPassword)}
+                disabled={resettingPassword}
+                className="rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 px-5 py-2.5 text-xs font-black uppercase tracking-wider text-slate-950 shadow-lg shadow-amber-500/20 transition cursor-pointer active:scale-95 disabled:opacity-50"
+              >
+                {resettingPassword ? "Updating..." : "Confirm & Update Password"}
               </button>
             </div>
           </div>

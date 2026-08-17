@@ -54,6 +54,9 @@ export default function Friends() {
       setFriends(response.data.friends || []);
       setIncomingRequests(response.data.incomingRequests || []);
       setSentRequests(response.data.sentRequests || []);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("community-friends-activity"));
+      }
     } catch (err: any) {
       if (showLoading) {
         setMessage({ text: err.response?.data?.message || 'Unable to load friends.', isError: true });

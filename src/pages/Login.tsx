@@ -34,7 +34,7 @@ export default function Login() {
 
     try {
       const response = await API.post('/auth/login', {
-        identifier,
+        identifier: identifier.trim(),
         password,
       });
 
@@ -67,7 +67,7 @@ export default function Login() {
 
     try {
       const response = await API.post('/auth/otp/send', {
-        email: resetEmail,
+        email: resetEmail.trim(),
         purpose: 'reset_password',
         provider: 'resend',
         service: 'resend',
@@ -95,8 +95,8 @@ export default function Login() {
 
     try {
       const response = await API.post('/auth/password/reset', {
-        email: resetEmail,
-        otp: resetOtp,
+        email: resetEmail.trim(),
+        otp: resetOtp.trim(),
         newPassword,
       });
 
@@ -135,10 +135,10 @@ export default function Login() {
         {!forgotMode ? (
           <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Mobile Number or Email</label>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Username, Email or Mobile Number</label>
               <input
                 type="text"
-                placeholder="03XX-XXXXXXX or you@example.com"
+                placeholder="username, you@example.com or 03XX-XXXXXXX"
                 required
                 value={identifier}
                 onChange={(e) => setIdentifier(e.target.value)}
